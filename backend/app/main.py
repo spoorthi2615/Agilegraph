@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config.settings import settings
-from app.api.v1.endpoints import health, upload
+from app.api.v1.endpoints import health, upload, github
 from app.core.logging import setup_logging
 import logging
 
@@ -42,6 +42,7 @@ def create_app() -> FastAPI:
     # Register Routers
     app.include_router(health.router, prefix="/api/v1", tags=["Health"])
     app.include_router(upload.router, prefix="/api/v1", tags=["Upload"])
+    app.include_router(github.router, prefix="/api/v1", tags=["GitHub Import"])
 
     return app
 

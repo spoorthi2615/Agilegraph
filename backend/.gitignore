@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs
+logs/
+*.log
+
+# FastAPI/Docker
+.dockerignore
+docker-compose.override.yml
+
+# Uploads/Outputs
+uploads/
+outputs/

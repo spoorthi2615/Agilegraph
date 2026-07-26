@@ -31,3 +31,15 @@ class ScannerRegistry:
         Returns a list of all registered scanner names.
         """
         return list(self._scanners.keys())
+
+def get_default_registry() -> ScannerRegistry:
+    """
+    Factory function to instantiate a registry and pre-register all standard scanners.
+    """
+    from app.scanners.python_scanner import PythonScanner
+    from app.scanners.dependency_scanner import DependencyScanner
+    
+    registry = ScannerRegistry()
+    registry.register(PythonScanner)
+    registry.register(DependencyScanner)
+    return registry

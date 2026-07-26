@@ -1,12 +1,21 @@
 from typing import Dict, Any
+from enum import Enum
+from uuid import UUID
 import logging
 from pydantic import ValidationError
 from app.models.project_analysis import ProjectAnalysisResult
 from app.models.crypto_graph import CryptoGraph
 from app.models.graph_node import GraphNode
+from app.models.graph_edge import GraphEdge
 from app.models.crypto_asset import CryptoAsset
 
 logger = logging.getLogger(__name__)
+
+class NodeType(str, Enum):
+    FILE = "FILE"
+
+class EdgeType(str, Enum):
+    CONTAINS = "CONTAINS"
 
 class GraphBuilder:
     """
@@ -28,6 +37,9 @@ class GraphBuilder:
         """
         graph = CryptoGraph()
 
+        # Temporary local cache for file nodes: file_path -> file_node_id
+        file_cache: Dict[str, UUID] = {}
+
         # Step 2: Iterate through every ScannerResult
         for scanner_result in analysis_result.scanner_results:
             
@@ -41,6 +53,27 @@ class GraphBuilder:
                     logger.error(f"Skipping malformed finding from scanner '{scanner_result.scanner_name}': {str(e)}")
                     continue
                 
+                # 1. Determine file_path and create/cache the FILE node if it doesn't exist
+                # Use .as_posix() to ensure cross-platform normalization (converts \ to /)
+                file_path_str = asset.file_path.as_posix() if asset.file_path else "unknown_file"
+                
+                if file_path_str not in file_cache:
+                    # Use filename as label, full path in metadata
+                    file_label = asset.file_path.name if asset.file_path else "unknown_file"
+                    
+                    file_metadata = {"file_path": file_path_str}
+                    if asset.language:
+                        file_metadata["language"] = asset.language
+                        
+                    file_node = GraphNode(
+                        node_type=NodeType.FILE.value,
+                        label=file_label,
+                        metadata=file_metadata
+                    )
+                    
+                    graph.add_node(file_node)
+                    file_cache[file_path_str] = file_node.node_id
+                
                 # Step 4: Convert every CryptoAsset into one GraphNode
                 
                 # Label must use ONLY the algorithm name
@@ -50,7 +83,7 @@ class GraphBuilder:
                 metadata: Dict[str, Any] = {
                     "algorithm": asset.algorithm,
                     "language": asset.language,
-                    "file_path": str(asset.file_path) if asset.file_path else None,
+                    "file_path": file_path_str if asset.file_path else None,
                     "line_number": asset.line_number,
                     "severity": asset.severity.value if asset.severity else None,
                     "confidence": asset.confidence
@@ -63,14 +96,24 @@ class GraphBuilder:
                 # Clean up None values for a pristine metadata payload
                 metadata = {k: v for k, v in metadata.items() if v is not None}
                 
-                node = GraphNode(
+                asset_node = GraphNode(
                     node_type=asset.asset_type.value,
                     label=label,
                     metadata=metadata
                 )
                 
                 # Step 5: Insert every GraphNode into CryptoGraph using add_node()
-                graph.add_node(node)
+                graph.add_node(asset_node)
                 
-        # Step 6: Return the graph containing only nodes. Relationships postponed to Sprint 12.
+                # Step 6: Create GraphEdge FILE -> CONTAINS -> CRYPTO_ASSET
+                file_node_id = file_cache[file_path_str]
+                edge = GraphEdge(
+                    source_node=file_node_id,
+                    target_node=asset_node.node_id,
+                    edge_type=EdgeType.CONTAINS.value,
+                    metadata={}
+                )
+                
+                graph.add_edge(edge)
+                
         return graph

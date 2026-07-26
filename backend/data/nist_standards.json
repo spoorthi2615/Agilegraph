@@ -1,0 +1,87 @@
+{
+  "legacy_vulnerable": [
+    {
+      "algorithm": "RSA",
+      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+      "risk_score": 1.0,
+      "minimum_key_size_for_classical": 2048
+    },
+    {
+      "algorithm": "ECC",
+      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+      "risk_score": 1.0,
+      "minimum_key_size_for_classical": 256
+    },
+    {
+      "algorithm": "DSA",
+      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+      "risk_score": 1.0,
+      "minimum_key_size_for_classical": 2048
+    },
+    {
+      "algorithm": "Diffie-Hellman",
+      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+      "risk_score": 1.0,
+      "minimum_key_size_for_classical": 2048
+    }
+  ],
+  "deprecated_classical": [
+    {
+      "algorithm": "MD5",
+      "description": "Cryptographically broken. Vulnerable to collision attacks.",
+      "risk_score": 1.0
+    },
+    {
+      "algorithm": "SHA1",
+      "description": "Cryptographically broken. Vulnerable to collision attacks.",
+      "risk_score": 1.0
+    },
+    {
+      "algorithm": "DES",
+      "description": "Insecure block cipher. Key size too small.",
+      "risk_score": 1.0
+    },
+    {
+      "algorithm": "3DES",
+      "description": "Deprecated. Vulnerable to Sweet32 attack.",
+      "risk_score": 0.8
+    },
+    {
+      "algorithm": "RC4",
+      "description": "Vulnerable to multiple cryptographic attacks.",
+      "risk_score": 1.0
+    }
+  ],
+  "pqc_standards": [
+    {
+      "algorithm": "ML-KEM",
+      "fips": "FIPS 203",
+      "type": "Key Encapsulation Mechanism",
+      "description": "Module-Lattice-Based Key-Encapsulation Mechanism (formerly CRYSTALS-Kyber).",
+      "risk_score": 0.0,
+      "quantum_safe": true
+    },
+    {
+      "algorithm": "ML-DSA",
+      "fips": "FIPS 204",
+      "type": "Digital Signature",
+      "description": "Module-Lattice-Based Digital Signature Standard (formerly CRYSTALS-Dilithium).",
+      "risk_score": 0.0,
+      "quantum_safe": true
+    },
+    {
+      "algorithm": "SLH-DSA",
+      "fips": "FIPS 205",
+      "type": "Digital Signature",
+      "description": "Stateless Hash-Based Digital Signature Standard (formerly SPHINCS+).",
+      "risk_score": 0.0,
+      "quantum_safe": true
+    }
+  ],
+  "hybrid_recommendations": [
+    {
+      "description": "Combine a classical algorithm (e.g., ECDHE) with a PQC algorithm (e.g., ML-KEM) to provide both classical and quantum security.",
+      "risk_score": 0.1
+    }
+  ]
+}

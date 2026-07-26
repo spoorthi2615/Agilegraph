@@ -1,4 +1,6 @@
 import time
+import warnings
+import logging
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -55,13 +57,18 @@ class CertificateScanner(BaseScanner):
             content = file_path.read_bytes()
             
             # Attempt PEM parsing, fallback to DER parsing
-            try:
-                cert = x509.load_pem_x509_certificate(content)
-            except Exception:
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                warnings.simplefilter("always")
                 try:
-                    cert = x509.load_der_x509_certificate(content)
-                except Exception as inner_e:
-                    raise ValueError(f"Could not parse as PEM or DER: {inner_e}")
+                    cert = x509.load_pem_x509_certificate(content)
+                except Exception:
+                    try:
+                        cert = x509.load_der_x509_certificate(content)
+                    except Exception as inner_e:
+                        raise ValueError(f"Could not parse as PEM or DER: {inner_e}")
+                        
+                for w in caught_warnings:
+                    logging.warning(f"Certificate Scanner Warning in {file_path.name}: {w.message}")
                     
             # Extract basic identifiers
             subject = self._get_name_string(cert.subject)

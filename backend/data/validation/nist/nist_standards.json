@@ -1,0 +1,36 @@
+{
+  "legacy_vulnerable": [
+    {
+      "algorithm": "RSA",
+      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+      "risk_score": 1.0,
+      "minimum_key_size_for_classical": 2048
+    },
+    {
+      "algorithm": "ECC",
+      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+      "risk_score": 1.0,
+      "minimum_key_size_for_classical": 256
+    }
+  ],
+  "pqc_standards": [
+    {
+      "algorithm": "ML-KEM",
+      "fips": "FIPS 203",
+      "risk_score": 0.0,
+      "quantum_safe": true
+    },
+    {
+      "algorithm": "ML-DSA",
+      "fips": "FIPS 204",
+      "risk_score": 0.0,
+      "quantum_safe": true
+    },
+    {
+      "algorithm": "SLH-DSA",
+      "fips": "FIPS 205",
+      "risk_score": 0.0,
+      "quantum_safe": true
+    }
+  ]
+}

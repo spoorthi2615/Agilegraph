@@ -62,7 +62,7 @@ class FeatureEngineeringService:
             
         # Update traceability metadata
         new_metadata = dict(dataset.metadata)
-        new_metadata["feature_dimension"] = len(new_node_features[0])
+        new_metadata["feature_dimension"] = len(new_node_features[0]) if new_node_features else 0
         
         return TrainingDataset(
             dataset_id=dataset.dataset_id,

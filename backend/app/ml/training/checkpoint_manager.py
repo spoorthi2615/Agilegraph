@@ -17,11 +17,22 @@ class CheckpointManager:
         Serializes the state dictionaries to disk.
         """
         path = os.path.join(self.checkpoint_dir, filename)
+        
+        # Extract architecture metadata directly from the model to persist it inside the checkpoint
+        architecture = {
+            'in_dim': model.conv1.in_channels,
+            'hidden_dim': model.conv1.out_channels // model.conv1.heads,
+            'out_dim': model.lin.out_features,
+            'heads': model.conv1.heads,
+            'dropout': model.conv1.dropout
+        }
+        
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
-            'val_loss': val_loss
+            'val_loss': val_loss,
+            'architecture': architecture
         }, path)
         logging.info(f"Checkpoint saved to {path} (Val Loss: {val_loss:.4f})")
         

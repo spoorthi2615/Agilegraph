@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
 import { useMemo, useState } from "react";
-import { graphNodes, graphEdges, assets, riskColor, type RiskLevel } from "@/lib/mock-data";
+import { useCryptoGraph, useAssets } from "@/hooks/use-agilegraph";
+import { riskColor, type RiskLevel } from "@/lib/types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RiskBadge } from "@/components/risk-badge";
 import { Search, ZoomIn, ZoomOut, Maximize2, Filter, ArrowRight } from "lucide-react";
+import { CryptoGraphCanvas } from "@/components/widgets/crypto-graph-canvas";
 
 export const Route = createFileRoute("/_app/graph")({
   component: GraphView,
@@ -27,9 +29,18 @@ function GraphView() {
   const [types, setTypes] = useState<string[]>(TYPES);
   const [q, setQ] = useState("");
 
-  const visible = useMemo(() => graphNodes.filter((n) => types.includes(n.type) && (!q || n.label.toLowerCase().includes(q.toLowerCase()))), [types, q]);
-  const visibleIds = new Set(visible.map((n) => n.id));
-  const edges = graphEdges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
+  const { data: graphData } = useCryptoGraph();
+  const { data: assets = [] } = useAssets();
+  
+  const graphNodes = graphData?.nodes || [];
+  const graphEdges = graphData?.edges || [];
+
+  const { visible, edges } = useMemo(() => {
+    const v = graphNodes.filter((n) => types.includes(n.type) && (!q || n.label.toLowerCase().includes(q.toLowerCase())));
+    const ids = new Set(v.map((n) => n.id));
+    const e = graphEdges.filter((edge) => ids.has(edge.source) && ids.has(edge.target));
+    return { visible: v, edges: e };
+  }, [graphNodes, graphEdges, types, q]);
   const selectedAsset = selected ? assets.find((a) => a.id === selected) : null;
 
   const toggle = (t: string) => setTypes((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
@@ -53,7 +64,7 @@ function GraphView() {
                     <label key={t} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50">
                       <input type="checkbox" checked={types.includes(t)} onChange={() => toggle(t)} className="h-3.5 w-3.5 accent-[var(--color-primary)]" />
                       <span className="capitalize">{t}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">{graphNodes.filter((n) => n.type === t).length}</span>
+                      <span className="ml-auto text-xs text-muted-foreground">{graphNodes.filter((n: any) => n.type === t).length}</span>
                     </label>
                   ))}
                 </div>
@@ -83,29 +94,7 @@ function GraphView() {
               <span className="font-medium">{visible.length}</span> nodes · <span className="font-medium">{edges.length}</span> edges
             </div>
 
-            <div className="grid-bg h-[600px] w-full">
-              <svg viewBox="0 0 1000 640" className="h-full w-full" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}>
-                {edges.map((e, i) => {
-                  const s = graphNodes.find((n) => n.id === e.source)!;
-                  const t = graphNodes.find((n) => n.id === e.target)!;
-                  return <line key={i} x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke="oklch(0.88 0.01 260)" strokeWidth="1" />;
-                })}
-                {visible.map((n) => {
-                  const size = n.risk === "critical" ? 20 : n.risk === "high" ? 17 : n.risk === "medium" ? 14 : 12;
-                  const isSel = selected === n.id;
-                  return (
-                    <g key={n.id} className="cursor-pointer" onClick={() => setSelected(n.id)}>
-                      {isSel && <circle cx={n.x} cy={n.y} r={size + 8} fill="none" stroke="var(--color-primary)" strokeWidth="2" opacity="0.6" />}
-                      <circle cx={n.x} cy={n.y} r={size} fill="white" stroke={riskColor[n.risk]} strokeWidth="3" />
-                      <circle cx={n.x} cy={n.y} r={size / 3} fill={riskColor[n.risk]} />
-                      <text x={n.x} y={n.y + size + 12} textAnchor="middle" fontSize="10" fill="var(--color-muted-foreground)" style={{ pointerEvents: "none" }}>
-                        {n.label.length > 22 ? n.label.slice(0, 20) + "…" : n.label}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
+            <CryptoGraphCanvas nodes={visible} edges={edges} zoom={zoom} selected={selected} onSelect={setSelected} />
           </div>
         </div>
       </main>

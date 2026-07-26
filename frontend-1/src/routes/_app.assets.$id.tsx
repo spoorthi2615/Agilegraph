@@ -1,34 +1,55 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
-import { assets, riskColor } from "@/lib/mock-data";
+import { useAsset, useAssets } from "@/hooks/use-agilegraph";
+import { riskColor } from "@/lib/types";
 import { RiskBadge } from "@/components/risk-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Share2, GitBranch } from "lucide-react";
-import { ResponsiveContainer, LineChart, Line, YAxis, XAxis, Tooltip } from "recharts";
+import { AssetHistoryChart } from "@/components/charts/asset-history-chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const Route = createFileRoute("/_app/assets/$id")({
-  loader: ({ params }) => {
-    const asset = assets.find((a) => a.id === params.id);
-    if (!asset) throw notFound();
-    return { asset };
-  },
-  component: AssetDetail,
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: loaderData ? `${loaderData.asset.name} — AgileGraph` : "Asset — AgileGraph" },
-      { name: "description", content: loaderData ? `Risk breakdown, dependencies, and PQC migration plan for ${loaderData.asset.name}.` : "Asset details" },
-    ],
-  }),
-  notFoundComponent: () => (
-    <div className="p-10 text-center text-muted-foreground">Asset not found. <Link to="/rankings" className="text-primary hover:underline">Back to rankings</Link></div>
-  ),
+  component: AssetDetailWithBoundary,
 });
 
+function AssetDetailWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <AssetDetail />
+    </ErrorBoundary>
+  );
+}
+
 function AssetDetail() {
-  const data = Route.useLoaderData() as { asset: import("@/lib/mock-data").CryptoAsset };
-  const asset = data.asset;
+  const { id } = Route.useParams();
+  const { data: asset, isLoading, error, refetch } = useAsset(id);
+  const { data: assets = [] } = useAssets();
+
+  if (isLoading) return (
+    <div className="p-4 md:p-6 space-y-6">
+      <Skeleton className="h-10 w-64 mb-6" />
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-6">
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-[400px] w-full rounded-xl" />
+        </div>
+        <aside className="space-y-4">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </aside>
+      </div>
+    </div>
+  );
+  if (error || !asset) return (
+    <div className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
+      <div className="text-critical mb-4">Asset not found or failed to load.</div>
+      <Button onClick={() => refetch()} variant="outline">Retry</Button>
+    </div>
+  );
+
   const trend = Array.from({ length: 12 }).map((_, i) => ({ m: i, v: Math.max(20, asset.riskScore - Math.sin(i / 2) * 10 - i * 0.6) }));
 
   return (
@@ -163,14 +184,7 @@ function AssetDetail() {
             <div className="rounded-xl border bg-card p-5">
               <div className="text-sm font-semibold">Risk Trend</div>
               <div className="mt-3 h-32">
-                <ResponsiveContainer>
-                  <LineChart data={trend}>
-                    <YAxis hide domain={[0, 100]} />
-                    <XAxis hide dataKey="m" />
-                    <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
-                    <Line type="monotone" dataKey="v" stroke="var(--color-primary)" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <AssetHistoryChart data={trend} />
               </div>
               <p className="text-xs text-muted-foreground">Projected 12-week risk if migration proceeds on schedule.</p>
             </div>

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { RiskLevel } from "@/lib/mock-data";
+import type { RiskLevel } from "@/lib/types";
 
 const styles: Record<RiskLevel, string> = {
   critical: "bg-critical/10 text-critical ring-critical/20",

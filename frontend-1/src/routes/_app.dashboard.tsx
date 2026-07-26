@@ -6,18 +6,18 @@ import {
   Boxes, ShieldAlert, ShieldCheck, Activity, TrendingUp, GaugeCircle, Clock,
   AlertTriangle, ArrowUpRight,
 } from "lucide-react";
-import {
-  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip,
-  AreaChart, Area, CartesianGrid, Legend,
-} from "recharts";
-import {
-  kpis, riskDistribution, algorithmUsage, departmentUsage, migrationTrend,
-  activity, criticalAlerts,
-} from "@/lib/mock-data";
+import { RiskDistributionChart } from "@/components/charts/risk-distribution-chart";
+import { AlgorithmUsageChart } from "@/components/charts/algorithm-usage-chart";
+import { DepartmentUsageChart } from "@/components/charts/department-usage-chart";
+import { MigrationTrendChart } from "@/components/charts/migration-trend-chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { useDashboardSummary } from "@/hooks/use-agilegraph";
+import { SectionHead } from "@/components/ui/section-head";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_app/dashboard")({
-  component: Dashboard,
+  component: DashboardWithBoundary,
   head: () => ({
     meta: [
       { title: "Dashboard — AgileGraph" },
@@ -28,7 +28,47 @@ export const Route = createFileRoute("/_app/dashboard")({
 
 const chartColors = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
 
+function DashboardWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <Dashboard />
+    </ErrorBoundary>
+  );
+}
+
 function Dashboard() {
+  const { data, isLoading, error, refetch } = useDashboardSummary();
+
+  if (isLoading) return (
+    <div className="p-4 md:p-6 space-y-6">
+      <Skeleton className="h-10 w-64 mb-6" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Skeleton className="h-80 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl lg:col-span-2" />
+      </div>
+    </div>
+  );
+  if (error || !data) return (
+    <div className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
+      <div className="text-critical mb-4">Failed to load dashboard data.</div>
+      <Button onClick={() => refetch()} variant="outline">Retry</Button>
+    </div>
+  );
+
+  const { kpis, riskDistribution, algorithmUsage, departmentUsage, migrationTrend, activity, criticalAlerts } = data;
+
   return (
     <>
       <AppTopbar
@@ -54,87 +94,24 @@ function Dashboard() {
         <section className="grid gap-4 lg:grid-cols-3">
           <div className="rounded-xl border bg-card p-5">
             <SectionHead title="Risk Distribution" hint="Across all discovered assets" />
-            <div className="mt-4 h-64">
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={riskDistribution} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={3}>
-                    {riskDistribution.map((r, i) => <Cell key={i} fill={r.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-2 text-center text-xs">
-              {riskDistribution.map((r) => (
-                <div key={r.name}>
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full" style={{ background: r.color }} />
-                    <span className="text-muted-foreground">{r.name}</span>
-                  </div>
-                  <div className="mt-0.5 font-semibold">{r.value}</div>
-                </div>
-              ))}
-            </div>
+            <RiskDistributionChart data={riskDistribution} />
           </div>
 
           <div className="rounded-xl border bg-card p-5 lg:col-span-2">
             <SectionHead title="Algorithm Usage" hint="Assets grouped by current algorithm" />
-            <div className="mt-4 h-64">
-              <ResponsiveContainer>
-                <BarChart data={algorithmUsage} layout="vertical" margin={{ left: 20 }}>
-                  <CartesianGrid horizontal={false} stroke="var(--color-border)" />
-                  <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis dataKey="algorithm" type="category" fontSize={11} tickLine={false} axisLine={false} width={90} />
-                  <Tooltip cursor={{ fill: "var(--color-muted)" }} contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
-                  <Bar dataKey="count" fill="var(--color-primary)" radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <AlgorithmUsageChart data={algorithmUsage} />
           </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border bg-card p-5">
             <SectionHead title="Assets by Department" hint="Total vs. critical exposure" />
-            <div className="mt-4 h-64">
-              <ResponsiveContainer>
-                <BarChart data={departmentUsage}>
-                  <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="department" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="assets" fill="var(--color-chart-1)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="critical" fill="var(--color-critical)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <DepartmentUsageChart data={departmentUsage} />
           </div>
 
           <div className="rounded-xl border bg-card p-5">
             <SectionHead title="Migration Progress" hint="Migrated vs. planned assets per month" />
-            <div className="mt-4 h-64">
-              <ResponsiveContainer>
-                <AreaChart data={migrationTrend}>
-                  <defs>
-                    <linearGradient id="mig" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="pl" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--color-chart-5)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="var(--color-chart-5)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
-                  <Area type="monotone" dataKey="planned" stroke="var(--color-chart-5)" fill="url(#pl)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="migrated" stroke="var(--color-primary)" fill="url(#mig)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <MigrationTrendChart data={migrationTrend} />
           </div>
         </section>
 
@@ -188,13 +165,4 @@ function Dashboard() {
   );
 }
 
-function SectionHead({ title, hint }: { title: string; hint?: string }) {
-  return (
-    <div className="flex items-start justify-between">
-      <div>
-        <h3 className="text-sm font-semibold">{title}</h3>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      </div>
-    </div>
-  );
-}
+

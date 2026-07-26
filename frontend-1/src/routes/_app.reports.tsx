@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { reports } from "@/lib/mock-data";
+import { useRiskReports } from "@/hooks/use-agilegraph";
 import { toast } from "sonner";
 import { FileText, FileBarChart, Route as RouteIcon, ShieldAlert, Download, Printer, Table2 } from "lucide-react";
 
@@ -24,6 +24,7 @@ const generators = [
 ];
 
 function Reports() {
+  const { data: reports = [] } = useRiskReports();
   return (
     <>
       <AppTopbar title="Reports" subtitle="Generate and share compliance-ready reports" />

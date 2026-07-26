@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { UploadCloud, Github, Globe, FileKey2, Play, X, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
-import { recentScans } from "@/lib/mock-data";
+import { useDashboardSummary, useUploadProject, useGitHubImport } from "@/hooks/use-agilegraph";
+import { Dropzone } from "@/components/ui/dropzone";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/scan")({
@@ -26,6 +27,10 @@ function ScanPage() {
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("Idle");
+  const { data: dashboardData } = useDashboardSummary();
+  const recentScans = dashboardData?.recentScans || [];
+  const uploadProject = useUploadProject();
+  const importGitHub = useGitHubImport();
 
   const start = () => {
     if (running) return;
@@ -61,7 +66,10 @@ function ScanPage() {
               </TabsList>
 
               <TabsContent value="zip" className="mt-6">
-                <Dropzone />
+                <Dropzone onFileDrop={(file) => {
+                  uploadProject.mutate(file);
+                  start();
+                }} />
               </TabsContent>
               <TabsContent value="github" className="mt-6 space-y-4">
                 <div className="space-y-2"><Label>Repository URL</Label><Input placeholder="https://github.com/org/repo" /></div>
@@ -170,21 +178,4 @@ function ScanPage() {
   );
 }
 
-function Dropzone({ hint = "Drop your project ZIP file here, or click to browse" }: { hint?: string }) {
-  const [drag, setDrag] = useState(false);
-  return (
-    <div
-      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-      onDragLeave={() => setDrag(false)}
-      onDrop={(e) => { e.preventDefault(); setDrag(false); toast.success("File attached", { description: e.dataTransfer.files[0]?.name ?? "ready to scan" }); }}
-      className={`grid place-items-center rounded-xl border-2 border-dashed p-12 text-center transition-colors ${drag ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}
-    >
-      <div className="grid h-14 w-14 place-items-center rounded-full bg-primary/10 text-primary">
-        <UploadCloud className="h-7 w-7" />
-      </div>
-      <div className="mt-4 text-sm font-medium">{hint}</div>
-      <div className="mt-1 text-xs text-muted-foreground">Supports .zip, .tar.gz up to 500 MB</div>
-      <Button variant="outline" size="sm" className="mt-4">Choose file</Button>
-    </div>
-  );
-}
+

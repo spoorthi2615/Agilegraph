@@ -38,8 +38,10 @@ def get_default_registry() -> ScannerRegistry:
     """
     from app.scanners.python_scanner import PythonScanner
     from app.scanners.dependency_scanner import DependencyScanner
+    from app.scanners.certificate_scanner import CertificateScanner
     
     registry = ScannerRegistry()
     registry.register(PythonScanner)
     registry.register(DependencyScanner)
+    registry.register(CertificateScanner)
     return registry

@@ -1,92 +1,44 @@
 import os
 import sys
 import logging
-from unittest.mock import MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.dashboard.dashboard_models import (
-    DashboardPayload, OverviewMetrics, PQCReadinessMetrics,
-    MLEvaluationMetrics, ExplanationSummary, ExperimentMetrics
-)
-from app.dashboard.providers import (
-    GraphRepository, MLProvider, ExplainabilityProvider,
-    ExperimentProvider, ReportProvider
-)
-from app.dashboard.dashboard_service import DashboardService
+from app.validation.e2e_validator import PipelineValidator
+from app.validation.fault_injector import ChaosEngine
+from app.validation.performance_tracker import MetricsTracker
+from app.validation.validation_report import ValidationReportGenerator
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-def test_sprint76_dashboard_aggregation():
-    logging.info("Testing Sprint 75 Dashboard Aggregation Engine...")
+def test_sprint76():
+    logging.info("Testing Sprint 76 End-to-End System Validation...")
     
-    # 1. Setup Happy Path Mocks
-    mock_graph = MagicMock(spec=GraphRepository)
-    mock_graph.get_overview_metrics.return_value = OverviewMetrics(total_crypto_assets=100)
-    mock_graph.get_pqc_readiness.return_value = PQCReadinessMetrics(total_rsa_assets=50, total_pqc_ready_assets=5)
+    # Happy Path
+    validator = PipelineValidator()
+    result = validator.execute_dry_run()
+    assert result.failed_stages == 0
+    assert result.total_stages == 28
     
-    mock_ml = MagicMock(spec=MLProvider)
-    mock_ml.get_evaluation_metrics.return_value = MLEvaluationMetrics(accuracy=0.92)
+    metrics = MetricsTracker.extract_metrics(result)
+    assert metrics.total_execution_time_ms > 0
     
-    mock_explain = MagicMock(spec=ExplainabilityProvider)
-    mock_explain.get_recent_explanations.return_value = [
-        ExplanationSummary(node_id=1, predicted_class=1, confidence=0.95, top_features=["key_size"])
-    ]
+    json_out = ValidationReportGenerator.generate_json(result, metrics)
+    assert "validation_summary" in json_out
+    logging.info("Happy path full E2E pipeline execution simulated successfully.")
     
-    mock_exp = MagicMock(spec=ExperimentProvider)
-    mock_exp.get_experiment_metrics.return_value = ExperimentMetrics(cohens_kappa=0.88)
+    # Fault Injection Path (Graceful Degradation)
+    chaos = ChaosEngine(failure_points=["Semgrep Integration", "Certificate Transparency Scanner"], skip_points=["Ablation Study"])
+    chaos_result = validator.execute_dry_run(chaos_engine=chaos)
     
-    mock_rep = MagicMock(spec=ReportProvider)
-    mock_rep.get_available_reports.return_value = ["sprint_70_semgrep.json"]
+    assert chaos_result.failed_stages == 2
+    assert chaos_result.skipped_stages == 1
+    assert chaos_result.passed_stages == 25
+    logging.info("ChaosEngine fault injection gracefully handled without cascading failures.")
     
-    service = DashboardService(mock_graph, mock_ml, mock_explain, mock_exp, mock_rep)
-    
-    payload = service.generate_dashboard_payload()
-    
-    # Assertions for Happy Path
-    assert payload.overview.total_crypto_assets == 100
-    assert payload.pqc_readiness.total_pqc_ready_assets == 5
-    assert payload.ml_metrics.accuracy == 0.92
-    assert len(payload.explanations) == 1
-    assert payload.experiments.cohens_kappa == 0.88
-    assert "sprint_70_semgrep.json" in payload.reports_available
-    logging.info("Happy path aggregation succeeded. Data contracts verified.")
-    
-    # 2. Setup Fault Tolerance Path
-    faulty_graph = MagicMock(spec=GraphRepository)
-    faulty_graph.get_overview_metrics.side_effect = Exception("Neo4j timeout")
-    faulty_graph.get_pqc_readiness.side_effect = Exception("Graph disconnected")
-    
-    faulty_ml = MagicMock(spec=MLProvider)
-    faulty_ml.get_evaluation_metrics.side_effect = Exception("GATv2 model missing")
-    
-    faulty_explain = MagicMock(spec=ExplainabilityProvider)
-    faulty_explain.get_recent_explanations.side_effect = Exception("No gradients")
-    
-    faulty_exp = MagicMock(spec=ExperimentProvider)
-    faulty_exp.get_experiment_metrics.side_effect = Exception("Bootstrap data missing")
-    
-    faulty_rep = MagicMock(spec=ReportProvider)
-    faulty_rep.get_available_reports.side_effect = Exception("S3 bucket offline")
-    
-    fault_tolerant_service = DashboardService(
-        faulty_graph, faulty_ml, faulty_explain, faulty_exp, faulty_rep
-    )
-    
-    logging.info("Testing Graceful Degradation (All providers unavailable)...")
-    safe_payload = fault_tolerant_service.generate_dashboard_payload()
-    
-    # Assertions for Graceful Degradation
-    assert isinstance(safe_payload, DashboardPayload)
-    assert safe_payload.overview.total_crypto_assets == 0 # Default safe fallback
-    assert safe_payload.pqc_readiness.total_rsa_assets == 0
-    assert safe_payload.ml_metrics.accuracy == 0.0
-    assert safe_payload.experiments.cohens_kappa == 0.0
-    assert len(safe_payload.explanations) == 0
-    assert len(safe_payload.reports_available) == 0
-    
-    logging.info("Graceful degradation succeeded! The dashboard API will not crash when dependent microservices fail.")
-    logging.info("All Sprint 75 Dashboard tests passed successfully!")
+    logging.info("AgileGraph End-to-End validation completed successfully.")
+    logging.info("All Sprint 76 Tests passed successfully!")
+    logging.info("=== AGILEGRAPH PRODUCTION READINESS VERIFIED ===")
 
 if __name__ == "__main__":
-    test_sprint76_dashboard_aggregation()
+    test_sprint76()

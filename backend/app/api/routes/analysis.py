@@ -6,9 +6,13 @@ from typing import List, Dict, Any
 from app.config.settings import settings
 from app.services.project_analysis_service import ProjectAnalysisService
 from app.services.risk_scoring_service import RiskScoringService
+from app.services.neo4j_export_service import Neo4jExportService
 from app.services.graph_query_service import GraphQueryService
 from app.services.analysis_workflow_service import AnalysisWorkflowService
+from app.services.recommendation_workflow_service import RecommendationWorkflowService
+from app.services.migration_recommendation_service import MigrationRecommendationService
 from app.scanners.scanner_registry import get_default_registry
+from app.models.crypto_asset import CryptoAsset
 
 router = APIRouter()
 
@@ -43,6 +47,11 @@ def get_graph_query_service() -> GraphQueryService:
         user=settings.NEO4J_USER,
         password=settings.NEO4J_PASSWORD
     )
+
+def get_recommendation_workflow_service(
+    query_service: GraphQueryService = Depends(get_graph_query_service)
+) -> RecommendationWorkflowService:
+    return RecommendationWorkflowService(query_service=query_service)
 
 # ---------------------------------------------------------
 # Models
@@ -146,3 +155,18 @@ def get_dependency_files(
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         query_service.close()
+
+
+@router.get("/recommendations")
+def get_recommendations(
+    workflow_service: RecommendationWorkflowService = Depends(get_recommendation_workflow_service)
+) -> Dict[str, Any]:
+    """
+    Retrieves high-risk assets from the graph and generates actionable migration recommendations.
+    This endpoint purely orchestrates data flow between the web client and the workflow facade.
+    """
+    try:
+        recommendations = workflow_service.generate_high_risk_recommendations()
+        return {"data": [rec.model_dump(mode="json") for rec in recommendations]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

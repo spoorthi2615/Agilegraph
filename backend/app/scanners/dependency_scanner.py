@@ -17,7 +17,7 @@ class DependencyScanner(BaseScanner):
         
     @property
     def supported_languages(self) -> List[str]:
-        return ["Python"]
+        return ["Python", "Go"]
         
     def scan(self, project_path: Path) -> ScannerResult:
         start_time = time.time()
@@ -32,6 +32,8 @@ class DependencyScanner(BaseScanner):
                     self._parse_requirements_txt(file_path, findings, errors, processed_deps)
                 elif file_path.name == "pyproject.toml":
                     self._parse_pyproject_toml(file_path, findings, errors, processed_deps)
+                elif file_path.name in ("go.mod", "go.sum"):
+                    self._parse_go_mod(file_path, findings, errors, processed_deps)
                     
         execution_time_ms = (time.time() - start_time) * 1000.0
         
@@ -41,7 +43,7 @@ class DependencyScanner(BaseScanner):
             findings=findings,
             errors=errors,
             execution_time_ms=execution_time_ms,
-            metadata={"files_scanned_patterns": ["requirements.txt", "pyproject.toml"]}
+            metadata={"files_scanned_patterns": ["requirements.txt", "pyproject.toml", "go.mod", "go.sum"]}
         )
         
     def _create_dependency_asset(self, package_name: str, version: Optional[str], file_path: Path) -> Dict[str, Any]:
@@ -51,7 +53,7 @@ class DependencyScanner(BaseScanner):
         asset = CryptoAsset(
             asset_type=AssetType.DEPENDENCY,
             algorithm=package_name,
-            language="Python",
+            language="Unknown" if file_path.suffix not in [".mod", ".sum"] else "Go", # We can refine this later
             file_path=file_path,
             line_number=None,
             severity=None,
@@ -125,7 +127,64 @@ class DependencyScanner(BaseScanner):
                 version = f"{delim}{parts[1].strip()}"
                 break
                 
-        if "[" in package_name and package_name.endswith("]"):
             package_name = package_name.split("[")[0].strip()
             
         return package_name, version
+
+    def _parse_go_mod(self, file_path: Path, findings: List[Dict[str, Any]], errors: List[str], processed_deps: set) -> None:
+        try:
+            content = file_path.read_text(encoding="utf-8")
+            in_require_block = False
+            
+            for line in content.splitlines():
+                line = line.strip()
+                if not line or line.startswith("//"):
+                    continue
+                    
+                if line == "require (":
+                    in_require_block = True
+                    continue
+                elif line == ")" and in_require_block:
+                    in_require_block = False
+                    continue
+                    
+                # Direct requires in go.mod look like: "require github.com/foo/bar v1.2.3"
+                if line.startswith("require "):
+                    parts = line.split()
+                    if len(parts) >= 3:
+                        package_name = parts[1]
+                        version = parts[2]
+                        self._add_go_dep(package_name, version, file_path, findings, processed_deps)
+                elif in_require_block or file_path.name == "go.sum":
+                    # Lines inside require() block or in go.sum
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        package_name = parts[0]
+                        version = parts[1]
+                        self._add_go_dep(package_name, version, file_path, findings, processed_deps)
+                        
+        except Exception as e:
+            errors.append(f"Error parsing {file_path.name} at {file_path}: {str(e)}")
+            
+    def _add_go_dep(self, package_name: str, version: str, file_path: Path, findings: List[Dict[str, Any]], processed_deps: set) -> None:
+        dep_key = (package_name.lower(), version)
+        if dep_key in processed_deps:
+            return
+        processed_deps.add(dep_key)
+        
+        # We temporarily override the asset creation logic for Go dependencies
+        asset = CryptoAsset(
+            asset_type=AssetType.DEPENDENCY,
+            algorithm=package_name,
+            language="Go",
+            file_path=file_path,
+            line_number=None,
+            severity=None,
+            confidence=1.0,
+            metadata={
+                "package_name": package_name,
+                "version": version,
+                "manifest_file": file_path.name
+            }
+        )
+        findings.append(asset.model_dump(mode="json"))

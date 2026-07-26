@@ -40,10 +40,12 @@ def get_default_registry() -> ScannerRegistry:
     from app.scanners.dependency_scanner import DependencyScanner
     from app.scanners.certificate_scanner import CertificateScanner
     from app.scanners.java_scanner import JavaScanner
+    from app.scanners.go_scanner import GoScanner
     
     registry = ScannerRegistry()
     registry.register(PythonScanner)
     registry.register(DependencyScanner)
     registry.register(CertificateScanner)
     registry.register(JavaScanner)
+    registry.register(GoScanner)
     return registry

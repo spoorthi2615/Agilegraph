@@ -6,7 +6,7 @@ from app.dashboard.dashboard_models import (
 )
 from app.dashboard.providers import (
     GraphRepository, MLProvider, ExplainabilityProvider,
-    ExperimentProvider, ReportProvider
+    ExperimentProvider, ReportProvider, HeuristicsProvider, RecommendationProvider
 )
 
 logger = logging.getLogger(__name__)
@@ -22,19 +22,22 @@ class DashboardService:
         ml_provider: MLProvider,
         explain_provider: ExplainabilityProvider,
         experiment_provider: ExperimentProvider,
-        report_provider: ReportProvider
+        report_provider: ReportProvider,
+        heuristics_provider: HeuristicsProvider = None,
+        recommendation_provider: RecommendationProvider = None
     ):
         self.graph_repo = graph_repo
         self.ml_provider = ml_provider
         self.explain_provider = explain_provider
         self.experiment_provider = experiment_provider
         self.report_provider = report_provider
+        self.heuristics_provider = heuristics_provider
+        self.recommendation_provider = recommendation_provider
         
     def generate_dashboard_payload(self) -> DashboardPayload:
         """
         Synthesizes a unified Dashboard payload.
-        Implements strict graceful degradation: if any provider is offline or fails,
-        it returns safe defaults instead of crashing the dashboard.
+        Implements strict graceful degradation.
         """
         payload = DashboardPayload()
         
@@ -75,5 +78,20 @@ class DashboardService:
             if reports: payload.reports_available = reports
         except Exception as e:
             logger.error(f"ReportProvider failed to fetch data: {e}")
+
+        # 6. Heuristics & Recommendations (Sprint 75A)
+        if self.heuristics_provider:
+            try:
+                breakdowns = self.heuristics_provider.get_heuristic_breakdowns()
+                if breakdowns: payload.heuristic_breakdowns = breakdowns
+            except Exception as e:
+                logger.error(f"HeuristicsProvider failed to fetch data: {e}")
+                
+        if self.recommendation_provider:
+            try:
+                recs = self.recommendation_provider.get_migration_recommendations()
+                if recs: payload.migration_recommendations = recs
+            except Exception as e:
+                logger.error(f"RecommendationProvider failed to fetch data: {e}")
             
         return payload

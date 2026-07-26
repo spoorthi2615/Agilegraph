@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
+from app.heuristics.heuristic_breakdown import HeuristicBreakdown
+from app.heuristics.recommendation_engine import MigrationRecommendation
 
 class OverviewMetrics(BaseModel):
     total_repositories: int = 0
@@ -40,6 +42,11 @@ class ExperimentMetrics(BaseModel):
     cohens_kappa: float = 0.0
     fleiss_kappa: float = 0.0
 
+class MoscaReadinessMetrics(BaseModel):
+    # Placeholder for Mosca Readiness Index as requested in the synopsis
+    mosca_score: float = 0.0
+    mosca_compliance_percentage: float = 0.0
+    
 class DashboardPayload(BaseModel):
     """
     Unified API response payload containing the aggregated state for the React Frontend components.
@@ -50,3 +57,6 @@ class DashboardPayload(BaseModel):
     explanations: List[ExplanationSummary] = Field(default_factory=list)
     experiments: ExperimentMetrics = Field(default_factory=ExperimentMetrics)
     reports_available: List[str] = Field(default_factory=list)
+    heuristic_breakdowns: List[HeuristicBreakdown] = Field(default_factory=list)
+    migration_recommendations: List[MigrationRecommendation] = Field(default_factory=list)
+    mosca_readiness: MoscaReadinessMetrics = Field(default_factory=MoscaReadinessMetrics)

@@ -4,6 +4,8 @@ from app.dashboard.dashboard_models import (
     OverviewMetrics, PQCReadinessMetrics, MLEvaluationMetrics,
     ExplanationSummary, ExperimentMetrics
 )
+from app.heuristics.heuristic_breakdown import HeuristicBreakdown
+from app.heuristics.recommendation_engine import MigrationRecommendation
 
 class GraphRepository(ABC):
     """Abstract interface for querying raw structural knowledge graph state."""
@@ -32,3 +34,13 @@ class ReportProvider(ABC):
     """Abstract interface exposing raw JSON/Markdown report download links."""
     @abstractmethod
     def get_available_reports(self) -> List[str]: pass
+
+class HeuristicsProvider(ABC):
+    """Abstract interface exposing heuristic breakdown data."""
+    @abstractmethod
+    def get_heuristic_breakdowns(self, limit: int = 10) -> List[HeuristicBreakdown]: pass
+
+class RecommendationProvider(ABC):
+    """Abstract interface exposing prioritized migration data."""
+    @abstractmethod
+    def get_migration_recommendations(self, limit: int = 10) -> List[MigrationRecommendation]: pass

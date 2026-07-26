@@ -16,6 +16,7 @@ class NodeType(str, Enum):
 
 class EdgeType(str, Enum):
     CONTAINS = "CONTAINS"
+    USES = "USES"
 
 class GraphBuilder:
     """
@@ -39,6 +40,9 @@ class GraphBuilder:
 
         # Temporary local cache for file nodes: file_path -> file_node_id
         file_cache: Dict[str, UUID] = {}
+        
+        # Temporary local cache for dependencies: package_name.lower() -> dependency_node_id
+        dependency_cache: Dict[str, UUID] = {}
 
         # Step 2: Iterate through every ScannerResult
         for scanner_result in analysis_result.scanner_results:
@@ -105,6 +109,10 @@ class GraphBuilder:
                 # Step 5: Insert every GraphNode into CryptoGraph using add_node()
                 graph.add_node(asset_node)
                 
+                # Cache DEPENDENCY nodes for later relationship construction
+                if asset.asset_type.value == "DEPENDENCY":
+                    dependency_cache[asset.algorithm.lower()] = asset_node.node_id
+                
                 # Step 6: Create GraphEdge FILE -> CONTAINS -> CRYPTO_ASSET
                 file_node_id = file_cache[file_path_str]
                 edge = GraphEdge(
@@ -115,5 +123,47 @@ class GraphBuilder:
                 )
                 
                 graph.add_edge(edge)
+                
+        # Step 7: Generate USES relationships between Python files and Dependencies
+        from pathlib import Path
+        for file_path_str, file_node_id in file_cache.items():
+            if not file_path_str.endswith(".py"):
+                continue
+                
+            file_path = Path(file_path_str)
+            if not file_path.exists() or not file_path.is_file():
+                continue
+                
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                imported_packages = set()
+                
+                for line in content.splitlines():
+                    line = line.strip()
+                    if line.startswith("import "):
+                        parts = line[7:].split(",")
+                        for p in parts:
+                            top_level = p.strip().split(".")[0]
+                            if top_level:
+                                imported_packages.add(top_level.lower())
+                    elif line.startswith("from "):
+                        parts = line[5:].split(" import ")
+                        if len(parts) >= 1:
+                            top_level = parts[0].strip().split(".")[0]
+                            if top_level:
+                                imported_packages.add(top_level.lower())
+                                
+                for pkg in imported_packages:
+                    if pkg in dependency_cache:
+                        edge = GraphEdge(
+                            source_node=file_node_id,
+                            target_node=dependency_cache[pkg],
+                            edge_type=EdgeType.USES.value,
+                            metadata={}
+                        )
+                        graph.add_edge(edge)
+                        
+            except Exception as e:
+                logger.error(f"Error extracting imports from {file_path_str}: {e}")
                 
         return graph

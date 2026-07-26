@@ -1,8 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config.settings import settings
 from app.api.v1.endpoints import health, upload, github
+from app.api.routes import dashboard, analysis
+from app.core.exceptions import AgileGraphException, ValidationException, ResourceNotFoundException, EntityTooLargeException
 from app.core.logging import setup_logging
 import logging
 
@@ -39,10 +42,29 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Register Exception Handlers
+    @app.exception_handler(ValidationException)
+    async def validation_exception_handler(request: Request, exc: ValidationException):
+        return JSONResponse(status_code=400, content={"detail": exc.message})
+        
+    @app.exception_handler(ResourceNotFoundException)
+    async def not_found_exception_handler(request: Request, exc: ResourceNotFoundException):
+        return JSONResponse(status_code=404, content={"detail": exc.message})
+        
+    @app.exception_handler(EntityTooLargeException)
+    async def too_large_exception_handler(request: Request, exc: EntityTooLargeException):
+        return JSONResponse(status_code=413, content={"detail": exc.message})
+        
+    @app.exception_handler(AgileGraphException)
+    async def domain_exception_handler(request: Request, exc: AgileGraphException):
+        return JSONResponse(status_code=500, content={"detail": exc.message})
+
     # Register Routers
     app.include_router(health.router, prefix="/api/v1", tags=["Health"])
     app.include_router(upload.router, prefix="/api/v1", tags=["Upload"])
     app.include_router(github.router, prefix="/api/v1", tags=["GitHub Import"])
+    app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
+    app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
 
     return app
 

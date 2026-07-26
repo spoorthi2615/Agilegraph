@@ -1,7 +1,7 @@
 import uuid
 import re
-from fastapi import HTTPException, status
 from app.schemas.github_schema import GithubImportRequest, GithubImportResponse
+from app.core.exceptions import ValidationException
 
 class GitHubImportService:
     @staticmethod
@@ -15,10 +15,7 @@ class GitHubImportService:
         )
         
         if not github_pattern.match(url):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid GitHub repository URL provided. Must be a valid github.com repository."
-            )
+            raise ValidationException("Invalid GitHub repository URL provided. Must be a valid github.com repository.")
             
         project_id = str(uuid.uuid4())
         

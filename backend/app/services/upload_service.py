@@ -1,7 +1,8 @@
 import os
 import uuid
 import shutil
-from fastapi import UploadFile, HTTPException, status
+from fastapi import UploadFile
+from app.core.exceptions import ValidationException, EntityTooLargeException, AgileGraphException
 from app.config.settings import settings
 from app.schemas.upload_schema import UploadResponse
 
@@ -18,17 +19,11 @@ class UploadService:
         
         # Ensure the filename is not empty or inherently malicious like "." or ".."
         if not safe_filename or safe_filename in {".", ".."}:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid filename provided."
-            )
+            raise ValidationException("Invalid filename provided.")
 
         # Validate extension using the sanitized name
         if not safe_filename.lower().endswith('.zip'):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only .zip files are allowed."
-            )
+            raise ValidationException("Only .zip files are allowed.")
             
         # Validate size
         file.file.seek(0, os.SEEK_END)
@@ -36,10 +31,7 @@ class UploadService:
         file.file.seek(0)
         
         if file_size > MAX_FILE_SIZE:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="File size exceeds the 100 MB limit."
-            )
+            raise EntityTooLargeException("File size exceeds the 100 MB limit.")
             
         # Generate unique project ID
         project_id = str(uuid.uuid4())
@@ -58,10 +50,7 @@ class UploadService:
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to save file: {str(e)}"
-            )
+            raise AgileGraphException(f"Failed to save file: {str(e)}")
         finally:
             file.file.close()
             

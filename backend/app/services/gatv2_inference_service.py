@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timezone
 
 from app.models.inference_result import InferenceResult, NodePrediction
-from app.models.training_dataset import TrainingDataset
+from app.models.inference_dataset import InferenceDataset
 from app.models.model_config import ModelConfig
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class GATv2InferenceService:
     def run_inference(
         cls,
         model: Any,
-        dataset: TrainingDataset,
+        dataset: InferenceDataset,
         config: ModelConfig
     ) -> InferenceResult:
         """
@@ -128,7 +128,7 @@ class GATv2InferenceService:
     @classmethod
     def _simulate_inference(
         cls, 
-        dataset: TrainingDataset, 
+        dataset: InferenceDataset, 
         config: ModelConfig,
         threshold: float
     ) -> InferenceResult:

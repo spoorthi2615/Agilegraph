@@ -20,7 +20,7 @@ class DatasetProcessingService:
     ) -> TrainingDataset:
         """
         Traverses the graph to assign deterministic integer indices to UUIDs, 
-        extracts raw node features, and maps topological edges into integer arrays.
+        and maps topological edges into integer coordinate arrays.
         """
         
         # Step 1: Assign deterministic integer indices to nodes.
@@ -35,24 +35,11 @@ class DatasetProcessingService:
             node_to_index[node.node_id] = idx
             index_to_node[idx] = node
             
-        # Step 2: Generate node features (X) and node labels (Y)
-        node_features: List[List[float]] = []
-        node_labels: List[int] = []
-        
-        for idx in range(len(sorted_nodes)):
-            node = index_to_node[idx]
-            
-            # Extract basic raw numerical features without normalizing or generating embeddings
-            is_file = 1.0 if node.node_type == "FILE" else 0.0
-            is_dependency = 1.0 if node.node_type == "DEPENDENCY" else 0.0
-            contextual_risk = float(node.metadata.get("contextual_risk", 0.0))
-            
-            features = [is_file, is_dependency, contextual_risk]
-            node_features.append(features)
-            
-            # Ground truth label: the base risk score (used as the prediction target)
-            risk_score = int(node.metadata.get("risk_score", 0))
-            node_labels.append(risk_score)
+        # Step 2: Initialize empty node features (X) and node labels (Y)
+        # These responsibilities are now strictly owned by FeatureEngineeringService 
+        # and LabelGenerationService respectively.
+        node_features: List[List[float]] = [[] for _ in sorted_nodes]
+        node_labels: List[int] = [-1 for _ in sorted_nodes]
             
         # Step 3: Generate edge index for structural topology
         # Converts arbitrary UUID connections into strict integer coordinate pairs
@@ -68,9 +55,7 @@ class DatasetProcessingService:
         # Step 4: Populate traceability metadata
         # Crucial for mapping the ML predictions back to the actual files/assets
         metadata = {
-            "node_index_mapping": {str(uid): idx for uid, idx in node_to_index.items()},
-            "feature_columns": ["is_file", "is_dependency", "contextual_risk"],
-            "label_description": "risk_score"
+            "node_index_mapping": {str(uid): idx for uid, idx in node_to_index.items()}
         }
         
         return TrainingDataset(

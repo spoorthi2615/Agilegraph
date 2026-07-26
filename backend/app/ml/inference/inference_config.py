@@ -13,7 +13,7 @@ class InferenceConfig(BaseModel):
     dropout: float = Field(default=0.0) # Dropout is disabled during inference via .eval() anyway
     
     # Checkpoint details
-    checkpoint_path: str = Field(default="backend/outputs/models/gatv2_best.pt")
+    checkpoint_path: str = Field(default="outputs/models/gatv2_best.pt")
     
     # Execution details
     device: str = Field(default="cuda" if torch.cuda.is_available() else "cpu")

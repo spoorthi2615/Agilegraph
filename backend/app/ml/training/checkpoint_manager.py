@@ -7,7 +7,7 @@ class CheckpointManager:
     Manages saving and restoring model and optimizer states.
     Ensures that the best weights are securely persisted for production inference.
     """
-    def __init__(self, checkpoint_dir: str = "backend/outputs/models"):
+    def __init__(self, checkpoint_dir: str = "outputs/models"):
         self.checkpoint_dir = checkpoint_dir
         if not os.path.exists(self.checkpoint_dir):
             os.makedirs(self.checkpoint_dir)
@@ -21,8 +21,8 @@ class CheckpointManager:
         # Extract architecture metadata directly from the model to persist it inside the checkpoint
         architecture = {
             'in_dim': model.conv1.in_channels,
-            'hidden_dim': model.conv1.out_channels // model.conv1.heads,
-            'out_dim': model.lin.out_features,
+            'hidden_dim': model.conv1.out_channels,
+            'out_dim': model.conv2.out_channels,
             'heads': model.conv1.heads,
             'dropout': model.conv1.dropout
         }

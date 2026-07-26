@@ -55,7 +55,7 @@ def test_sprint58():
     trainer.train(pyg_data, pyg_data)
     
     # 5. Verify checkpoint was created
-    assert os.path.exists("backend/outputs/models/gatv2_best.pt"), "Checkpoint failed to save."
+    assert os.path.exists("outputs/models/gatv2_best.pt"), "Checkpoint failed to save."
     
     logging.info("All Sprint 58 ML Pipeline components executed successfully!")
 

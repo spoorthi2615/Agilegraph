@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime, timezone
 from app.scanners.live_tls.tls_certificate import TLSCertificate
 
@@ -10,7 +10,6 @@ class TLSFinding(BaseModel):
     domain: str
     port: int
     
-    # TLS Protocol metadata
     tls_version: str
     cipher_suite: str
     alpn: Optional[str] = None
@@ -19,8 +18,28 @@ class TLSFinding(BaseModel):
     
     certificate: Optional[TLSCertificate] = None
     
-    # Analyzed Risk Metadata
     risk_score: float = Field(default=0.0)
     findings: List[str] = Field(default_factory=list)
     
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    
+    def to_graph_edges(self) -> List[Tuple[str, str, str]]:
+        """
+        Deterministically translates this data structure into Graph Database Edges.
+        Format: (SourceNode, RELATIONSHIP, TargetNode)
+        """
+        edges = []
+        domain_node = f"Domain:{self.domain}"
+        
+        # Protocol Edges
+        edges.append((domain_node, "USES_PROTOCOL", f"Protocol:{self.tls_version}"))
+        edges.append((domain_node, "USES_CIPHER", f"CipherSuite:{self.cipher_suite}"))
+        
+        if self.certificate:
+            cert_node = f"Certificate:{self.certificate.serial_number}"
+            edges.append((domain_node, "SECURED_BY", cert_node))
+            edges.append((cert_node, "ISSUED_BY", f"CA:{self.certificate.issuer}"))
+            edges.append((cert_node, "USES_ALGORITHM", f"Algorithm:{self.certificate.public_key_algorithm}"))
+            edges.append((cert_node, "SIGNED_WITH", f"Signature:{self.certificate.signature_algorithm}"))
+            
+        return edges

@@ -1,6 +1,5 @@
 import logging
 from typing import Optional
-from app.scanners.live_tls.tls_config import TLSConfig
 from app.scanners.live_tls.tls_connection import TLSConnectionManager
 from app.scanners.live_tls.tls_scanner import TLSScanner
 from app.scanners.live_tls.tls_finding import TLSFinding
@@ -9,32 +8,30 @@ logger = logging.getLogger(__name__)
 
 class TLSService:
     """
-    Facade orchestrating the live TLS network connection, certificate extraction, and risk analysis.
+    Facade orchestrating the live TLS network connection.
+    Strictly adheres to Dependency Inversion by receiving injected network and scanner engines.
     """
-    def __init__(self, config: TLSConfig):
-        self.config = config
-        self.connection_manager = TLSConnectionManager(config)
-        self.scanner = TLSScanner()
+    def __init__(self, connection_manager: TLSConnectionManager, scanner: TLSScanner):
+        self.connection_manager = connection_manager
+        self.scanner = scanner
         
     def scan_domain(self, domain: str, port: Optional[int] = None) -> Optional[TLSFinding]:
         """
         Executes a live network scan against the target domain.
         Returns a populated TLSFinding object, ready for Graph Integration.
         """
-        target_port = port if port else self.config.default_port
+        target_port = port if port else self.connection_manager.config.default_port
         
         der_bytes, ssock = self.connection_manager.get_live_connection_data(domain, target_port)
         
         if not ssock:
             return None
             
-        # Extract TLS Protocol metadata from the active socket
         tls_version = ssock.version() or "UNKNOWN"
         cipher_suite = ssock.cipher()
         cipher_name = cipher_suite[0] if cipher_suite else "UNKNOWN"
         alpn = ssock.selected_alpn_protocol()
         
-        # Initialize the Graph Node mapping model
         finding = TLSFinding(
             domain=domain,
             port=target_port,
@@ -49,13 +46,12 @@ class TLSService:
                 finding.certificate = cert_model
                 finding.certificate_chain_length = 1
                 
-        # Run Risk Detection (evaluates key length, signatures, dates, etc.)
-        self.scanner.analyze_risk(finding)
+        # Risk detection returns a purely immutable copy
+        enriched_finding = self.scanner.analyze_risk(finding)
         
-        # Close the socket cleanly
         try:
             ssock.close()
         except Exception:
             pass
             
-        return finding
+        return enriched_finding

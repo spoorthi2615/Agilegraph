@@ -1,47 +1,41 @@
-from typing import List, Dict, Any
+from typing import List
 from app.scanners.semgrep.semgrep_finding import SemgrepFinding
 
 class FindingNormalizer:
     """
-    Merges Semgrep findings with existing custom scanner findings, identifying and deduplicating overlaps.
+    Merges Semgrep findings with existing custom scanner findings immutably,
+    maintaining strict deduplication keys and returning strongly typed models.
     """
-    @staticmethod
-    def normalize(custom_findings: List[Dict[str, Any]], semgrep_findings: List[SemgrepFinding]) -> List[Dict[str, Any]]:
+    def normalize(self, custom_findings: List[SemgrepFinding], semgrep_findings: List[SemgrepFinding]) -> List[SemgrepFinding]:
         """
-        Takes dictionaries representing existing nodes and new Semgrep findings.
-        Returns a unified list of finding dictionaries, annotated with their source attribution.
+        Takes strongly typed existing findings and strongly typed Semgrep findings.
+        Returns a new unified list of finding objects, preserving immutability.
         """
-        normalized = []
-        custom_index = {}
+        # Deduplication key is now (file_path, line, rule_id)
+        # This prevents catastrophic false negatives when multiple distinct
+        # vulnerabilities exist on the exact same line of code.
         
+        merged_results = []
+        
+        # Copy custom findings to merged_results to preserve immutability of the input
+        # We use model_copy() to create a deep copy
         for cf in custom_findings:
-            cf_key = (cf.get("file_path", ""), cf.get("line", 0))
-            if "source" not in cf:
-                cf["source"] = "Custom"
-            custom_index[cf_key] = cf
+            merged_results.append(cf.model_copy())
             
+        # Re-index the merged results so we can update them in place in the output list safely
+        output_index = { (f.file_path, f.line, f.rule_id): f for f in merged_results }
+        
         for sf in semgrep_findings:
-            sf_key = (sf.file_path, sf.line)
+            # We map the semgrep rule_id to the custom rule_id logic.
+            key = (sf.file_path, sf.line, sf.rule_id)
             
-            if sf_key in custom_index:
-                # Deduplicate: We already have a custom finding here.
-                # Update the source attribution to show both engines found it.
-                existing = custom_index[sf_key]
-                existing["source"] = "Both"
-                existing["semgrep_rule_id"] = sf.rule_id
+            if key in output_index:
+                # We have a true overlap. Update the source attribution on the NEW list's object.
+                existing_match = output_index[key]
+                existing_match.source = "Both"
+                existing_match.semgrep_rule_id = sf.rule_id
             else:
-                # Unique Semgrep finding
-                new_finding = {
-                    "rule_id": sf.rule_id,
-                    "severity": sf.severity,
-                    "message": sf.message,
-                    "language": sf.language,
-                    "file_path": sf.file_path,
-                    "line": sf.line,
-                    "column": sf.column,
-                    "source": "Semgrep"
-                }
-                normalized.append(new_finding)
+                # Unique finding. Add it directly.
+                merged_results.append(sf.model_copy())
                 
-        # Combine the original custom findings (some may be updated to "Both") and new unique Semgrep findings
-        return list(custom_index.values()) + normalized
+        return merged_results

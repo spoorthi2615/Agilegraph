@@ -14,5 +14,9 @@ class SemgrepFinding(BaseModel):
     column: int
     code_snippet: str
     
+    # Attribution
+    source: str = Field(default="Semgrep")
+    semgrep_rule_id: Optional[str] = None
+    
     # Metadata for CWE/OWASP mapping and Graph integration
     metadata: Dict[str, Any] = Field(default_factory=dict)

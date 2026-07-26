@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from app.scanners.scanner_registry import ScannerRegistry
 from app.scanners.scanner_result import ScannerResult
 
@@ -10,9 +10,10 @@ class ScannerManager:
     def __init__(self, registry: ScannerRegistry) -> None:
         self.registry = registry
         
-    def execute_all(self, project_path: Path) -> List[ScannerResult]:
+    def execute_all(self, project_path: Path, target_languages: Optional[List[str]] = None) -> List[ScannerResult]:
         """
         Sequentially executes all registered scanners against the project path.
+        If target_languages is provided, only scanners supporting those languages are executed.
         """
         results: List[ScannerResult] = []
         scanner_names = self.registry.list_scanners()
@@ -23,6 +24,14 @@ class ScannerManager:
             try:
                 # Instantiate a fresh scanner before executing scan()
                 scanner = scanner_class()
+                
+                if target_languages is not None:
+                    # Verify intersection between detected languages and the scanner's supported languages
+                    supported = set(scanner.supported_languages)
+                    targets = set(target_languages)
+                    if not supported.intersection(targets):
+                        continue
+                
                 
                 # Execute the scanner and collect the standard result
                 result = scanner.scan(project_path)

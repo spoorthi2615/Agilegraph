@@ -6,7 +6,8 @@ from app.dashboard.dashboard_models import (
 )
 from app.dashboard.providers import (
     GraphRepository, MLProvider, ExplainabilityProvider,
-    ExperimentProvider, ReportProvider, HeuristicsProvider, RecommendationProvider
+    ExperimentProvider, ReportProvider, HeuristicsProvider, RecommendationProvider,
+    SensitivityProvider
 )
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,8 @@ class DashboardService:
         experiment_provider: ExperimentProvider,
         report_provider: ReportProvider,
         heuristics_provider: HeuristicsProvider = None,
-        recommendation_provider: RecommendationProvider = None
+        recommendation_provider: RecommendationProvider = None,
+        sensitivity_provider: SensitivityProvider = None
     ):
         self.graph_repo = graph_repo
         self.ml_provider = ml_provider
@@ -33,6 +35,7 @@ class DashboardService:
         self.report_provider = report_provider
         self.heuristics_provider = heuristics_provider
         self.recommendation_provider = recommendation_provider
+        self.sensitivity_provider = sensitivity_provider
         
     def generate_dashboard_payload(self) -> DashboardPayload:
         """
@@ -93,5 +96,13 @@ class DashboardService:
                 if recs: payload.migration_recommendations = recs
             except Exception as e:
                 logger.error(f"RecommendationProvider failed to fetch data: {e}")
+                
+        # 7. Sensitivity Analysis (Sprint 75B)
+        if self.sensitivity_provider:
+            try:
+                sens = self.sensitivity_provider.get_sensitivity_metrics()
+                if sens: payload.sensitivity_analysis = sens
+            except Exception as e:
+                logger.error(f"SensitivityProvider failed to fetch data: {e}")
             
         return payload

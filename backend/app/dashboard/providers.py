@@ -44,3 +44,8 @@ class RecommendationProvider(ABC):
     """Abstract interface exposing prioritized migration data."""
     @abstractmethod
     def get_migration_recommendations(self, limit: int = 10) -> List[MigrationRecommendation]: pass
+
+class SensitivityProvider(ABC):
+    """Abstract interface exposing stability analysis data."""
+    @abstractmethod
+    def get_sensitivity_metrics(self) -> Optional['SensitivityAnalysisMetrics']: pass

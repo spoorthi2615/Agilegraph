@@ -47,6 +47,12 @@ class MoscaReadinessMetrics(BaseModel):
     mosca_score: float = 0.0
     mosca_compliance_percentage: float = 0.0
     
+class SensitivityAnalysisMetrics(BaseModel):
+    overall_stability_score: float = 0.0
+    most_sensitive_heuristic: str = "UNKNOWN"
+    most_stable_heuristic: str = "UNKNOWN"
+    perturbation_results: List[Dict[str, Any]] = Field(default_factory=list)
+    
 class DashboardPayload(BaseModel):
     """
     Unified API response payload containing the aggregated state for the React Frontend components.
@@ -60,3 +66,4 @@ class DashboardPayload(BaseModel):
     heuristic_breakdowns: List[HeuristicBreakdown] = Field(default_factory=list)
     migration_recommendations: List[MigrationRecommendation] = Field(default_factory=list)
     mosca_readiness: MoscaReadinessMetrics = Field(default_factory=MoscaReadinessMetrics)
+    sensitivity_analysis: SensitivityAnalysisMetrics = Field(default_factory=SensitivityAnalysisMetrics)

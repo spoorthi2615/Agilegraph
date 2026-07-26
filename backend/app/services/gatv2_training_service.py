@@ -32,14 +32,17 @@ class GATv2TrainingService:
         dataset: TrainingDataset, 
         validation: DatasetValidation, 
         config: ModelConfig, 
-        model: Any, 
-        epochs: int = 100, 
-        learning_rate: float = 0.01
+        model: Any,
+        training_config: Any = None,
+        epochs: int = 100
     ) -> TrainingResult:
         """
         Executes backpropagation over the graph dataset to optimize model weights.
         Strictly restricted to training; evaluation and inference are explicitly excluded.
         """
+        if training_config is None:
+            from app.models.training_config import TrainingConfig
+            training_config = TrainingConfig()
         # 1. Verify Dataset Validation mathematically
         if not validation.validation_passed:
             raise ValueError(
@@ -50,7 +53,7 @@ class GATv2TrainingService:
         # 2. Verify Model Compatibility
         if not TORCH_AVAILABLE:
             logger.warning("PyTorch framework unavailable. Returning symbolic TrainingResult bypass.")
-            return cls._simulate_training(dataset, config, epochs, learning_rate)
+            return cls._simulate_training(dataset, config, epochs, training_config.learning_rate)
             
         if not isinstance(model, nn.Module):
             raise TypeError("Provided model instance is not a valid PyTorch nn.Module. Cannot execute training loop.")
@@ -69,39 +72,68 @@ class GATv2TrainingService:
         # Convert Node Labels (predicting risk_score implies a continuous regression task)
         y_tensor = torch.tensor(dataset.node_labels, dtype=torch.float).view(-1, 1)
         
-        # 3. Initialize Optimizer
-        # Adam optimizer with standard weight decay (L2 regularization)
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
+        # Handle train/validation masks securely
+        if dataset.val_mask and len(dataset.val_mask) == len(dataset.node_labels):
+            train_mask = torch.tensor(dataset.train_mask, dtype=torch.bool)
+            val_mask = torch.tensor(dataset.val_mask, dtype=torch.bool)
+        else:
+            # Fallback: train and validate on all nodes if splits are missing
+            train_mask = torch.ones(len(dataset.node_labels), dtype=torch.bool)
+            val_mask = torch.ones(len(dataset.node_labels), dtype=torch.bool)
+            
+        # 3. Initialize Optimizer from Configuration
+        if training_config.optimizer_type.upper() == "SGD":
+            optimizer = optim.SGD(model.parameters(), lr=training_config.learning_rate, weight_decay=training_config.weight_decay)
+        else:
+            optimizer = optim.Adam(model.parameters(), lr=training_config.learning_rate, weight_decay=training_config.weight_decay)
         
-        # 4. Initialize Loss Function
-        # Mean Squared Error for continuous risk score regression
-        criterion = nn.MSELoss()
+        # 4. Initialize Loss Function from Configuration
+        if training_config.loss_function.upper() == "L1LOSS":
+            criterion = nn.L1Loss()
+        else:
+            criterion = nn.MSELoss()
+            
+        # 5. Initialize Early Stopping and Checkpointing Services
+        from app.services.early_stopping_service import EarlyStoppingService
+        from app.services.model_checkpoint_service import ModelCheckpointService
+        
+        early_stopper = EarlyStoppingService(patience=training_config.patience)
         
         started_at = datetime.now(timezone.utc)
         start_time = time.perf_counter()
         loss_history: List[float] = []
         
-        # 5. Execute Training Loop
-        model.train() # Set PyTorch module to training mode (enables Dropout gradients)
-        
+        # 6. Execute Training Loop
         for epoch in range(epochs):
+            model.train()
             optimizer.zero_grad()
             
-            # Forward Pass: propagate features across edges
+            # Forward Pass
             out = model(x_tensor, edge_index_tensor)
             
-            # Compute Loss against ground truth
-            loss = criterion(out, y_tensor)
-            
-            # Backward Pass: compute gradients
+            # Compute Loss on training nodes only
+            loss = criterion(out[train_mask], y_tensor[train_mask])
             loss.backward()
-            
-            # Optimization: update model weights
             optimizer.step()
             
-            # 6. Record Loss History
-            loss_history.append(float(loss.item()))
+            # Validation Step
+            model.eval()
+            with torch.no_grad():
+                val_out = model(x_tensor, edge_index_tensor)
+                val_loss = criterion(val_out[val_mask], y_tensor[val_mask])
+                
+            loss_history.append(float(val_loss.item()))
             
+            # Convergence Monitoring & Checkpointing
+            if early_stopper.step(float(val_loss.item())):
+                ModelCheckpointService.save_checkpoint(model, training_config.checkpoint_path)
+                
+            if early_stopper.early_stop:
+                break
+                
+        # Load best weights before returning
+        ModelCheckpointService.load_checkpoint(model, training_config.checkpoint_path)
+        
         # 7. Measure Training Duration
         end_time = time.perf_counter()
         completed_at = datetime.now(timezone.utc)
@@ -116,8 +148,8 @@ class GATv2TrainingService:
             started_at=started_at,
             completed_at=completed_at,
             epochs=epochs,
-            learning_rate=learning_rate,
-            optimizer="Adam",
+            learning_rate=training_config.learning_rate,
+            optimizer=training_config.optimizer_type,
             loss_history=loss_history,
             final_training_loss=final_loss,
             training_duration_seconds=duration,

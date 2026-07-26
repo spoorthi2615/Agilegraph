@@ -24,5 +24,9 @@ class TrainingDataset(BaseModel):
     # Ground truth labels for nodes (e.g. integer risk scores or classifications)
     node_labels: List[int]
     
+    # Optional boolean masks for train/validation splits
+    train_mask: List[bool] = Field(default_factory=list)
+    val_mask: List[bool] = Field(default_factory=list)
+    
     # Traceability payload (e.g., UUID-to-integer mappings)
     metadata: Dict[str, Any] = Field(default_factory=dict)

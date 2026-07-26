@@ -36,8 +36,12 @@ class AnalysisWorkflowService:
                 scored_assets = RiskScoringService.score_assets(assets)
                 scanner_result.findings = [asset.model_dump(mode="json") for asset in scored_assets]
                 
+            # Step 2.5: Map internal dependencies
+            from app.services.dependency_mapping_service import DependencyMappingService
+            dependency_map = DependencyMappingService.map_dependencies(project_path)
+            
             # Step 3: Transform into Graph Domain Model
-            graph = GraphBuilder.build_graph(analysis_result)
+            graph = GraphBuilder.build_graph(analysis_result, dependency_map)
             
             # Step 4: Export to physical Neo4j cluster
             self.export_service.export_graph(graph)

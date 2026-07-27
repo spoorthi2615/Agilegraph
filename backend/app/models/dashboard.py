@@ -1,46 +1,56 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 
-class KPISummary(BaseModel):
-    totalAssets: int = Field(default=0)
+def to_camel(string: str) -> str:
+    parts = string.split("_")
+    return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
+class DashboardBaseModel(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+class KPISummary(DashboardBaseModel):
+    total_assets: int = Field(default=0)
     critical: int = Field(default=0)
     high: int = Field(default=0)
     medium: int = Field(default=0)
     low: int = Field(default=0)
-    migrationProgress: int = Field(default=0)
-    pqcReadiness: int = Field(default=0)
-    lastScan: str = Field(default="N/A")
+    migration_progress: int = Field(default=0)
+    pqc_readiness: int = Field(default=0)
+    last_scan: str = Field(default="N/A")
 
-class RiskDistribution(BaseModel):
+class RiskDistribution(DashboardBaseModel):
     name: str
     value: int
     color: str
 
-class AlgorithmUsage(BaseModel):
+class AlgorithmUsage(DashboardBaseModel):
     algorithm: str
     count: int
 
-class DepartmentUsage(BaseModel):
+class DepartmentUsage(DashboardBaseModel):
     department: str
     assets: int
     critical: int
 
-class MigrationTrend(BaseModel):
+class MigrationTrend(DashboardBaseModel):
     month: str
     migrated: int
     planned: int
 
-class ScanRecord(BaseModel):
+class ScanRecord(DashboardBaseModel):
     id: str
     name: str
     source: str
-    startedAt: str
+    started_at: str
     duration: str
     assets: int
-    criticalFindings: int
+    critical_findings: int
     status: str
 
-class ActivityItem(BaseModel):
+class ActivityItem(DashboardBaseModel):
     id: str
     actor: str
     action: str
@@ -48,23 +58,23 @@ class ActivityItem(BaseModel):
     time: str
     kind: str
 
-class CriticalAlert(BaseModel):
+class CriticalAlert(DashboardBaseModel):
     id: str
     title: str
     reason: str
     score: int
 
-class DashboardSummary(BaseModel):
+class DashboardSummary(DashboardBaseModel):
     kpis: KPISummary = Field(default_factory=KPISummary)
-    riskDistribution: List[RiskDistribution] = Field(default_factory=list)
-    algorithmUsage: List[AlgorithmUsage] = Field(default_factory=list)
-    departmentUsage: List[DepartmentUsage] = Field(default_factory=list)
-    migrationTrend: List[MigrationTrend] = Field(default_factory=list)
-    recentScans: List[ScanRecord] = Field(default_factory=list)
+    risk_distribution: List[RiskDistribution] = Field(default_factory=list)
+    algorithm_usage: List[AlgorithmUsage] = Field(default_factory=list)
+    department_usage: List[DepartmentUsage] = Field(default_factory=list)
+    migration_trend: List[MigrationTrend] = Field(default_factory=list)
+    recent_scans: List[ScanRecord] = Field(default_factory=list)
     activity: List[ActivityItem] = Field(default_factory=list)
-    criticalAlerts: List[CriticalAlert] = Field(default_factory=list)
+    critical_alerts: List[CriticalAlert] = Field(default_factory=list)
 
-class DashboardNode(BaseModel):
+class DashboardNode(DashboardBaseModel):
     id: str
     label: str
     type: str
@@ -72,18 +82,18 @@ class DashboardNode(BaseModel):
     x: float
     y: float
 
-class DashboardEdge(BaseModel):
+class DashboardEdge(DashboardBaseModel):
     source: str
     target: str
 
-class DashboardGraph(BaseModel):
+class DashboardGraph(DashboardBaseModel):
     nodes: List[DashboardNode] = Field(default_factory=list)
     edges: List[DashboardEdge] = Field(default_factory=list)
 
-class ReportRecord(BaseModel):
+class ReportRecord(DashboardBaseModel):
     id: str
     title: str
     type: str
-    createdAt: str
+    created_at: str
     size: str
     author: str

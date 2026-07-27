@@ -107,25 +107,25 @@ def get_summary(
     stats = query_service.get_summary_statistics()
     
     kpis = KPISummary(
-        totalAssets=stats.get("asset_count", 0),
+        total_assets=stats.get("asset_count", 0),
         critical=0,
         high=0,
         medium=0,
         low=0,
-        migrationProgress=0,
-        pqcReadiness=readiness.overall_readiness_score if readiness else 0,
-        lastScan="Recent"
+        migration_progress=0,
+        pqc_readiness=readiness.overall_readiness_score if readiness else 0,
+        last_scan="Recent"
     )
     
     return DashboardSummary(
         kpis=kpis,
-        riskDistribution=[],
-        algorithmUsage=[],
-        departmentUsage=[],
-        migrationTrend=[],
-        recentScans=[],
+        risk_distribution=[],
+        algorithm_usage=[],
+        department_usage=[],
+        migration_trend=[],
+        recent_scans=[],
         activity=[],
-        criticalAlerts=[]
+        critical_alerts=[]
     )
 
 @router.get("/graph", response_model=DashboardGraph)
@@ -164,7 +164,7 @@ def get_reports(report: SecurityReport = Depends(provide_security_report)) -> Li
             id=str(report.report_id),
             title="Generated Security Report",
             type="Security",
-            createdAt=report.generated_at.isoformat() if hasattr(report, 'generated_at') else "",
+            created_at=report.generated_at.isoformat() if hasattr(report, 'generated_at') else "",
             size="0 KB",
             author="AgileGraph"
         )

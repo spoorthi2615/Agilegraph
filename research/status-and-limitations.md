@@ -11,7 +11,7 @@ The AgileGraph implementation is physically sound and functionally complete.
 - **Integration Testing**: A genuine integration test (`e2e_integration_test.py`) has replaced prior fabricated testing claims, confirming that the pipeline physically executes.
 
 ## 2. Known Limitations
-- **Zero-Shot Generalization Failure**: Even after expanding the training corpus to 10 repositories, the GNN completely fails to generalize to unseen test repositories (F1-score = 0.000). While validation metrics show the model learning training distribution patterns (F1 ~ 0.38), this predictive power does not transfer across domain boundaries. This indicates a massive structural domain shift between codebases.
+- **Zero-Shot Generalization Failure**: Even after expanding the training corpus to 10 repositories, the GNN completely fails to generalize to unseen test repositories (F1-score = 0.000). While early validation metrics appeared to show the model learning (F1 ~ 0.38), ablation testing revealed this peak score occurred when CodeBERT semantic embeddings were replaced with random noise. This implies the model is likely overfitting to graph structural shortcuts (like node degrees) rather than genuinely learning code semantics, resulting in a massive structural domain shift when applied to new codebases.
 - **Hardware Profile**: The platform has been tested on standard developer hardware (CPU), not a supercomputing cluster (A100/Xeon). High-volume throughput claims remain theoretical until tested on production infrastructure.
 - **Statistical Power**: Because the test classification predictions are identically 0, McNemar's testing and Cohen's Kappa statistics cannot be established. No statistical significance is claimed.
 

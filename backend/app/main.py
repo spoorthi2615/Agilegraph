@@ -7,6 +7,8 @@ from app.api.v1.endpoints import health, upload, github, metrics
 from app.api.routes import dashboard, analysis, graph, explainability, report
 from app.core.exceptions import AgileGraphException, ValidationException, ResourceNotFoundException, EntityTooLargeException
 from app.core.logging import setup_logging, request_id_ctx
+from app.core.rate_limit import check_rate_limit
+from fastapi import Depends
 import logging
 import uuid
 import time
@@ -34,17 +36,36 @@ def create_app() -> FastAPI:
         description="AI-powered Post Quantum Cryptography Migration Platform",
         version=settings.VERSION,
         lifespan=lifespan,
+        dependencies=[Depends(check_rate_limit)]
     )
 
-    # Enable CORS
+    # Configure CORS strictly based on Environment
+    origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+    if settings.ENVIRONMENT == "production" and "*" in origins:
+        # In production, fallback to a strict origin if wildcard is left on
+        origins = ["https://agilegraph.corp"]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
         expose_headers=["X-Request-ID"]
     )
+
+    # Security Headers Middleware
+    @app.middleware("http")
+    async def security_headers_middleware(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
+        if settings.ENVIRONMENT == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
 
     # Request Logging & Correlation ID Middleware
     @app.middleware("http")

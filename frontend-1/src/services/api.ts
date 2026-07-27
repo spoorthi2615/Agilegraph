@@ -21,11 +21,11 @@ export const api = {
   },
 
   getGraph: async (): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }> => {
-    return apiClient.get<{ nodes: GraphNode[], edges: GraphEdge[] }>("/dashboard/graph");
+    return apiClient.get<{ nodes: GraphNode[], edges: GraphEdge[] }>("/graph");
   },
 
   getAssets: async (): Promise<CryptoAsset[]> => {
-    return apiClient.get<CryptoAsset[]>("/analysis/assets");
+    return apiClient.get<any>("/analysis/assets").then(res => res.items || []);
   },
   
   getAssetById: async (id: string): Promise<CryptoAsset> => {
@@ -33,10 +33,10 @@ export const api = {
   },
 
   getRiskReports: async (): Promise<ReportRecord[]> => {
-    return apiClient.get<ReportRecord[]>("/dashboard/reports");
+    return apiClient.get<any>("/reports").then(res => res.items || []);
   },
 
-  getExplainability: async (): Promise<any[]> => {
-    return apiClient.get<any[]>("/dashboard/explanations");
+  getExplainability: async (id: string): Promise<any> => {
+    return apiClient.get<any>(`/explainability/${id}`);
   }
 };

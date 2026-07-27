@@ -23,53 +23,46 @@ export function useGitHubImport() {
   });
 }
 
-export function useDashboardSummary(mockFallback?: DashboardSummary) {
+export function useDashboardSummary() {
   return useQuery({
     queryKey: ["dashboard", "summary"],
-    queryFn: api.getDashboardSummary,
-    // Providing initialData so the UI doesn't break if the backend isn't running yet.
-    // In a real prod scenario without mock fallbacks, we would handle the loading/error state in the UI.
-    ...(mockFallback ? { initialData: mockFallback } : {})
+    queryFn: api.getDashboardSummary
   });
 }
 
-export function useCryptoGraph(mockFallback?: any) {
+export function useCryptoGraph() {
   return useQuery({
     queryKey: ["graph"],
-    queryFn: api.getGraph,
-    ...(mockFallback ? { initialData: mockFallback } : {})
+    queryFn: api.getGraph
   });
 }
 
-export function useAssets(mockFallback?: any) {
+export function useAssets() {
   return useQuery({
     queryKey: ["assets"],
-    queryFn: api.getAssets,
-    ...(mockFallback ? { initialData: mockFallback } : {})
+    queryFn: api.getAssets
   });
 }
 
-export function useAsset(id: string, mockFallback?: any) {
+export function useAsset(id: string) {
   return useQuery({
     queryKey: ["assets", id],
     queryFn: () => api.getAssetById(id),
-    enabled: !!id,
-    ...(mockFallback ? { initialData: mockFallback } : {})
+    enabled: !!id
   });
 }
 
-export function useRiskReports(mockFallback?: any) {
+export function useRiskReports() {
   return useQuery({
     queryKey: ["reports"],
-    queryFn: api.getRiskReports,
-    ...(mockFallback ? { initialData: mockFallback } : {})
+    queryFn: api.getRiskReports
   });
 }
 
-export function useExplainability(mockFallback?: any) {
+export function useExplainability(id: string) {
   return useQuery({
-    queryKey: ["explainability"],
-    queryFn: api.getExplainability,
-    ...(mockFallback ? { initialData: mockFallback } : {})
+    queryKey: ["explainability", id],
+    queryFn: () => api.getExplainability(id),
+    enabled: !!id
   });
 }

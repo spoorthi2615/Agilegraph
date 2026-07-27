@@ -4,7 +4,8 @@ import { useAssets } from "@/hooks/use-agilegraph";
 import { riskColor } from "@/lib/types";
 import { RiskBadge } from "@/components/risk-badge";
 import { RiskGauge } from "@/components/widgets/risk-gauge";
-import { Sparkles, GitBranch, ShieldAlert, Layers, CheckCircle2 } from "lucide-react";
+import { Sparkles, GitBranch, ShieldAlert, Layers, CheckCircle2, AlertCircle } from "lucide-react";
+import { useExplainability } from "@/hooks/use-agilegraph";
 
 export const Route = createFileRoute("/_app/explainability")({
   component: Explainability,
@@ -18,14 +19,23 @@ export const Route = createFileRoute("/_app/explainability")({
 
 function Explainability() {
   const { data: assets = [] } = useAssets();
-  const asset = assets.filter((a) => a.risk === "critical")[0] ?? assets[0] ?? { name: "Loading...", riskScore: 0, risk: "low", algorithm: "", recommended: "", migrationDays: 0, id: "" };
-  const factors = [
-    { label: "Quantum vulnerability of RSA-2048", weight: 34, note: "Broken by Shor's algorithm on CRQC" },
-    { label: "Exposure via public API gateway", weight: 22, note: "Reachable without mTLS on port 443" },
-    { label: "Business criticality — payments", weight: 18, note: "Handles Tier-1 authorization flows" },
-    { label: "Data lifetime > 10 years", weight: 14, note: "Long-lived signed artifacts" },
-    { label: "Graph centrality", weight: 12, note: "12 downstream services depend on this node" },
-  ];
+  const asset = assets.filter((a) => a.risk === "critical")[0] ?? assets[0];
+  const { data: explainData, isLoading, error } = useExplainability(asset?.id || "");
+
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading explainability data...</div>;
+  if (error || !explainData) return (
+    <div className="flex h-64 flex-col items-center justify-center p-8 text-center text-muted-foreground">
+      <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground opacity-50" />
+      <div>No explainability data available.</div>
+    </div>
+  );
+
+  const { assetInformation: info, gnnExplanation: gnn, heuristicExplanation: heur, migrationRecommendation: mig, naturalLanguageSummary } = explainData;
+  const factors = gnn?.featureImportance?.map((f: any) => ({
+    label: f.featureName,
+    weight: Math.round(f.contribution * 100),
+    note: f.positiveInfluence ? "Increases risk" : "Decreases risk"
+  })) || [];
 
   return (
     <>
@@ -35,22 +45,18 @@ function Explainability() {
           <div className="rounded-xl border bg-card p-6">
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Overall Risk Score</div>
             <div className="mt-4 grid place-items-center">
-              <RiskGauge value={asset.riskScore} color={riskColor[asset.risk]} />
+              <RiskGauge value={info?.overallRisk || 0} color={riskColor[(info?.overallRisk >= 80 ? "critical" : info?.overallRisk >= 60 ? "high" : "low") as any] || riskColor.low} />
             </div>
             <div className="mt-4 text-center">
-              <div className="text-lg font-semibold">{asset.name}</div>
-              <div className="text-xs text-muted-foreground">{asset.id} · {asset.algorithm}</div>
-              <RiskBadge risk={asset.risk} className="mt-3" />
+              <div className="text-lg font-semibold">{info?.name}</div>
+              <div className="text-xs text-muted-foreground">{info?.assetId} · {info?.algorithm}</div>
             </div>
           </div>
 
           <div className="rounded-xl border bg-card p-6">
             <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /><h3 className="text-sm font-semibold">Why was this asset ranked high?</h3></div>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              AgileGraph's risk model combines the intrinsic weakness of <span className="text-foreground font-medium">{asset.algorithm}</span> against
-              cryptographically relevant quantum computers with graph-based exposure and business context. This asset
-              sits at a high-centrality position in the payments subsystem, is reachable from the public edge, and
-              handles long-lived signed data — pushing its score into the <span className="text-critical font-medium">critical</span> band.
+              {naturalLanguageSummary || "AgileGraph's risk model combines intrinsic algorithmic weakness with graph-based exposure and business context to produce this score."}
             </p>
             <div className="mt-5 space-y-3">
               {factors.map((f) => (
@@ -98,19 +104,17 @@ function Explainability() {
             <div className="flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-primary" /><h3 className="text-sm font-semibold">AI Explanation</h3></div>
             <div className="mt-4 space-y-4 text-sm">
               <div className="rounded-lg border-l-4 border-primary bg-primary/5 p-4">
-                <div className="text-xs font-semibold uppercase tracking-widest text-primary">Model Confidence: 94%</div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-primary">Model Confidence: {Math.round((explainData?.confidenceMetrics?.overallConfidence || 0) * 100)}%</div>
                 <p className="mt-2 leading-relaxed">
-                  Migrate to <span className="font-mono font-semibold">{asset.recommended}</span> within {asset.migrationDays} days.
-                  Hybrid rollout recommended — pair with classical cipher to preserve backward compatibility during transition.
+                  Migrate to <span className="font-mono font-semibold">{mig?.recommendedPqcAlgorithm || "Unknown"}</span>.
+                  Estimated effort: {mig?.migrationEffort || 0} days. Risk reduction: {mig?.estimatedRiskReduction || 0}%.
                 </p>
               </div>
               <div className="rounded-lg border p-4">
                 <div className="text-sm font-medium">Reasoning steps</div>
                 <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <li><span className="mr-2 font-mono text-primary">1.</span> Detected <span className="text-foreground">{asset.algorithm}</span> in 42 call sites across the payments subsystem.</li>
-                  <li><span className="mr-2 font-mono text-primary">2.</span> Mapped 50 downstream dependents via static + runtime graph analysis.</li>
-                  <li><span className="mr-2 font-mono text-primary">3.</span> Applied Mosca inequality: X (10y) + Y (2y) &gt; Z (7y) → migration required now.</li>
-                  <li><span className="mr-2 font-mono text-primary">4.</span> Matched NIST FIPS 203 recommendation → {asset.recommended}.</li>
+                  <li><span className="mr-2 font-mono text-primary">1.</span> {heur?.breakdown?.riskFormulaBreakdown || "Heuristics computed."}</li>
+                  <li><span className="mr-2 font-mono text-primary">2.</span> {heur?.breakdown?.penaltyBreakdown || "Penalties applied."}</li>
                 </ol>
               </div>
             </div>

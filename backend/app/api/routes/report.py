@@ -8,6 +8,9 @@ from app.models.report import (
     ReportSummary, ReportDetail, PaginatedReportResponse, ReportMetadata,
     ReportStatistics, ReportPreview, DownloadLink, ReportCategory, ExportFormat
 )
+from app.models.security_report import SecurityReport
+from app.api.routes.dashboard import provide_security_report
+import json
 
 router = APIRouter()
 
@@ -77,35 +80,52 @@ def get_report_detail(
 @router.get("/{report_id}/download")
 def download_report(
     report_id: str = PathParam(...),
-    format: ExportFormat = Query(ExportFormat.MARKDOWN)
+    format: ExportFormat = Query(ExportFormat.MARKDOWN),
+    report: SecurityReport = Depends(provide_security_report)
 ):
     """
-    Streams the requested report directly to the client without loading the entire
-    file into memory.
+    Streams the requested report directly to the client dynamically generated 
+    from the SecurityReportService.
     """
-    def iterfile():
-        # Yielding small chunks simulates reading a large file from disk incrementally
-        yield b"# AgileGraph Report\n\n"
-        yield b"This is a streamed chunk to avoid RAM exhaustion.\n"
-        
-    media_type = "text/markdown"
-    filename = f"report_{report_id}.md"
-    
     if format == ExportFormat.JSON:
         media_type = "application/json"
         filename = f"report_{report_id}.json"
-        def iterfile():
-            yield b'{"report": "data"}'
+        content = report.model_dump_json(indent=2).encode('utf-8')
+        
     elif format == ExportFormat.CSV:
         media_type = "text/csv"
         filename = f"report_{report_id}.csv"
-        def iterfile():
-            yield b"id,value\n1,test\n"
+        
+        # Simple CSV serialization of recommendations
+        csv_lines = ["Asset ID,Target Algorithm,Estimated Days,Risk Reduction"]
+        for rec in report.recommendations:
+            csv_lines.append(f"{rec.asset_id},{rec.target_algorithm},{rec.estimated_days},{rec.risk_reduction}")
+        content = "\n".join(csv_lines).encode('utf-8')
+        
     elif format == ExportFormat.PDF:
         media_type = "application/pdf"
         filename = f"report_{report_id}.pdf"
-        def iterfile():
-            yield b"%PDF-1.4\n"
+        # PDF placeholder
+        content = b"%PDF-1.4\n% PDF export not yet implemented. Use Markdown/JSON/CSV.\n"
+        
+    else: # Default Markdown
+        media_type = "text/markdown"
+        filename = f"report_{report_id}.md"
+        
+        md_lines = [
+            f"# AgileGraph Security Report: {report.project_id}",
+            f"\n## Executive Summary\n{report.executive_summary}",
+            f"\n## Key Metrics",
+            f"- Total Assets: {report.total_assets}",
+            f"- High Risk Assets: {report.total_high_risk_assets}",
+            f"- PQC Readiness: {report.pqc_readiness_score}% ({report.pqc_readiness_level.value})",
+            f"\n## Migration Roadmap",
+            f"{report.roadmap_summary}"
+        ]
+        content = "\n".join(md_lines).encode('utf-8')
+
+    def iterfile():
+        yield content
             
     return StreamingResponse(
         iterfile(), 

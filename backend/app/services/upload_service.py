@@ -37,11 +37,10 @@ class UploadService:
         project_id = str(uuid.uuid4())
         
         # Ensure uploads directory and project folder exist
-        # Default fallback to "uploads" if not set
         base_upload_dir = settings.UPLOAD_DIRECTORY or "uploads"
-        # Since we run from backend root, base_upload_dir is 'uploads'
         project_dir = os.path.join(base_upload_dir, project_id)
-        os.makedirs(project_dir, exist_ok=True)
+        extracted_dir = os.path.join(project_dir, "extracted")
+        os.makedirs(extracted_dir, exist_ok=True)
         
         file_path = os.path.join(project_dir, safe_filename)
         
@@ -53,9 +52,42 @@ class UploadService:
             raise AgileGraphException(f"Failed to save file: {str(e)}")
         finally:
             file.file.close()
+
+        # Unzip safely
+        import zipfile
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                # Sanitize extracted paths
+                for member in zip_ref.namelist():
+                    member_path = os.path.normpath(member)
+                    if member_path.startswith("..") or member_path.startswith("/"):
+                        raise ValidationException(f"Zip slip detected in path: {member}")
+                zip_ref.extractall(extracted_dir)
+        except zipfile.BadZipFile:
+            raise ValidationException("Uploaded file is not a valid ZIP archive.")
+            
+        # Execute pipeline
+        try:
+            from app.services.analysis_workflow_service import AnalysisWorkflowService
+            from app.services.project_analysis_service import ProjectAnalysisService
+            from app.services.neo4j_export_service import Neo4jExportService
+            from app.scanners.registry import get_default_registry
+            from pathlib import Path
+            
+            analysis_service = ProjectAnalysisService(get_default_registry())
+            export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+            
+            workflow = AnalysisWorkflowService(analysis_service, export_service)
+            pipeline_result = workflow.execute_pipeline(project_id, Path(extracted_dir))
+            
+        except Exception as e:
+            import logging
+            logging.error(f"Pipeline execution failed for {project_id}: {str(e)}")
+            raise AgileGraphException(f"Pipeline execution failed: {str(e)}")
             
         return UploadResponse(
             project_id=project_id,
             filename=safe_filename,
-            status="uploaded"
+            status="uploaded_and_processed"
         )
+

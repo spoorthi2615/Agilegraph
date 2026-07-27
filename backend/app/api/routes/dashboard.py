@@ -34,7 +34,7 @@ router = APIRouter()
 def get_query_service():
     service = GraphQueryService(
         uri=settings.NEO4J_URI,
-        user=settings.NEO4J_USER,
+        user=settings.NEO4J_USERNAME,
         password=settings.NEO4J_PASSWORD
     )
     try:

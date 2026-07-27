@@ -3,7 +3,8 @@ from fastapi.responses import StreamingResponse
 from typing import Optional
 from datetime import datetime
 import io
-
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 from app.models.report import (
     ReportSummary, ReportDetail, PaginatedReportResponse, ReportMetadata,
     ReportStatistics, ReportPreview, DownloadLink, ReportCategory, ExportFormat
@@ -104,8 +105,40 @@ def download_report(
     elif format == ExportFormat.PDF:
         media_type = "application/pdf"
         filename = f"report_{report_id}.pdf"
-        # PDF placeholder
-        content = b"%PDF-1.4\n% PDF export not yet implemented. Use Markdown/JSON/CSV.\n"
+        
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=letter)
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(50, 750, f"AgileGraph Security Report: {report.project_id}")
+        
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, 710, "Executive Summary")
+        c.setFont("Helvetica", 10)
+        
+        # Simple wrapping for executive summary (rudimentary, but real)
+        text_obj = c.beginText(50, 690)
+        text_obj.setFont("Helvetica", 10)
+        # Split by simple heuristics or just write out
+        text_obj.textLine(str(report.executive_summary)[:100])
+        if len(str(report.executive_summary)) > 100:
+            text_obj.textLine(str(report.executive_summary)[100:200] + "...")
+        c.drawText(text_obj)
+        
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, 640, "Key Metrics")
+        c.setFont("Helvetica", 10)
+        c.drawString(60, 620, f"- Total Assets: {report.total_assets}")
+        c.drawString(60, 600, f"- High Risk Assets: {report.total_high_risk_assets}")
+        c.drawString(60, 580, f"- PQC Readiness: {report.pqc_readiness_score}% ({report.pqc_readiness_level.value})")
+        
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, 540, "Migration Roadmap")
+        c.setFont("Helvetica", 10)
+        c.drawString(60, 520, str(report.roadmap_summary)[:100])
+        
+        c.save()
+        content = buffer.getvalue()
+        buffer.close()
         
     else: # Default Markdown
         media_type = "text/markdown"

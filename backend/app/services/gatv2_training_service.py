@@ -69,8 +69,8 @@ class GATv2TrainingService:
         tgt_list = [edge[1] for edge in dataset.edge_index]
         edge_index_tensor = torch.tensor([src_list, tgt_list], dtype=torch.long)
         
-        # Convert Node Labels (predicting risk_score implies a continuous regression task)
-        y_tensor = torch.tensor(dataset.node_labels, dtype=torch.float).view(-1, 1)
+        # Convert Node Labels (Classification task: 0 = Safe, 1 = Vulnerable)
+        y_tensor = torch.tensor(dataset.node_labels, dtype=torch.long)
         
         # Handle train/validation masks securely
         if dataset.val_mask and len(dataset.val_mask) == len(dataset.node_labels):
@@ -87,11 +87,8 @@ class GATv2TrainingService:
         else:
             optimizer = optim.Adam(model.parameters(), lr=training_config.learning_rate, weight_decay=training_config.weight_decay)
         
-        # 4. Initialize Loss Function from Configuration
-        if training_config.loss_function.upper() == "L1LOSS":
-            criterion = nn.L1Loss()
-        else:
-            criterion = nn.MSELoss()
+        # 4. Initialize Loss Function (Classification)
+        criterion = nn.CrossEntropyLoss()
             
         # 5. Initialize Early Stopping and Checkpointing Services
         from app.services.early_stopping_service import EarlyStoppingService
@@ -156,7 +153,7 @@ class GATv2TrainingService:
             training_completed=True,
             metadata={
                 "device": "cpu",
-                "loss_function": "MSELoss"
+                "loss_function": "CrossEntropyLoss"
             }
         )
 

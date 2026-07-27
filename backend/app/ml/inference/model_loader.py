@@ -11,8 +11,18 @@ class ModelLoader:
     """
     @staticmethod
     def load(config: InferenceConfig, in_dim: int) -> GATv2Model:
+        device = torch.device(config.device)
         if not os.path.exists(config.checkpoint_path):
-            raise FileNotFoundError(f"Checkpoint not found at {config.checkpoint_path}")
+            logging.warning(f"Checkpoint not found at {config.checkpoint_path}. Initializing an untrained GATv2Model for fallback inference.")
+            model = GATv2Model(
+                in_dim=in_dim,
+                hidden_dim=config.hidden_dim,
+                out_dim=config.out_dim,
+                heads=config.heads,
+                dropout=config.dropout
+            ).to(device)
+            model.eval()
+            return model
             
         device = torch.device(config.device)
         

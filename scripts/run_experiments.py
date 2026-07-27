@@ -74,19 +74,22 @@ def run_all_experiments():
     f1_full = run_ablation(batched_data, "Full Model")
     results["Full Model"] = f1_full
     
-    # 2. - Heterogeneous (Simulated by dropping node types, but here we just drop hidden dim)
+    # 2. - Heterogeneous (Simulated by halving hidden_dim since HeteroData isn't fully migrated yet)
     f1_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32)
     results["- Heterogeneous"] = f1_het
     
-    # 3. - GATv2 (Simulated by using GCN or just 1 head to simulate drop in attention power)
-    f1_gatv2 = run_ablation(batched_data, "- GATv2", heads=1)
+    # 3. - GATv2 (Swap to standard GCN model)
+    f1_gatv2 = run_ablation(batched_data, "- GATv2", model_type="GCN")
     results["- GATv2"] = f1_gatv2
     
-    # 4. - Edge Attrs (Simulated by running standard GAT without edge features)
-    f1_edge = run_ablation(batched_data, "- Edge Attrs", dropout=0.5) 
+    # 4. - Edge Attrs (Physically remove edge attributes if they exist)
+    no_edge_data = batched_data.clone()
+    if hasattr(no_edge_data, 'edge_attr'):
+        no_edge_data.edge_attr = None
+    f1_edge = run_ablation(no_edge_data, "- Edge Attrs") 
     results["- Edge Attrs"] = f1_edge
     
-    # 5. - CodeBERT (Simulated by adding noise to initial embeddings)
+    # 5. - CodeBERT (Replace CodeBERT embeddings with random noise)
     noisy_data = batched_data.clone()
     noisy_data.x = torch.randn_like(noisy_data.x)
     f1_codebert = run_ablation(noisy_data, "- CodeBERT")

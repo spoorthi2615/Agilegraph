@@ -40,7 +40,7 @@ class GATv2Trainer:
             lr=self.config.learning_rate,
             weight_decay=self.config.weight_decay
         )
-        self.criterion = nn.CrossEntropyLoss(ignore_index=-1)
+        self.criterion = nn.CrossEntropyLoss()
         
         # Utilities
         self.early_stopping = EarlyStopping(
@@ -54,20 +54,43 @@ class GATv2Trainer:
         Dynamically initializes input dimension based on the first observed graph dataset.
         """
         in_dim = data.x.shape[1]
-        if self.model.conv1.in_channels != in_dim:
-            logging.info(f"Dynamically adjusting model input dimension to {in_dim}")
-            self.model = GATv2Model(
-                in_dim=in_dim,
-                hidden_dim=self.config.hidden_dim,
-                out_dim=self.config.out_dim,
-                heads=self.config.heads,
-                dropout=self.config.dropout
-            ).to(self.device)
-            self.optimizer = torch.optim.Adam(
-                self.model.parameters(),
-                lr=self.config.learning_rate,
-                weight_decay=self.config.weight_decay
-            )
+        model_type = getattr(self.config, 'model_type', 'GATv2')
+        
+        if model_type == 'GCN':
+            import torch.nn.functional as F
+            from torch_geometric.nn import GCNConv
+            class GCNModel(nn.Module):
+                def __init__(self, in_dim, hidden_dim, out_dim, dropout):
+                    super().__init__()
+                    self.conv1 = GCNConv(in_dim, hidden_dim)
+                    self.conv2 = GCNConv(hidden_dim, out_dim)
+                    self.dropout = dropout
+                def forward(self, data):
+                    x, edge_index = data.x, data.edge_index
+                    x = self.conv1(x, edge_index)
+                    x = F.relu(x)
+                    x = F.dropout(x, p=self.dropout, training=self.training)
+                    x = self.conv2(x, edge_index)
+                    return x
+            
+            logging.info(f"Initializing GCNModel with input dim {in_dim}")
+            self.model = GCNModel(in_dim, self.config.hidden_dim, self.config.out_dim, self.config.dropout).to(self.device)
+        else:
+            if not hasattr(self.model, 'conv1') or self.model.conv1.in_channels != in_dim:
+                logging.info(f"Dynamically adjusting GATv2 model input dimension to {in_dim}")
+                self.model = GATv2Model(
+                    in_dim=in_dim,
+                    hidden_dim=self.config.hidden_dim,
+                    out_dim=self.config.out_dim,
+                    heads=self.config.heads,
+                    dropout=self.config.dropout
+                ).to(self.device)
+                
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=self.config.learning_rate,
+            weight_decay=self.config.weight_decay
+        )
 
     def train(self, train_data: Data, val_data: Data):
         """

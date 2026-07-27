@@ -3,6 +3,7 @@ import torch
 import logging
 from pathlib import Path
 from torch_geometric.data import Data
+from transformers import AutoTokenizer, AutoModel
 
 # Setup Django/FastAPI environment if needed, but we can just import the services
 import sys
@@ -26,16 +27,38 @@ def process_corpus():
         logging.error("Corpus directory is empty. Run fetch_github_corpus.py first.")
         return
         
+    logging.info("Loading CodeBERT model...")
+    tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
+    codebert_model = AutoModel.from_pretrained("microsoft/codebert-base")
+    codebert_model.eval()
+        
     analysis_service = ProjectAnalysisService(get_default_registry())
     
     dataset = []
     
-    for repo_path in corpus_dir.iterdir():
-        if not repo_path.is_dir():
-            continue
-            
+    repo_paths = [p for p in corpus_dir.iterdir() if p.is_dir()]
+    num_repos = len(repo_paths)
+    
+    # Pre-calculate repo-level splits (e.g. 80/10/10)
+    # If there are very few repos (e.g. 3), ensure at least 1 goes to train, val, test
+    if num_repos >= 3:
+        train_cutoff = max(1, int(0.8 * num_repos))
+        val_cutoff = max(train_cutoff + 1, int(0.9 * num_repos))
+    else:
+        train_cutoff, val_cutoff = num_repos, num_repos
+        
+    for i, repo_path in enumerate(repo_paths):
         project_id = repo_path.name
-        logging.info(f"Processing repository: {project_id}")
+        
+        # Assign this repo to a split
+        if i < train_cutoff:
+            split_assignment = "train"
+        elif i < val_cutoff:
+            split_assignment = "val"
+        else:
+            split_assignment = "test"
+            
+        logging.info(f"Processing repository: {project_id} (Split: {split_assignment})")
         
         try:
             # 1. Static Analysis
@@ -65,8 +88,19 @@ def process_corpus():
             # Map node IDs to integers
             node_mapping = {node_id: idx for idx, node_id in enumerate(graph.nodes.keys())}
             
-            # Features (x)
-            x = torch.randn((num_nodes, 768), dtype=torch.float)
+            # Features (x) - Real CodeBERT embeddings
+            embeddings = []
+            with torch.no_grad():
+                for node_id, node in graph.nodes.items():
+                    # Extract semantic text. Use node name or metadata snippet
+                    text_content = str(node.name) if hasattr(node, 'name') else str(node_id)
+                    inputs = tokenizer(text_content, return_tensors="pt", truncation=True, max_length=512)
+                    outputs = codebert_model(**inputs)
+                    # Use the CLS token representation
+                    cls_embedding = outputs.last_hidden_state[:, 0, :]
+                    embeddings.append(cls_embedding.squeeze(0))
+            
+            x = torch.stack(embeddings)
             
             # Edges (edge_index)
             edge_index = []
@@ -90,20 +124,18 @@ def process_corpus():
                     
             data = Data(x=x, edge_index=edge_index, y=y)
             
-            # Create train/val/test masks (80/10/10 split)
-            indices = torch.randperm(num_nodes)
-            train_idx = indices[:int(0.8 * num_nodes)]
-            val_idx = indices[int(0.8 * num_nodes):int(0.9 * num_nodes)]
-            test_idx = indices[int(0.9 * num_nodes):]
-            
+            # Repository-level split: apply mask to ALL nodes in this repo
             train_mask = torch.zeros(num_nodes, dtype=torch.bool)
             val_mask = torch.zeros(num_nodes, dtype=torch.bool)
             test_mask = torch.zeros(num_nodes, dtype=torch.bool)
             
-            train_mask[train_idx] = True
-            val_mask[val_idx] = True
-            test_mask[test_idx] = True
-            
+            if split_assignment == "train":
+                train_mask[:] = True
+            elif split_assignment == "val":
+                val_mask[:] = True
+            else:
+                test_mask[:] = True
+                
             data.train_mask = train_mask
             data.val_mask = val_mask
             data.test_mask = test_mask

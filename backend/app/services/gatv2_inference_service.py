@@ -9,13 +9,8 @@ from app.models.model_config import ModelConfig
 
 logger = logging.getLogger(__name__)
 
-# Safely handle heavy ML dependencies for edge/CI deployments
-try:
-    import torch
-    import torch.nn as nn
-    TORCH_AVAILABLE = True
-except ImportError:
-    TORCH_AVAILABLE = False
+import torch
+import torch.nn as nn
 
 
 class GATv2InferenceService:
@@ -50,10 +45,6 @@ class GATv2InferenceService:
         threshold = float(threshold)
         
         # 2. Verify Model Compatibility
-        if not TORCH_AVAILABLE:
-            logger.warning("PyTorch framework unavailable. Returning symbolic InferenceResult bypass.")
-            return cls._simulate_inference(dataset, config, threshold)
-            
         if not isinstance(model, nn.Module):
             raise TypeError("Provided model instance is not a valid PyTorch nn.Module. Cannot run inference.")
             
@@ -123,36 +114,4 @@ class GATv2InferenceService:
             inference_duration_seconds=duration,
             inference_completed=True,
             metadata={"device": "cpu"}
-        )
-        
-    @classmethod
-    def _simulate_inference(
-        cls, 
-        dataset: InferenceDataset, 
-        config: ModelConfig,
-        threshold: float
-    ) -> InferenceResult:
-        """
-        Creates a symbolic bypassed InferenceResult for CI/CD environments 
-        where PyTorch is not installed.
-        """
-        now = datetime.now(timezone.utc)
-        
-        # Create dummy predictions for the bypass based on the metadata mapping
-        node_index_mapping = dataset.metadata.get("node_index_mapping", {})
-        node_predictions = [
-            NodePrediction(node_id=uid_str, risk_score=0.0, label=0)
-            for uid_str in node_index_mapping.keys()
-        ]
-        
-        return InferenceResult(
-            model_id=config.model_id,
-            dataset_id=dataset.dataset_id,
-            inferred_at=now,
-            total_predictions=len(node_predictions),
-            node_predictions=node_predictions,
-            classification_threshold=threshold,
-            inference_duration_seconds=0.0,
-            inference_completed=False,
-            metadata={"status": "Symbolic bypass - PyTorch not installed"}
         )

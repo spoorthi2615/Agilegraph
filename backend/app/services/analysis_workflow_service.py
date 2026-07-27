@@ -49,6 +49,67 @@ class AnalysisWorkflowService:
             ScanStatusService.set_status(project_id, ScanStage.BUILDING_GRAPH)
             graph = GraphBuilder.build_graph(analysis_result, dependency_map)
             
+            # Step 3.5: Run ML Inference to override heuristic risk scores
+            try:
+                import torch
+                from transformers import AutoTokenizer, AutoModel
+                from app.models.inference_dataset import InferenceDataset
+                from app.ml.inference.inference_config import InferenceConfig
+                from app.ml.inference.model_loader import ModelLoader
+                from app.services.gatv2_inference_service import GATv2InferenceService
+                
+                import logging
+                logging.info(f"[{project_id}] Building InferenceDataset via CodeBERT...")
+                
+                node_mapping = {node_id: idx for idx, node_id in enumerate(graph.nodes.keys())}
+                index_to_uuid = {idx: node_id for node_id, idx in node_mapping.items()}
+                
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
+                codebert_model = AutoModel.from_pretrained("microsoft/codebert-base")
+                codebert_model.eval()
+
+                embeddings = []
+                with torch.no_grad():
+                    for node_id, node in graph.nodes.items():
+                        text_content = str(node.name) if hasattr(node, 'name') else str(node_id)
+                        inputs = tokenizer(text_content, return_tensors="pt", truncation=True, max_length=512)
+                        outputs = codebert_model(**inputs)
+                        cls_embedding = outputs.last_hidden_state[:, 0, :]
+                        embeddings.append(cls_embedding.squeeze(0).tolist())
+                
+                edge_index = []
+                for edge in graph.edges:
+                    src = node_mapping.get(edge.source_node)
+                    dst = node_mapping.get(edge.target_node)
+                    if src is not None and dst is not None:
+                        edge_index.append((src, dst))
+                        
+                inf_dataset = InferenceDataset(
+                    project_id=project_id,
+                    total_nodes=len(graph.nodes),
+                    total_edges=len(edge_index),
+                    node_features=embeddings,
+                    edge_index=edge_index,
+                    metadata={"node_index_mapping": index_to_uuid}
+                )
+
+                logging.info(f"[{project_id}] Running GATv2 Inference...")
+                inf_config = InferenceConfig(checkpoint_path="backend/data/models/gatv2_best.pt")
+                loaded_model = ModelLoader.load(inf_config, in_dim=768)
+                
+                inf_result = GATv2InferenceService.run_inference(loaded_model, inf_dataset, inf_config)
+                
+                # Apply ML predictions back to the Graph Nodes
+                for pred in inf_result.node_predictions:
+                    node = graph.nodes.get(pred.node_id)
+                    if node:
+                        node.metadata["risk_score"] = pred.risk_score
+                        node.metadata["severity"] = "CRITICAL" if pred.label == 1 else "LOW"
+                logging.info(f"[{project_id}] Successfully overrode graph with ML predictions.")
+            except Exception as ml_err:
+                import logging
+                logging.error(f"[{project_id}] ML Inference Failed (Falling back to heuristics): {ml_err}")
+            
             # Step 4: Export to physical Neo4j cluster
             ScanStatusService.set_status(project_id, ScanStage.EXPORTING)
             self.export_service.export_graph(graph)

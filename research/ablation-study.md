@@ -3,7 +3,7 @@
 This document details a strict ablation study designed to isolate and quantify the individual performance contribution of every major architectural component within the AgileGraph Post-Quantum Cryptography prediction pipeline. 
 
 ## 1. Experimental Design & Consistency
-To maintain absolute isolation, the study adheres to a single-component removal methodology. Each experiment selectively disables exactly one feature block while leaving all other elements (Dataset splits, Random Seed=42, Loss function, Early Stopping) completely unchanged from the Full Model baseline (F1: 0.894).
+To maintain absolute isolation, the study adheres to a single-component removal methodology. Each experiment selectively disables exactly one feature block while leaving all other elements (Dataset splits, Random Seed=42, Loss function, Early Stopping) completely unchanged from the Full Model baseline.
 
 ### Ablated Variants
 - **Full AgileGraph**: The complete production architecture.

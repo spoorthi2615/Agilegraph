@@ -32,10 +32,9 @@ This document presents the rigorous statistical analysis performed on the AgileG
 
 ## 4. Agreement Analysis
 
-**Cohen's Kappa ($\kappa$)** was computed to measure the inter-rater agreement between the AgileGraph predictions and the Ground Truth NIST labels, controlling for random guessing.
-- AgileGraph $\kappa$: **0.785** (Substantial Agreement)
-- GAT $\kappa$: 0.691 (Substantial Agreement)
-- Heuristic Regex $\kappa$: 0.382 (Fair Agreement)
+## 4. Agreement Analysis
+
+Because the F1-score is 0.000 across all permutations, computing Cohen's Kappa ($\kappa$) yields no meaningful agreement beyond random chance (or perfectly consistent misclassification). It is currently omitted pending dataset expansion.
 
 ## 5. Robustness & Variability Analysis
 

@@ -39,11 +39,15 @@ def process_corpus():
     repo_paths = [p for p in corpus_dir.iterdir() if p.is_dir()]
     num_repos = len(repo_paths)
     
-    # Pre-calculate repo-level splits (e.g. 80/10/10)
-    # If there are very few repos (e.g. 3), ensure at least 1 goes to train, val, test
+    # Calculate repo-level splits (e.g. 80/10/10)
+    # Guarantee >= 1 repo for val and test if we have at least 3 repos
     if num_repos >= 3:
-        train_cutoff = max(1, int(0.8 * num_repos))
-        val_cutoff = max(train_cutoff + 1, int(0.9 * num_repos))
+        num_test = max(1, int(0.1 * num_repos))
+        num_val = max(1, int(0.1 * num_repos))
+        num_train = max(1, num_repos - num_val - num_test)
+        
+        train_cutoff = num_train
+        val_cutoff = train_cutoff + num_val
     else:
         train_cutoff, val_cutoff = num_repos, num_repos
         

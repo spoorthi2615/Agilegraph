@@ -17,6 +17,48 @@
       "url": "https://github.com/hashicorp/vault.git",
       "language": "Go",
       "purpose": "Real secrets-management system, heavy crypto usage at scale"
+    },
+    {
+      "name": "bc-java",
+      "url": "https://github.com/bcgit/bc-java.git",
+      "language": "Java",
+      "purpose": "Bouncy Castle Crypto APIs for Java"
+    },
+    {
+      "name": "cryptography",
+      "url": "https://github.com/pyca/cryptography.git",
+      "language": "Python",
+      "purpose": "Python cryptography library for exposing cryptographic recipes and primitives"
+    },
+    {
+      "name": "tink",
+      "url": "https://github.com/tink-crypto/tink.git",
+      "language": "Java",
+      "purpose": "Multi-language, cross-platform, open source library that provides cryptographic APIs"
+    },
+    {
+      "name": "cfssl",
+      "url": "https://github.com/cloudflare/cfssl.git",
+      "language": "Go",
+      "purpose": "Cloudflare's PKI and TLS toolkit"
+    },
+    {
+      "name": "consul",
+      "url": "https://github.com/hashicorp/consul.git",
+      "language": "Go",
+      "purpose": "Service mesh solution providing a full featured control plane with service discovery, configuration, and segmentation"
+    },
+    {
+      "name": "crypto",
+      "url": "https://github.com/golang/crypto.git",
+      "language": "Go",
+      "purpose": "Supplementary Go cryptography libraries"
+    },
+    {
+      "name": "requests",
+      "url": "https://github.com/psf/requests.git",
+      "language": "Python",
+      "purpose": "A simple, yet elegant, HTTP library"
     }
   ]
 }

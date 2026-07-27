@@ -66,16 +66,13 @@ A modern, component-driven React application designed for high-density data visu
 
 ## 🧪 Testing & Validation
 
-The platform includes a robust, zero-dependency structural validation framework:
-- **PipelineValidator**: Sequences all macro-stages of the AgileGraph ingestion pipeline.
-- **ChaosEngine**: Systematically injects network timeouts, missing files, and degraded databases to ensure **Graceful Degradation**.
-- **Synopsis Compliance Verifier**: An internal auditing script that guarantees the codebase adheres strictly to its original academic specifications.
+The platform includes a genuine integration testing framework:
+- **End-to-End Integration**: Executes the full `ProjectAnalysisService` against real repositories (like WebGoat) to validate that structural static analysis, Semgrep scanning, and OSV.dev dependency checking correctly generate actionable findings and graph nodes.
 
 Run the Backend End-to-End validation suite:
 ```bash
-python backend/scripts/test_sprint76.py
+python backend/tests/e2e_integration_test.py
 ```
-
 ---
 
 ## 🛡️ Security & Performance

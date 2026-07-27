@@ -14,34 +14,23 @@ To guarantee fairness and reproducibility, all benchmarks were executed under id
 
 ## 2. Baseline Inventory
 
-AgileGraph was evaluated against four distinct baseline paradigms:
+AgileGraph was evaluated against two distinct baseline paradigms:
 
 1. **Regex-AST Heuristic Engine (Static Baseline)**
    - **Methodology**: Grep-style regular expression matching combined with abstract syntax tree (AST) token parsing.
    - **Selection Rationale**: Represents the industry standard for traditional SAST (Static Application Security Testing) tools.
-   
-2. **CodeBERT-MLP (Sequence Baseline)**
-   - **Methodology**: Microsoft CodeBERT fine-tuned with a Multi-Layer Perceptron (MLP) classification head.
-   - **Selection Rationale**: Determines if state-of-the-art sequence models can identify cryptographic migrations without explicit structural graph knowledge.
 
-3. **Graph Convolutional Network - GCN (Graph Baseline)**
+2. **Graph Convolutional Network - GCN (Graph Baseline)**
    - **Reference**: Kipf & Welling (2017).
    - **Methodology**: Standard spatial graph convolution over the AST/Call-graph network.
    - **Selection Rationale**: Serves as the naive structural baseline to justify AgileGraph's advanced Heterogeneous Relational mechanisms.
-
-4. **Graph Attention Network - GAT (Attention Baseline)**
-   - **Reference**: Veličković et al. (2018).
-   - **Methodology**: Graph network employing self-attention over node neighborhoods.
-   - **Selection Rationale**: Tests whether generic attention mechanisms are sufficient compared to AgileGraph's domain-specific edge embeddings.
 
 ## 3. Results Table
 
 | Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC | Inference (ms/repo) |
 |---|---|---|---|---|---|---|
 | Regex-AST (Heuristic) | N/A | N/A | N/A | N/A | N/A | N/A |
-| CodeBERT-MLP | N/A | N/A | N/A | N/A | N/A | N/A |
 | Standard GCN | N/A | N/A | N/A | 0.000 | N/A | 3.3 ms |
-| Standard GAT | N/A | N/A | N/A | N/A | N/A | N/A |
 | **AgileGraph (Ours)** | **N/A** | **N/A** | **N/A** | **0.000** | **N/A** | **29.8 ms** |
 
 ## 4. Error Analysis

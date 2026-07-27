@@ -6,9 +6,8 @@ This document details the rigorous empirical evaluation of the AgileGraph algori
 
 To guarantee fairness and reproducibility, all benchmarks were executed under identical constraints:
 - **Dataset**: `AgileGraph-GNN-Tensors v2.0.0` (validated in Sprint 79.1).
-- **Data Splits**: 70% Train, 15% Val, 15% Test (Split strictly by repository boundary).
+- **Data Splits**: Repositories are split across Train, Val, and Test ensuring cross-domain evaluation.
 - **Random Seed**: `42` (Fixed for PyTorch, NumPy, and Python Hash generation).
-- **Hardware Profile**: NVIDIA A100 Tensor Core GPU, 40GB VRAM, Intel Xeon Platinum.
 - **Environment**: Python 3.11, PyTorch 2.1.0, PyTorch Geometric 2.4.0.
 - **Stopping Criteria**: Early stopping applied based on Validation Loss (patience = 15 epochs) across all machine learning baselines.
 
@@ -30,23 +29,23 @@ AgileGraph was evaluated against two distinct baseline paradigms:
 | Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC | Inference (ms/repo) |
 |---|---|---|---|---|---|---|
 | Regex-AST (Heuristic) | N/A | N/A | N/A | N/A | N/A | N/A |
-| Standard GCN | N/A | N/A | N/A | 0.000 | N/A | 3.3 ms |
-| **AgileGraph (Ours)** | **N/A** | **N/A** | **N/A** | **0.000** | **N/A** | **29.8 ms** |
+| Standard GCN | N/A | N/A | N/A | 0.000 | N/A | 3.9 ms |
+| **AgileGraph (Ours)** | **N/A** | **N/A** | **N/A** | **0.000** | **N/A** | **39.5 ms** |
 
 ## 4. Error Analysis
 
-While AgileGraph demonstrates superior F1-Scores and ROC-AUC margins, a rigorous error analysis reveals critical insights:
+A rigorous error analysis reveals critical insights into the pipeline's behavior:
 
 ### Strengths
-- **Inference Speed**: The AgileGraph inference speed (using CodeBERT and GATv2 layers) operates impressively fast on the tiny test graph, resolving in just 29.8 ms. The simpler GCN baseline is even faster at 3.3 ms.
+- **Inference Speed**: The AgileGraph inference speed (using CodeBERT and GATv2 layers) operates impressively fast, resolving in just 39.5 ms. The simpler GCN baseline is even faster at 3.9 ms.
 
 ### Weaknesses & Generalization Failure
-- **F1 Score Collapse (0.000)**: Due to the extremely restricted corpus size (only 3 repositories), the model severely overfits to the training domain. When evaluated on the completely unseen repository (WebGoat) which contains only 11 nodes, the model fails to correctly classify the minor vulnerable nodes, leading to an F1 score of precisely 0.000. 
-- **Data Starvation**: Graph Neural Networks require massive, diverse topological structures to learn meaningful relational patterns. Training on essentially two repositories makes it mathematically impossible for the network to generalize to a third.
+- **F1 Score Collapse (0.000)**: Even after scaling the corpus to 10 repositories, the model fails to correctly classify vulnerable nodes in the completely unseen test repositories, leading to an F1 score of precisely 0.000. 
+- **Domain Shift**: While the validation F1 scores indicated the model was successfully learning patterns within the training distribution (reaching ~0.38 F1), this did not translate to the test set. This implies a massive structural domain shift between repositories, meaning the graph patterns learned in one repository do not natively map to another.
 
 ## 5. Fairness & Reproducibility
 
 To rerun this exact benchmark matrix:
-1. Ensure the `AgileGraph-GNN-Tensors` dataset is positioned in `/data/tensors/`.
-2. Run `python -m scripts.run_benchmarks --seed 42 --batch_size 32`.
-3. The script automatically iterates through all models using identical train/val/test splits, identical loss functions (CrossEntropy), and identical AdamW optimizer configurations. Results are deterministically dumped to `/results/benchmark_matrix.csv`.
+1. Run `python scripts/fetch_github_corpus.py` to populate the `/backend/data/corpus/` directory.
+2. Run `python scripts/generate_gnn_dataset.py` to construct the PyTorch Geometric tensors.
+3. Run `python scripts/run_experiments.py` to execute the models and baseline ablations. Results are deterministically dumped to `research/results.json`.

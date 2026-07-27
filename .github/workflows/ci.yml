@@ -43,6 +43,12 @@ jobs:
         working-directory: ./backend
         run: pip-audit --desc on
 
+      - name: Prepare Test Corpus (WebGoat)
+        working-directory: ./backend
+        run: |
+          mkdir -p data/corpus
+          git clone --depth 1 https://github.com/WebGoat/WebGoat.git data/corpus/WebGoat
+
       - name: Run Tests
         working-directory: ./backend
         continue-on-error: true

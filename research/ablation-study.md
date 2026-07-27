@@ -14,23 +14,21 @@ To maintain absolute isolation, the study adheres to a single-component removal 
 
 ## 2. Contribution Analysis Results
 
-| Model Variant | F1-Score | Diff vs Full | Recall | Runtime (ms) | Peak VRAM |
-|---|---|---|---|---|---|
-| **Full AgileGraph** | **0.000** | - | **0.000** | 29.8 | 3.2 GB |
-| - w/o Heterogeneous Edges | 0.000 | 0.000 | 0.000 | **15.4** | 2.5 GB |
-| - w/o GATv2 Attention (GCN) | 0.000 | 0.000 | 0.000 | **3.3** | 2.8 GB |
-| - w/o Edge Attributes | 0.000 | 0.000 | 0.000 | 27.7 | 3.1 GB |
-| - w/o CodeBERT Features | 0.000 | 0.000 | 0.000 | 27.0 | **1.8 GB** |
+| Model Variant | F1-Score | Diff vs Full | Recall | Runtime (ms) |
+|---|---|---|---|---|
+| **Full AgileGraph** | **0.000** | - | **0.000** | 39.5 |
+| - w/o Heterogeneous Edges | 0.000 | 0.000 | 0.000 | 22.6 |
+| - w/o GATv2 Attention (GCN) | 0.000 | 0.000 | 0.000 | **3.9** |
+| - w/o Edge Attributes | 0.000 | 0.000 | 0.000 | 31.8 |
+| - w/o CodeBERT Features | 0.000 | 0.000 | 0.000 | 31.4 |
 
 ## 3. Interpretation & Component Ranking
 
-Because the F1-Score completely collapsed to 0.000 across all permutations due to extreme dataset starvation (training on only 3 repositories), it is mathematically impossible to rank the architectural components by performance contribution. 
+Because the F1-Score completely collapsed to 0.000 across all permutations even after scaling to 10 repositories, it is mathematically impossible to rank the architectural components by performance contribution based on predictive power.
 
 However, the **Inference Latency** accurately highlights structural overhead:
-- Standard GCN (`w/o GATv2`) is incredibly fast (3.3 ms) compared to the Full Model (29.8 ms).
-- Dropping Heterogeneous edges also yields a massive 2x runtime acceleration (15.4 ms) because heterogeneous message passing dictates multiple independent weight matrices.
+- Standard GCN (`w/o GATv2`) is incredibly fast (3.9 ms) compared to the Full Model (39.5 ms).
+- Dropping Heterogeneous edges also yields a massive runtime acceleration (22.6 ms) because heterogeneous message passing dictates multiple independent weight matrices.
 
 ## 4. Threats to Validity & Unexpected Observations
-**Unexpected Observation**: Removing Heterogeneous edges dramatically reduced VRAM consumption (down 0.7 GB) and inference latency. For edge devices or low-compute environments, a Homogeneous variant of AgileGraph might actually be preferred despite the 5% F1-score penalty.
-
 **Threat to Validity**: The ablation study currently only disables components independently. It does not measure higher-order interaction effects (e.g., removing *both* GATv2 and Heterogeneous edges simultaneously), which might trigger non-linear performance decay. Future factorial design studies are recommended.

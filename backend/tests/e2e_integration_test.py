@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app.services.project_analysis_service import ProjectAnalysisService
 from app.scanners.scanner_registry import get_default_registry
 
-def run_integration_test():
+def test_integration_pipeline():
     """
     Genuine End-to-End integration test.
     Executes the real ProjectAnalysisService against the WebGoat repository,
@@ -55,4 +55,4 @@ def run_integration_test():
         sys.exit(1)
 
 if __name__ == "__main__":
-    run_integration_test()
+    test_integration_pipeline()

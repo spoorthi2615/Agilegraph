@@ -21,6 +21,10 @@ from app.models.migration_roadmap import MigrationRoadmap
 from app.models.explanation import Explanation
 from app.models.security_report import SecurityReport
 
+from app.models.dashboard import (
+    DashboardSummary, KPISummary, DashboardGraph, DashboardNode, DashboardEdge, ReportRecord
+)
+
 router = APIRouter()
 
 # ---------------------------------------------------------
@@ -95,22 +99,77 @@ def provide_security_report(
 # Thin REST Controllers
 # ---------------------------------------------------------
 
-@router.get("/summary")
-def get_summary(query_service: GraphQueryService = Depends(get_query_service)) -> Dict[str, int]:
-    return query_service.get_summary_statistics()
+@router.get("/summary", response_model=DashboardSummary)
+def get_summary(
+    query_service: GraphQueryService = Depends(get_query_service),
+    readiness: PQCReadinessAssessment = Depends(provide_pqc_readiness)
+) -> DashboardSummary:
+    stats = query_service.get_summary_statistics()
+    
+    kpis = KPISummary(
+        totalAssets=stats.get("asset_count", 0),
+        critical=0,
+        high=0,
+        medium=0,
+        low=0,
+        migrationProgress=0,
+        pqcReadiness=readiness.overall_readiness_score if readiness else 0,
+        lastScan="Recent"
+    )
+    
+    return DashboardSummary(
+        kpis=kpis,
+        riskDistribution=[],
+        algorithmUsage=[],
+        departmentUsage=[],
+        migrationTrend=[],
+        recentScans=[],
+        activity=[],
+        criticalAlerts=[]
+    )
 
-@router.get("/report")
-def get_report(report: SecurityReport = Depends(provide_security_report)) -> SecurityReport:
-    return report
+@router.get("/graph", response_model=DashboardGraph)
+def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGraph:
+    nodes = []
+    if graph and hasattr(graph, 'nodes'):
+        for node in graph.nodes:
+            # We must map backend CryptoNode to frontend DashboardNode
+            # Risk level fallback to "medium", type fallback to "service" if undefined
+            nodes.append(DashboardNode(
+                id=str(node.node_id),
+                label=str(node.name) if hasattr(node, 'name') else str(node.node_id),
+                type="service", 
+                risk="medium",
+                x=0.0, 
+                y=0.0
+            ))
+            
+    edges = []
+    if graph and hasattr(graph, 'edges'):
+        for edge in graph.edges:
+            edges.append(DashboardEdge(
+                source=str(edge.source_id),
+                target=str(edge.target_id)
+            ))
+            
+    return DashboardGraph(nodes=nodes, edges=edges)
 
-@router.get("/readiness")
-def get_readiness(readiness: PQCReadinessAssessment = Depends(provide_pqc_readiness)) -> PQCReadinessAssessment:
-    return readiness
+@router.get("/reports", response_model=List[ReportRecord])
+def get_reports(report: SecurityReport = Depends(provide_security_report)) -> List[ReportRecord]:
+    if not report:
+        return []
+        
+    return [
+        ReportRecord(
+            id=str(report.report_id),
+            title="Generated Security Report",
+            type="Security",
+            createdAt=report.generated_at.isoformat() if hasattr(report, 'generated_at') else "",
+            size="0 KB",
+            author="AgileGraph"
+        )
+    ]
 
-@router.get("/roadmap")
-def get_roadmap(roadmap: MigrationRoadmap = Depends(provide_roadmap)) -> MigrationRoadmap:
-    return roadmap
-
-@router.get("/explanations")
+@router.get("/explanations", response_model=List[Explanation])
 def get_explanations(explanations: List[Explanation] = Depends(provide_explanations)) -> List[Explanation]:
-    return explanations
+    return explanations if explanations else []

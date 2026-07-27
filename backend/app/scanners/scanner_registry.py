@@ -41,6 +41,8 @@ def get_default_registry() -> ScannerRegistry:
     from app.scanners.certificate_scanner import CertificateScanner
     from app.scanners.java_scanner import JavaScanner
     from app.scanners.go_scanner import GoScanner
+    from app.scanners.semgrep_scanner import SemgrepScanner
+    from app.scanners.ct_scanner import CTScanner
     
     registry = ScannerRegistry()
     registry.register(PythonScanner)
@@ -48,4 +50,6 @@ def get_default_registry() -> ScannerRegistry:
     registry.register(CertificateScanner)
     registry.register(JavaScanner)
     registry.register(GoScanner)
+    registry.register(SemgrepScanner)
+    registry.register(CTScanner)
     return registry

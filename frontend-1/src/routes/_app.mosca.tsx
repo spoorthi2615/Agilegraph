@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
 import { Slider } from "@/components/ui/slider";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Info, ShieldCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_app/mosca")({
   component: Mosca,
@@ -15,15 +16,20 @@ export const Route = createFileRoute("/_app/mosca")({
 });
 
 function Mosca() {
-  const [x, setX] = useState(10);
-  const [y, setY] = useState(3);
   const [z, setZ] = useState(8);
 
-  const surplus = z - (x + y);
-  const readiness = useMemo(() => {
-    const raw = Math.max(0, Math.min(100, ((z - Math.max(x + y, 0.1)) / z) * 100 + 40));
-    return Math.round(raw);
-  }, [x, y, z]);
+  const { data: moscaData, isLoading } = useQuery({
+    queryKey: ['moscaReadiness', z],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:8000/api/v1/dashboard/mosca?z=${z}`);
+      return await res.json();
+    }
+  });
+
+  const x = moscaData?.x ?? 0;
+  const y = moscaData?.y ?? 0;
+  const surplus = moscaData?.surplus ?? 0;
+  const readiness = moscaData?.readiness_score ?? 100;
 
   const status =
     surplus < 0 ? { label: "At risk — migrate now", color: "var(--color-critical)" } :
@@ -46,9 +52,22 @@ function Mosca() {
               </p>
 
               <div className="mt-8 space-y-8">
-                <SliderInput label="Confidentiality Lifetime (X)" hint="Years your data must remain secret" value={x} onChange={setX} max={30} suffix="years" tint="var(--color-primary)" />
-                <SliderInput label="Migration Duration (Y)" hint="Years to complete your PQC rollout" value={y} onChange={setY} max={15} suffix="years" tint="var(--color-chart-5)" />
                 <SliderInput label="Quantum Horizon (Z)" hint="Estimated years until a CRQC exists" value={z} onChange={setZ} max={30} suffix="years" tint="var(--color-warning)" />
+                
+                <div className="rounded-md border p-4 bg-muted/20">
+                  <div className="text-sm font-medium">Computed Baseline Values</div>
+                  <div className="mt-2 text-xs text-muted-foreground">Derived from actual repository analysis in Neo4j.</div>
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs font-semibold">Data Confidentiality Lifetime (X)</div>
+                      <div className="text-lg font-mono">{isLoading ? "..." : x} yrs</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold">Migration Duration (Y)</div>
+                      <div className="text-lg font-mono">{isLoading ? "..." : y} yrs</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-8 rounded-lg border bg-muted/30 p-5">

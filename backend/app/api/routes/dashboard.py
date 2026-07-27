@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from typing import List, Dict, Any
 from pathlib import Path
+from pydantic import BaseModel
 
 from app.config.settings import settings
 from app.services.graph_query_service import GraphQueryService
@@ -159,6 +160,61 @@ def get_summary(
         recent_scans=[],
         activity=[],
         critical_alerts=alerts
+    )
+
+class MoscaResponse(BaseModel):
+    x: float
+    y: float
+    z: float
+    surplus: float
+    readiness_score: int
+
+@router.get("/mosca", response_model=MoscaResponse)
+def get_mosca_readiness(
+    z: float = Query(8.0, description="Quantum horizon in years"),
+    query_service: GraphQueryService = Depends(get_query_service)
+) -> MoscaResponse:
+    # Get aggregations to compute real X and Y
+    aggs = query_service.get_dashboard_aggregations()
+    severity_counts = {str(s["severity"]).upper(): s["count"] for s in aggs.get("severities", [])}
+    
+    critical_count = severity_counts.get("CRITICAL", 0)
+    high_count = severity_counts.get("HIGH", 0)
+    medium_count = severity_counts.get("MEDIUM", 0)
+    low_count = severity_counts.get("LOW", 0)
+    
+    total_vulnerable = critical_count + high_count + medium_count + low_count
+    
+    # Y: Estimated migration duration based on volume and complexity
+    # Assume: 0.1 years per critical, 0.05 per high, 0.02 per medium, 0.01 per low
+    y = round((critical_count * 0.1) + (high_count * 0.05) + (medium_count * 0.02) + (low_count * 0.01), 1)
+    # Ensure minimum 0.5 years if there are any vulnerable assets
+    if total_vulnerable > 0 and y < 0.5:
+        y = 0.5
+        
+    # X: Required data confidentiality lifetime based on highest criticality
+    # A project with critical assets requires longer secrecy
+    if critical_count > 0:
+        x = 10.0
+    elif high_count > 0:
+        x = 7.0
+    elif medium_count > 0:
+        x = 3.0
+    else:
+        x = 1.0
+        
+    surplus = round(z - (x + y), 1)
+    
+    # Calculate readiness score (0-100) based on the surplus
+    raw = max(0, min(100, ((z - max(x + y, 0.1)) / z) * 100 + 40))
+    readiness_score = int(round(raw))
+    
+    return MoscaResponse(
+        x=x,
+        y=y,
+        z=z,
+        surplus=surplus,
+        readiness_score=readiness_score
     )
 
 @router.get("/graph", response_model=DashboardGraph)

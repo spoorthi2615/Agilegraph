@@ -1,0 +1,22 @@
+{
+  "repositories": [
+    {
+      "name": "WebGoat",
+      "url": "https://github.com/WebGoat/WebGoat.git",
+      "language": "Java",
+      "purpose": "Validation set containing deliberate weak crypto (MD5, SHA1, XOR)"
+    },
+    {
+      "name": "paramiko",
+      "url": "https://github.com/paramiko/paramiko.git",
+      "language": "Python",
+      "purpose": "Real SSH library with mixed modern and legacy crypto"
+    },
+    {
+      "name": "vault",
+      "url": "https://github.com/hashicorp/vault.git",
+      "language": "Go",
+      "purpose": "Real secrets-management system, heavy crypto usage at scale"
+    }
+  ]
+}

@@ -1,9 +1,19 @@
 import os
+import json
 import matplotlib.pyplot as plt
 
 def generate_ablation_waterfall():
+    results_file = 'research/results.json'
+    if not os.path.exists(results_file):
+        print(f"Error: {results_file} not found. Run run_experiments.py first.")
+        return
+        
+    with open(results_file, 'r') as f:
+        data = json.load(f)
+        
+    ablation = data.get("ablation_f1", {})
     components = ['Full Model', '- Heterogeneous', '- GATv2', '- Edge Attrs', '- CodeBERT']
-    f1_scores = [0.894, 0.841, 0.872, 0.881, 0.765]
+    f1_scores = [ablation.get(c, 0.0) for c in components]
     
     # Calculate drops for plotting
     drops = [0] + [0.894 - score for score in f1_scores[1:]]

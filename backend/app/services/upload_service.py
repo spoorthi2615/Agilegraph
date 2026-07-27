@@ -73,7 +73,7 @@ class UploadService:
         from app.services.analysis_workflow_service import AnalysisWorkflowService
         from app.services.project_analysis_service import ProjectAnalysisService
         from app.services.neo4j_export_service import Neo4jExportService
-        from app.scanners.registry import get_default_registry
+        from app.scanners.scanner_registry import get_default_registry
         from pathlib import Path
         
         analysis_service = ProjectAnalysisService(get_default_registry())

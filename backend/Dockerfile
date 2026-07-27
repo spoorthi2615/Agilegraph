@@ -1,26 +1,44 @@
-FROM python:3.12-slim
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+# Stage 1: Build dependencies
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc \
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --user --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Stage 2: Runtime
+FROM python:3.11-slim
 
-# Expose the application port
+WORKDIR /app
+
+# Create non-root user
+RUN groupadd -r agilegraph && useradd -r -g agilegraph agilegraph \
+    && mkdir -p /app/data /app/uploads \
+    && chown -R agilegraph:agilegraph /app
+
+# Copy dependencies from builder
+COPY --from=builder /root/.local /home/agilegraph/.local
+ENV PATH=/home/agilegraph/.local/bin:$PATH
+
+# Copy application source code
+COPY --chown=agilegraph:agilegraph . .
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/app
+
+# Switch to non-root user
+USER agilegraph
+
+# Expose backend port
 EXPOSE 8000
 
-# Start the application
+# Start FastAPI application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

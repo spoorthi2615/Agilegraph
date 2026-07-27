@@ -26,7 +26,6 @@ def get_reports(
     """
     items = []
     
-    # Mock a single report if needed, or stick to Empty State Policy (return [])
     # Returning [] satisfies the Empty State Policy requirement flawlessly.
     return PaginatedReportResponse(
         items=items,

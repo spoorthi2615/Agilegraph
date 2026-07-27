@@ -8,7 +8,7 @@ It guarantees scientific rigor, ensuring that all findings published in the diss
 
 | Dataset Name | Version | Purpose | Source | Format |
 |---|---|---|---|---|
-| **AgileGraph-Code-Corpus** | v1.0.0 | Source code AST extraction, heuristic rule engine validation | Public GitHub (150 active cryptography-heavy repositories) | `.zip`, `.py`, `.java`, `.go` |
+| **AgileGraph-Code-Corpus** | v1.0.0 | Source code AST extraction, heuristic rule engine validation | Public GitHub (3 cryptography-heavy repositories: WebGoat, paramiko, vault) | `.zip`, `.py`, `.java`, `.go` |
 | **AgileGraph-CBOM-Registry** | v1.2.0 | Software Bill of Materials evaluation and CycloneDX schema compliance | Generated via Syft / internal parsers | `.json`, `.xml` |
 | **AgileGraph-TLS-Traces** | v1.0.0 | Network interception simulation, protocol downgrades | Extracted via `sslyze` & `cryptography` libraries | `.json` |
 | **AgileGraph-Cert-Vault** | v1.1.0 | X.509 certificate parsing, RSA/ECC to PQC signature migration | Let's Encrypt CT Logs, internal synthetic PKI | `.pem`, `.der`, `.crt` |
@@ -19,12 +19,12 @@ It guarantees scientific rigor, ensuring that all findings published in the diss
 ### 2.1 AgileGraph-Code-Corpus
 - **Collection Method**: Automated cloning of repositories containing keywords (`crypto`, `bouncycastle`, `openssl`, `jwt`) using the GitHub GraphQL API.
 - **Time Period**: January 2023 - March 2024.
-- **Statistics**: 150 repositories, 4.2 million lines of code (Python: 45%, Java: 30%, Go: 15%, C/C++: 10%).
+- **Statistics**: 3 repositories, ~250,000 lines of code.
 - **Licensing**: Exclusively MIT and Apache 2.0.
 
 ### 2.2 AgileGraph-GNN-Tensors
 - **Collection Method**: Nodes (Functions, Classes, External Dependencies) and Edges (Calls, Imports) were extracted from the Code Corpus via AST parsing, embedded using CodeBERT, and labeled mathematically based on NIST PQC readiness matrices.
-- **Statistics**: 85,000 Nodes, 320,000 Edges.
+- **Statistics**: 3,215 Nodes, 2,894 Edges.
 - **Class Balance**: 
   - `PQC-Safe` (20%)
   - `Legacy-Vulnerable` (45%)
@@ -49,5 +49,5 @@ Every dataset relies on deterministic extraction pipelines rather than manual cu
 3. **To reconstruct the Tensors**: Run the `app.ml.export` pipeline to dump Neo4j projections into `.pt` matrices.
 
 ## 5. Threats to Validity & Limitations
-1. **Selection Bias**: The Code Corpus inherently skews toward modern, open-source web applications. Legacy enterprise monoliths (e.g., COBOL, legacy Java) may present different topological graph structures.
+1. **Extremely Small Corpus**: The current Code Corpus consists of only 3 repositories. This severely limits the Graph Neural Network's ability to learn robust, generalizable patterns, resulting in degraded or zero F1-scores during cross-validation due to extreme class imbalance in tiny test splits. A significantly larger corpus is required for production-level model convergence.
 2. **Temporal Degradation**: TLS and Certificate datasets degrade in relevance rapidly as the CA ecosystem deprecates RSA/ECC primitives in favor of Kyber/Dilithium. The dataset version (v1.x.x) is explicitly bound to the 2024 CA baseline.

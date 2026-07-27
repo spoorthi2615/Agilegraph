@@ -23,8 +23,8 @@ class CheckpointManager:
             'in_dim': model.conv1.in_channels,
             'hidden_dim': model.conv1.out_channels,
             'out_dim': model.conv2.out_channels,
-            'heads': model.conv1.heads,
-            'dropout': model.conv1.dropout
+            'heads': getattr(model.conv1, 'heads', 1),
+            'dropout': getattr(model.conv1, 'dropout', getattr(model, 'dropout', 0.0))
         }
         
         torch.save({

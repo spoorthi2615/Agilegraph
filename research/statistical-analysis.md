@@ -14,21 +14,21 @@ This document presents the rigorous statistical analysis performed on the AgileG
 
 | Metric | AgileGraph Mean | 95% CI | Best Baseline (GAT) Mean | GAT 95% CI | p-value (vs GAT) | Cohen's d (Effect Size) |
 |---|---|---|---|---|---|---|
-| **Accuracy** | 89.3% | [88.1%, 90.6%] | 84.1% | [82.8%, 85.5%] | < 0.001* | 1.15 (Large) |
-| **Precision** | 0.887 | [0.871, 0.902] | 0.835 | [0.819, 0.850] | < 0.001* | 1.21 (Large) |
-| **Recall** | 0.901 | [0.885, 0.916] | 0.852 | [0.836, 0.868] | 0.003* | 0.94 (Large) |
-| **F1-Score** | 0.894 | [0.878, 0.909] | 0.843 | [0.827, 0.859] | < 0.001* | 1.08 (Large) |
-| **ROC-AUC** | 0.942 | [0.931, 0.953] | 0.895 | [0.882, 0.909] | < 0.001* | 1.35 (Large) |
-| **Latency** | 165.2 ms | [155.1, 176.4] | **145.8 ms** | [138.2, 154.5] | < 0.001* | -0.85 (Large Penalty) |
+| **Accuracy** | N/A | N/A | N/A | N/A | N/A | N/A |
+| **Precision** | N/A | N/A | N/A | N/A | N/A | N/A |
+| **Recall** | N/A | N/A | N/A | N/A | N/A | N/A |
+| **F1-Score** | 0.000 | N/A | N/A | N/A | N/A | N/A |
+| **ROC-AUC** | N/A | N/A | N/A | N/A | N/A | N/A |
+| **Latency** | 29.8 ms | N/A | N/A | N/A | N/A | N/A |
 
-*Notes: `*` indicates statistical significance at α = 0.05. Best Baseline selected based on prior matrix. Latency penalty for AgileGraph is significant but expected due to higher dimensionality in Heterogeneous convolutions.*
+*Notes: Statistical significance cannot be established. The dataset size (3 repositories) is insufficiently powered to conduct McNemar's or Wilcoxon testing without overwhelming Type-II error.*
 
 ## 3. Hypothesis Testing
 
 - **Null Hypothesis (H0)**: There is no significant difference in the classification accuracy between AgileGraph and the best baseline (Standard GAT).
 - **Alternative Hypothesis (H1)**: AgileGraph classification accuracy significantly differs from the baseline.
 
-**Decision**: Applying McNemar's Test on the paired classification vectors yielded a $\chi^2$ value of 24.15 and a *p*-value of 0.00084. Because *p* < 0.05, we reject the Null Hypothesis. The performance improvement of AgileGraph is mathematically significant and not a byproduct of random chance.
+**Decision**: Because the experimental corpus consists of only 3 repositories, the test split contains insufficient variance and instances. The model achieved an F1 score of 0.000 across ablations, meaning McNemar's test would simply confirm a total failure to generalize. We **fail to reject the Null Hypothesis** until a significantly larger dataset is compiled.
 
 ## 4. Agreement Analysis
 
@@ -46,7 +46,7 @@ Analysis of standard deviations across the 10 repeated experimental runs reveals
 
 ## 6. Interpretation & Practical Significance
 
-The large effect sizes (Cohen's d > 0.8) indicate that the improvements achieved by AgileGraph are not just statistically significant, but practically meaningful in a real-world cybersecurity context. An increase in Recall of this magnitude translates directly to fewer unpatched cryptographic vulnerabilities reaching production. However, it is equally important to acknowledge that the latency degradation vs. Regex is also statistically significant, confirming AgileGraph's role as a deep analytical tool rather than a raw real-time stream filter.
+The current practical significance of the model is heavily bottlenecked by the data constraints. While the architecture (GATv2 with CodeBERT embeddings) is sound, a 3-repository training corpus is mathematically inadequate for Graph Neural Networks. True practical significance and effect size calculations will be performed in subsequent phases upon dataset expansion.
 
 ## 7. Threats to Statistical Validity
 - **Non-Independence of Nodes**: Nodes within the same repository graph are fundamentally correlated. While cross-validation splits were drawn strictly at the repository boundary, McNemar's test strictly assumes independent observations. Violating this assumption slightly inflates Type-I error probability, though the sheer magnitude of the *p*-value (<0.001) protects against false positives.

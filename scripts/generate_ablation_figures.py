@@ -16,14 +16,18 @@ def generate_ablation_waterfall():
     f1_scores = [ablation.get(c, 0.0) for c in components]
     
     # Calculate drops for plotting
-    drops = [0] + [0.894 - score for score in f1_scores[1:]]
+    baseline_f1 = f1_scores[0]
+    drops = [0] + [baseline_f1 - score for score in f1_scores[1:]]
     
     plt.figure(figsize=(10, 6))
     bars = plt.bar(components, f1_scores, color=['blue', 'red', 'orange', 'gold', 'darkred'], alpha=0.8)
     
     plt.title('Ablation Study: F1-Score Degradation', fontsize=14)
     plt.ylabel('F1-Score', fontsize=12)
-    plt.ylim(0.7, 0.95)
+    
+    min_f1 = min(f1_scores)
+    max_f1 = max(f1_scores)
+    plt.ylim(max(0.0, min_f1 - 0.05), min(1.0, max_f1 + 0.05))
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     
     # Annotate bars

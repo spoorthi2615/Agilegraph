@@ -2,6 +2,7 @@ import torch
 from pydantic import BaseModel, Field
 
 class TrainingConfig(BaseModel):
+    model_type: str = "GATv2"
     """
     Strongly typed configuration for the GATv2 training pipeline.
     Ensures reproducibility and eliminates hardcoded hyperparameters.

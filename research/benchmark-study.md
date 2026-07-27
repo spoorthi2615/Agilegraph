@@ -38,23 +38,22 @@ AgileGraph was evaluated against four distinct baseline paradigms:
 
 | Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC | Inference (ms/repo) |
 |---|---|---|---|---|---|---|
-| Regex-AST (Heuristic) | 68.4% | 0.812 | 0.453 | 0.581 | 0.612 | **45.2 ms** |
-| CodeBERT-MLP | 76.2% | 0.745 | 0.781 | 0.762 | 0.824 | 315.4 ms |
-| Standard GCN | 81.5% | 0.821 | 0.804 | 0.812 | 0.871 | 112.5 ms |
-| Standard GAT | 84.1% | 0.835 | 0.852 | 0.843 | 0.895 | 145.8 ms |
-| **AgileGraph (Ours)** | **89.3%** | **0.887** | **0.901** | **0.894** | **0.942** | 165.2 ms |
+| Regex-AST (Heuristic) | N/A | N/A | N/A | N/A | N/A | N/A |
+| CodeBERT-MLP | N/A | N/A | N/A | N/A | N/A | N/A |
+| Standard GCN | N/A | N/A | N/A | 0.000 | N/A | 3.3 ms |
+| Standard GAT | N/A | N/A | N/A | N/A | N/A | N/A |
+| **AgileGraph (Ours)** | **N/A** | **N/A** | **N/A** | **0.000** | **N/A** | **29.8 ms** |
 
 ## 4. Error Analysis
 
 While AgileGraph demonstrates superior F1-Scores and ROC-AUC margins, a rigorous error analysis reveals critical insights:
 
 ### Strengths
-- **Relational Context**: AgileGraph drastically outperforms the baselines when cryptography functions are heavily abstracted or obfuscated through multiple wrapper classes. Standard GCN fails here due to over-smoothing, whereas AgileGraph preserves the semantic edge types.
-- **High Recall**: Achieving 0.901 Recall ensures minimal False Negatives, which is critical for security audits where missing a vulnerable RSA key generation is catastrophic.
+- **Inference Speed**: The AgileGraph inference speed (using CodeBERT and GATv2 layers) operates impressively fast on the tiny test graph, resolving in just 29.8 ms. The simpler GCN baseline is even faster at 3.3 ms.
 
-### Weaknesses & Cases Where Baselines Outperform
-- **Inference Speed**: The Regex-AST heuristic baseline is computationally trivial (45.2 ms). AgileGraph requires 165.2 ms per repository due to graph message passing and heterogeneous aggregation. For ultra-low latency CI/CD pipelines, heuristics remain superior in raw speed.
-- **False Positives in Dead Code**: AgileGraph struggles slightly when vulnerable legacy algorithms are imported but never executed (Dead Code). Because the static graph registers the import edge, the model sometimes penalizes the node, whereas advanced dynamic analysis would ignore it.
+### Weaknesses & Generalization Failure
+- **F1 Score Collapse (0.000)**: Due to the extremely restricted corpus size (only 3 repositories), the model severely overfits to the training domain. When evaluated on the completely unseen repository (WebGoat) which contains only 11 nodes, the model fails to correctly classify the minor vulnerable nodes, leading to an F1 score of precisely 0.000. 
+- **Data Starvation**: Graph Neural Networks require massive, diverse topological structures to learn meaningful relational patterns. Training on essentially two repositories makes it mathematically impossible for the network to generalize to a third.
 
 ## 5. Fairness & Reproducibility
 

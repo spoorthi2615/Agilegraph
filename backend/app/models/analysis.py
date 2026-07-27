@@ -79,3 +79,4 @@ class PaginatedAssetResponse(AnalysisBaseModel):
     total: int
     page: int
     size: int
+    total_pages: int

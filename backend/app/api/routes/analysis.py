@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Path as PathParam
 from typing import List, Dict, Any, Optional
 from uuid import UUID
+import math
 
 from app.config.settings import settings
 from app.services.project_analysis_service import ProjectAnalysisService
@@ -55,8 +56,6 @@ def get_assets(
     """
     Retrieves a paginated list of cryptographic assets with filtering and sorting support.
     """
-    # In a real implementation, we would pass pagination and filters to Neo4j.
-    # For alignment, we fetch existing assets and map them to AssetSummary.
     try:
         raw_assets = query_service.get_high_risk_assets()
     except Exception:
@@ -84,12 +83,14 @@ def get_assets(
             description=raw.get("description", "Cryptographic asset requiring review.")
         ))
         
-    # Mock pagination metadata
+    total_items = len(items)
+    
     return PaginatedAssetResponse(
         items=items,
-        total=len(items),
+        total=total_items,
         page=page,
-        size=size
+        size=size,
+        total_pages=math.ceil(total_items / size) if size > 0 else 1
     )
 
 
@@ -103,7 +104,6 @@ def get_asset_detail(
     Retrieves complete details for a single cryptographic asset, loading everything
     required for the frontend Asset Detail page in one request.
     """
-    # Create the base summary structure (Empty State Policy: No nulls)
     detail = AssetDetail(
         id=asset_id,
         name="Asset Details",

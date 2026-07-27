@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config.settings import settings
 from app.api.v1.endpoints import health, upload, github
-from app.api.routes import dashboard, analysis
+from app.api.routes import dashboard, analysis, graph
 from app.core.exceptions import AgileGraphException, ValidationException, ResourceNotFoundException, EntityTooLargeException
 from app.core.logging import setup_logging
 import logging
@@ -65,7 +65,7 @@ def create_app() -> FastAPI:
     app.include_router(github.router, prefix="/api/v1", tags=["GitHub Import"])
     app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
     app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
-
+    app.include_router(graph.router, prefix="/api/v1/graph", tags=["Graph"])
     return app
 
 app = create_app()

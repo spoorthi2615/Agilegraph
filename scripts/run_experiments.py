@@ -101,17 +101,7 @@ def run_all_experiments():
     latencies.append(lat_gatv2)
     throughputs.append(tp_gatv2)
     
-    # 4. - Edge Attrs (Physically remove edge attributes if they exist)
-    no_edge_data = batched_data.clone()
-    if hasattr(no_edge_data, 'edge_attr'):
-        no_edge_data.edge_attr = None
-    f1_edge, val_f1_edge, lat_edge, tp_edge = run_ablation(no_edge_data, "- Edge Attrs") 
-    results["- Edge Attrs"] = f1_edge
-    val_results["- Edge Attrs"] = val_f1_edge
-    latencies.append(lat_edge)
-    throughputs.append(tp_edge)
-    
-    # 5. - CodeBERT (Replace CodeBERT embeddings with random noise)
+    # 4. - CodeBERT (Replace CodeBERT embeddings with random noise)
     noisy_data = batched_data.clone()
     noisy_data.x = torch.randn_like(noisy_data.x)
     f1_codebert, val_f1_codebert, lat_codebert, tp_codebert = run_ablation(noisy_data, "- CodeBERT")

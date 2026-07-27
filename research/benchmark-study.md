@@ -41,7 +41,8 @@ A rigorous error analysis reveals critical insights into the pipeline's behavior
 
 ### Weaknesses & Generalization Failure
 - **F1 Score Collapse (0.000)**: Even after scaling the corpus to 10 repositories, the model fails to correctly classify vulnerable nodes in the completely unseen test repositories, leading to an F1 score of precisely 0.000. 
-- **Domain Shift**: While the validation F1 scores indicated the model was successfully learning patterns within the training distribution (reaching ~0.38 F1), this did not translate to the test set. This implies a massive structural domain shift between repositories, meaning the graph patterns learned in one repository do not natively map to another.
+- **The CodeBERT Noise Finding**: While the validation F1 scores initially appeared to show learning (reaching ~0.38 F1), our ablation study revealed that this peak score occurred when CodeBERT semantic embeddings were replaced with random noise. This implies the model is likely overfitting to graph structural features (like node degree) or class imbalance rather than genuinely understanding code semantics.
+- **Domain Shift**: This failure to generalize implies a massive structural domain shift between repositories, meaning the graph patterns learned in one repository do not natively map to another.
 
 ## 5. Fairness & Reproducibility
 

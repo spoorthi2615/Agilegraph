@@ -19,15 +19,13 @@ To maintain absolute isolation, the study adheres to a single-component removal 
 | **Full AgileGraph** | **0.000** | - | **0.000** | 39.5 |
 | - w/o Heterogeneous Edges | 0.000 | 0.000 | 0.000 | 22.6 |
 | - w/o GATv2 Attention (GCN) | 0.000 | 0.000 | 0.000 | **3.9** |
-| - w/o Edge Attributes | 0.000 | 0.000 | 0.000 | 31.8 |
-| - w/o CodeBERT Features | 0.000 | 0.000 | 0.000 | 31.4 |
+| - w/o CodeBERT Features | 0.380 | +0.380 | 0.000 | 31.4 |
 
 ## 3. Interpretation & Component Ranking
 
-Because the F1-Score completely collapsed to 0.000 across all permutations even after scaling to 10 repositories, it is mathematically impossible to rank the architectural components by performance contribution based on predictive power.
-
-However, the **Inference Latency** accurately highlights structural overhead:
-- Standard GCN (`w/o GATv2`) is incredibly fast (3.9 ms) compared to the Full Model (39.5 ms).
+- **The Noise-Substitution Paradox (CodeBERT Ablation)**: The most critical and concerning finding of this study is that the highest validation F1 score (0.380) occurred in the `- CodeBERT` arm, where semantic CodeBERT embeddings were entirely replaced with `torch.randn_like()` random noise. The fact that random noise outperformed real CodeBERT embeddings on the validation set strongly suggests that the model is completely ignoring code semantics. Instead, it is likely finding shortcuts by overfitting to graph structure (e.g., node degrees) or class imbalances in the tiny validation set.
+- **Zero-Shot Generalization Failure**: The test set F1-score remains identically 0.000 across all configurations. The graph structures and features learned on the training repositories do not meaningfully transfer to unseen repositories, indicating a severe domain shift problem that the current GNN architecture fails to bridge.
+- **Note on Edge Attributes**: An earlier iteration of this study included an "- Edge Attrs" ablation arm. This arm was removed after log inspection revealed it produced byte-identical epoch outputs to the Full Model. The `GATv2Model` does not actually process `edge_attr` tensors in its forward pass, so removing them had no physical effect on the network.
 - Dropping Heterogeneous edges also yields a massive runtime acceleration (22.6 ms) because heterogeneous message passing dictates multiple independent weight matrices.
 
 ## 4. Threats to Validity & Unexpected Observations

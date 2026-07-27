@@ -1,0 +1,111 @@
+version: "3.8"
+
+services:
+  neo4j:
+    image: neo4j:5.15.0
+    container_name: agilegraph-neo4j
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-agilegraph_secret}
+      - NEO4J_server_memory_pagecache_size=512M
+      - NEO4J_server_memory_heap_initial__size=512M
+      - NEO4J_server_memory_heap_max__size=1G
+    ports:
+      - "7474:7474" # HTTP Browser
+      - "7687:7687" # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - agilegraph-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-agilegraph_secret}", "MATCH (n) RETURN count(n) LIMIT 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  backend:
+    build: 
+      context: ./backend
+    image: agilegraph-backend:latest
+    container_name: agilegraph-backend
+    restart: unless-stopped
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-agilegraph_secret}
+      - CORS_ORIGINS=*
+      - LOG_LEVEL=info
+      - UPLOAD_DIR=/app/uploads
+      - REPORT_DIR=/app/reports
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_reports:/app/reports
+    networks:
+      - agilegraph-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend-1
+      args:
+        # VITE_API_BASE_URL must be injected during build time for the React SPA.
+        # This resolves on the client's browser, so localhost:8000 is used here assuming standard local dev.
+        # In production, change this to the public domain.
+        - VITE_API_BASE_URL=http://localhost:8000/api/v1
+    image: agilegraph-frontend:latest
+    container_name: agilegraph-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    networks:
+      - agilegraph-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  agilegraph-network:
+    driver: bridge
+
+volumes:
+  neo4j_data:
+    name: agilegraph_neo4j_data
+  neo4j_logs:
+    name: agilegraph_neo4j_logs
+  backend_uploads:
+    name: agilegraph_backend_uploads
+  backend_reports:
+    name: agilegraph_backend_reports

@@ -1,63 +1,42 @@
 import { DashboardSummary, CryptoAsset, GraphNode, GraphEdge, ReportRecord } from "../lib/types";
-
-// Base URL for the AgileGraph API
-const API_BASE = "http://localhost:8000/api/v1"; 
+import { apiClient } from "./api-client";
 
 export const api = {
   uploadProject: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch(`${API_BASE}/upload`, {
-      method: "POST",
+    return apiClient.post<any>("/upload", {
       body: formData,
     });
-    if (!res.ok) throw new Error("Upload failed");
-    return res.json();
   },
 
   importGitHubRepository: async (url: string, branch?: string, token?: string) => {
-    const res = await fetch(`${API_BASE}/github`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ repository_url: url, branch, token }),
+    return apiClient.post<any>("/github", {
+      body: { repository_url: url, branch, token },
     });
-    if (!res.ok) throw new Error("GitHub import failed");
-    return res.json();
   },
 
   getDashboardSummary: async (): Promise<DashboardSummary> => {
-    const res = await fetch(`${API_BASE}/dashboard/summary`);
-    if (!res.ok) throw new Error("Failed to fetch dashboard summary");
-    return res.json();
+    return apiClient.get<DashboardSummary>("/dashboard/summary");
   },
 
   getGraph: async (): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }> => {
-    const res = await fetch(`${API_BASE}/dashboard/graph`);
-    if (!res.ok) throw new Error("Failed to fetch graph");
-    return res.json();
+    return apiClient.get<{ nodes: GraphNode[], edges: GraphEdge[] }>("/dashboard/graph");
   },
 
   getAssets: async (): Promise<CryptoAsset[]> => {
-    const res = await fetch(`${API_BASE}/analysis/assets`);
-    if (!res.ok) throw new Error("Failed to fetch assets");
-    return res.json();
+    return apiClient.get<CryptoAsset[]>("/analysis/assets");
   },
   
   getAssetById: async (id: string): Promise<CryptoAsset> => {
-    const res = await fetch(`${API_BASE}/analysis/assets/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch asset");
-    return res.json();
+    return apiClient.get<CryptoAsset>(`/analysis/assets/${id}`);
   },
 
   getRiskReports: async (): Promise<ReportRecord[]> => {
-    const res = await fetch(`${API_BASE}/dashboard/reports`);
-    if (!res.ok) throw new Error("Failed to fetch reports");
-    return res.json();
+    return apiClient.get<ReportRecord[]>("/dashboard/reports");
   },
 
   getExplainability: async (): Promise<any[]> => {
-    const res = await fetch(`${API_BASE}/dashboard/explanations`);
-    if (!res.ok) throw new Error("Failed to fetch explanations");
-    return res.json();
+    return apiClient.get<any[]>("/dashboard/explanations");
   }
 };

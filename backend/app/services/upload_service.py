@@ -1,16 +1,17 @@
 import os
 import uuid
 import shutil
-from fastapi import UploadFile
+from fastapi import UploadFile, BackgroundTasks
 from app.core.exceptions import ValidationException, EntityTooLargeException, AgileGraphException
 from app.config.settings import settings
 from app.schemas.upload_schema import UploadResponse
+from app.services.scan_status_service import ScanStatusService, ScanStage
 
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 MB
 
 class UploadService:
     @staticmethod
-    async def process_upload(file: UploadFile) -> UploadResponse:
+    async def process_upload(file: UploadFile, background_tasks: BackgroundTasks) -> UploadResponse:
         # Sanitize filename to prevent path traversal
         original_name = file.filename or ""
         # Handle both Windows and Unix path separators sent by clients
@@ -56,6 +57,7 @@ class UploadService:
         # Unzip safely
         import zipfile
         try:
+            ScanStatusService.set_status(project_id, ScanStage.EXTRACTING)
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 # Sanitize extracted paths
                 for member in zip_ref.namelist():
@@ -64,30 +66,26 @@ class UploadService:
                         raise ValidationException(f"Zip slip detected in path: {member}")
                 zip_ref.extractall(extracted_dir)
         except zipfile.BadZipFile:
+            ScanStatusService.set_status(project_id, ScanStage.FAILED)
             raise ValidationException("Uploaded file is not a valid ZIP archive.")
             
-        # Execute pipeline
-        try:
-            from app.services.analysis_workflow_service import AnalysisWorkflowService
-            from app.services.project_analysis_service import ProjectAnalysisService
-            from app.services.neo4j_export_service import Neo4jExportService
-            from app.scanners.registry import get_default_registry
-            from pathlib import Path
-            
-            analysis_service = ProjectAnalysisService(get_default_registry())
-            export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
-            
-            workflow = AnalysisWorkflowService(analysis_service, export_service)
-            pipeline_result = workflow.execute_pipeline(project_id, Path(extracted_dir))
-            
-        except Exception as e:
-            import logging
-            logging.error(f"Pipeline execution failed for {project_id}: {str(e)}")
-            raise AgileGraphException(f"Pipeline execution failed: {str(e)}")
+        # Execute pipeline in background
+        from app.services.analysis_workflow_service import AnalysisWorkflowService
+        from app.services.project_analysis_service import ProjectAnalysisService
+        from app.services.neo4j_export_service import Neo4jExportService
+        from app.scanners.registry import get_default_registry
+        from pathlib import Path
+        
+        analysis_service = ProjectAnalysisService(get_default_registry())
+        export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+        workflow = AnalysisWorkflowService(analysis_service, export_service)
+        
+        ScanStatusService.set_status(project_id, ScanStage.QUEUED)
+        background_tasks.add_task(workflow.execute_pipeline, project_id, Path(extracted_dir))
             
         return UploadResponse(
             project_id=project_id,
             filename=safe_filename,
-            status="uploaded_and_processed"
+            status="queued"
         )
 

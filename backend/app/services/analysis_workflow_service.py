@@ -13,6 +13,7 @@ class AnalysisWorkflowService:
     Encapsulates all domain transformations and state mutations so that
     presentation layers (like REST routers) remain strictly decoupled.
     """
+    from app.services.scan_status_service import ScanStatusService, ScanStage
     def __init__(
         self,
         analysis_service: ProjectAnalysisService,
@@ -27,10 +28,14 @@ class AnalysisWorkflowService:
         Returns a simplified statistics summary object.
         """
         try:
+            from app.services.scan_status_service import ScanStatusService, ScanStage
+            
             # Step 1: Execute static analysis scanners
+            ScanStatusService.set_status(project_id, ScanStage.SCANNING)
             analysis_result = self.analysis_service.analyze_project(project_id, project_path)
             
             # Step 2: Apply risk scoring rules via internal hydration/dehydration
+            ScanStatusService.set_status(project_id, ScanStage.SCORING)
             for scanner_result in analysis_result.scanner_results:
                 assets = [CryptoAsset(**finding) for finding in scanner_result.findings]
                 scored_assets = RiskScoringService.score_assets(assets)
@@ -41,10 +46,14 @@ class AnalysisWorkflowService:
             dependency_map = DependencyMappingService.map_dependencies(project_path)
             
             # Step 3: Transform into Graph Domain Model
+            ScanStatusService.set_status(project_id, ScanStage.BUILDING_GRAPH)
             graph = GraphBuilder.build_graph(analysis_result, dependency_map)
             
             # Step 4: Export to physical Neo4j cluster
+            ScanStatusService.set_status(project_id, ScanStage.EXPORTING)
             self.export_service.export_graph(graph)
+            
+            ScanStatusService.set_status(project_id, ScanStage.COMPLETED)
             
             # Return standardized metrics
             return {
@@ -54,5 +63,9 @@ class AnalysisWorkflowService:
                 "edge_count": len(graph.edges)
             }
             
+        except Exception as e:
+            from app.services.scan_status_service import ScanStatusService, ScanStage
+            ScanStatusService.set_status(project_id, ScanStage.FAILED)
+            raise e
         finally:
             self.export_service.close()

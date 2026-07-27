@@ -12,6 +12,7 @@ import { UploadCloud, Github, Globe, FileKey2, Play, X, CheckCircle2, Loader2, A
 import { useDashboardSummary, useUploadProject, useGitHubImport } from "@/hooks/use-agilegraph";
 import { Dropzone } from "@/components/ui/dropzone";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_app/scan")({
   component: ScanPage,
@@ -32,23 +33,54 @@ function ScanPage() {
   const uploadProject = useUploadProject();
   const importGitHub = useGitHubImport();
 
-  const start = () => {
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+  // Poll the backend for real status
+  useQuery({
+    queryKey: ['scanStatus', currentProjectId],
+    queryFn: async () => {
+      if (!currentProjectId) return null;
+      const res = await fetch(`http://localhost:8000/api/v1/scan/status/${currentProjectId}`);
+      const data = await res.json();
+      const s = data.status;
+      
+      const phaseMap: Record<string, {name: string, p: number}> = {
+        queued: { name: "Queued", p: 5 },
+        extracting: { name: "Parsing source files", p: 15 },
+        cloning: { name: "Cloning repository", p: 15 },
+        scanning: { name: "Detecting algorithms", p: 35 },
+        building_graph: { name: "Building crypto graph", p: 55 },
+        scoring: { name: "Scoring risk", p: 75 },
+        exporting: { name: "Generating recommendations", p: 90 },
+        completed: { name: "Completed", p: 100 },
+        failed: { name: "Failed", p: 100 }
+      };
+
+      if (phaseMap[s]) {
+        setPhase(phaseMap[s].name);
+        setProgress(phaseMap[s].p);
+      }
+
+      if (s === "completed") {
+        setRunning(false);
+        toast.success("Scan complete", { description: "Graph successfully built in Neo4j." });
+      } else if (s === "failed") {
+        setRunning(false);
+        toast.error("Scan failed");
+      }
+      return data;
+    },
+    refetchInterval: (query) => (running && currentProjectId ? 1000 : false),
+    enabled: !!currentProjectId && running,
+  });
+
+  const start = (projectId: string) => {
     if (running) return;
     setRunning(true);
     setProgress(0);
-    setPhase("Cloning repository");
-    toast.success("Scan started", { description: "Discovering cryptographic assets…" });
-    const phases = [
-      "Cloning repository", "Parsing source files", "Detecting algorithms",
-      "Building crypto graph", "Scoring risk", "Generating recommendations",
-    ];
-    let p = 0, i = 0;
-    const t = setInterval(() => {
-      p += 3 + Math.random() * 5;
-      if (p >= 100) { p = 100; clearInterval(t); setRunning(false); setPhase("Completed"); toast.success("Scan complete"); }
-      else if (p > (i + 1) * (100 / phases.length)) { i = Math.min(i + 1, phases.length - 1); setPhase(phases[i]); }
-      setProgress(p);
-    }, 350);
+    setPhase("Queued");
+    setCurrentProjectId(projectId);
+    toast.success("Scan started", { description: "Uploading to backend pipeline…" });
   };
 
   return (
@@ -67,8 +99,9 @@ function ScanPage() {
 
               <TabsContent value="zip" className="mt-6">
                 <Dropzone onFileDrop={(file) => {
-                  uploadProject.mutate(file);
-                  start();
+                  uploadProject.mutate(file, {
+                    onSuccess: (data) => start(data.project_id)
+                  });
                 }} />
               </TabsContent>
               <TabsContent value="github" className="mt-6 space-y-4">
@@ -106,8 +139,8 @@ function ScanPage() {
 
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => { setRunning(false); setProgress(0); setPhase("Idle"); }}><X className="h-4 w-4" />Cancel</Button>
-              <Button onClick={start} disabled={running} className="shadow-[var(--shadow-glow)]">
-                {running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />Start Scan</>}
+              <Button onClick={() => {}} disabled={running} className="shadow-[var(--shadow-glow)]">
+                {running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />Waiting for Upload</>}
               </Button>
             </div>
           </div>

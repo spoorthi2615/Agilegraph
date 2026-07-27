@@ -1,41 +1,70 @@
 import logging
+import json
 import sys
-import os
-from logging.handlers import RotatingFileHandler
+from contextvars import ContextVar
+from datetime import datetime
+from typing import Any, Dict
+
 from app.config.settings import settings
+
+# Context variable to store the Correlation ID (X-Request-ID)
+request_id_ctx: ContextVar[str] = ContextVar("request_id", default="-")
+
+class StructuredJsonFormatter(logging.Formatter):
+    """
+    Formatter that outputs JSON strings for production environments.
+    Includes correlation IDs, timestamps, process IDs, and thread IDs.
+    """
+    def format(self, record: logging.LogRecord) -> str:
+        log_record: Dict[str, Any] = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "module": record.name,
+            "process": record.process,
+            "thread": record.thread,
+            "request_id": request_id_ctx.get(),
+            "environment": settings.ENVIRONMENT
+        }
+        
+        if record.exc_info:
+            log_record["exception"] = self.formatException(record.exc_info)
+            
+        return json.dumps(log_record)
 
 def setup_logging() -> None:
     """
-    Configure application logging to both console and file.
-    Ensures logs are stored in the logs/ directory with a timestamped format.
+    Initializes the centralized logging framework.
+    Replaces basicConfig and intercepts uvicorn/fastapi loggers.
     """
-    log_dir = "logs"
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-
-    log_file_path = os.path.join(log_dir, "agilegraph.log")
-
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-
-    # Console Handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
-
-    # File Handler
-    file_handler = RotatingFileHandler(
-        log_file_path, maxBytes=10485760, backupCount=5
-    )
-    file_handler.setFormatter(formatter)
-
-    # Root Logger Configuration
-    logger = logging.getLogger()
-    logger.setLevel(settings.LOG_LEVEL.upper())
+    log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
     
-    # Remove existing handlers to prevent duplicate logs in some environments
-    if logger.hasHandlers():
-        logger.handlers.clear()
-        
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+    # Configure the root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    
+    # Remove existing handlers to avoid duplicates
+    if root_logger.handlers:
+        for handler in root_logger.handlers:
+            root_logger.removeHandler(handler)
+            
+    # Create console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    
+    # Use JSON formatter in production/testing, standard formatter in dev (optional, but requested structured so we use JSON always)
+    console_handler.setFormatter(StructuredJsonFormatter())
+    
+    root_logger.addHandler(console_handler)
+    
+    # Overwrite uvicorn loggers to use our formatter
+    for logger_name in ("uvicorn", "uvicorn.access", "uvicorn.error", "fastapi"):
+        logger = logging.getLogger(logger_name)
+        logger.handlers = [console_handler]
+        logger.setLevel(log_level)
+        logger.propagate = False
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    Returns a configured logger instance for the given module name.
+    """
+    return logging.getLogger(name)

@@ -41,51 +41,60 @@ def get_explainability(
     Orchestrates GNN, Heuristics, and Recommendations into a single payload.
     """
     
+    node_data = query_service.get_node_by_id(asset_id)
+    if not node_data:
+        # Fallback if not found
+        node_data = {
+            "label": "Unknown",
+            "node_type": "unknown",
+            "algorithm": "Unknown",
+            "risk_score": 0,
+            "severity": "LOW"
+        }
+        
+    algo = node_data.get("algorithm", "Unknown")
+    risk = node_data.get("risk_score", 0)
+    sev = str(node_data.get("severity", "LOW")).upper()
+
     asset_info = AssetInformation(
         asset_id=asset_id,
-        name="Evaluated Asset",
-        type="service",
-        algorithm="RSA-1024",
-        overall_risk=85,
+        name=node_data.get("label", "Evaluated Asset"),
+        type=node_data.get("node_type", "service"),
+        algorithm=algo,
+        overall_risk=risk,
         overall_confidence=0.92
     )
     
+    # Generate dynamic GNN Explanation
     gnn_expl = GNNExplanation(
         feature_importance=[
             FeatureImportance(
-                feature_name="Algorithm Lifecycle",
-                contribution=0.85,
-                normalized_weight=0.6,
+                feature_name="Algorithm Criticality",
+                contribution=min(1.0, risk / 100.0),
+                normalized_weight=0.8,
                 positive_influence=False
             )
         ],
-        important_edges=[
-            ImportantEdge(
-                source_node=asset_id,
-                target_node="gateway-api",
-                relationship="EXPOSES",
-                importance_score=0.9,
-                confidence=0.95
-            )
-        ]
+        important_edges=[]
     )
     
+    # Generate dynamic Heuristic Breakdown
     heuristic_expl = HeuristicExplanation(
         breakdown=HeuristicBreakdown(
-            risk_formula_breakdown="Risk = Algorithm(40) + Exposure(30) + Cert(15)",
+            risk_formula_breakdown=f"Risk = Algorithm Baseline ({risk})",
             weight_contribution=0.85,
-            penalty_breakdown="Legacy Algorithm Penalty: +20",
-            algorithm_score=40,
-            certificate_score=15,
-            exposure_score=30,
-            graph_centrality_score=10
+            penalty_breakdown=f"Algorithm Penalty: {risk}",
+            algorithm_score=risk,
+            certificate_score=0,
+            exposure_score=0,
+            graph_centrality_score=0
         )
     )
     
     migration_impact = MigrationImpact(
-        recommended_pqc_algorithm="ML-KEM-768",
-        estimated_risk_reduction=70,
-        migration_priority=1,
+        recommended_pqc_algorithm="PQC-Safe Standard",
+        estimated_risk_reduction=risk,
+        migration_priority=1 if sev == "CRITICAL" else (2 if sev == "HIGH" else 3),
         migration_effort=14,
         expected_readiness_improvement=25
     )
@@ -98,7 +107,7 @@ def get_explainability(
     
     metadata = ExplanationMetadata(
         generated_at=datetime.utcnow().isoformat(),
-        model_version="GATv2-Explainer-1.0"
+        model_version="GATv2-Explainer-1.0 (Heuristic Fallback)"
     )
     
     return ExplainabilityResponse(
@@ -107,6 +116,6 @@ def get_explainability(
         heuristic_explanation=heuristic_expl,
         migration_recommendation=migration_impact,
         confidence_metrics=confidence_metrics,
-        natural_language_summary="The asset is highly vulnerable due to RSA-1024 usage on an exposed edge.",
+        natural_language_summary=f"The asset '{algo}' received a risk score of {risk} due to baseline cryptographic policies.",
         metadata=metadata
     )

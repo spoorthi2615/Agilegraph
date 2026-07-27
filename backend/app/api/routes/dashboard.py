@@ -105,27 +105,60 @@ def get_summary(
     readiness: PQCReadinessAssessment = Depends(provide_pqc_readiness)
 ) -> DashboardSummary:
     stats = query_service.get_summary_statistics()
+    aggs = query_service.get_dashboard_aggregations()
+    
+    # Map severities
+    severity_counts = {str(s["severity"]).upper(): s["count"] for s in aggs.get("severities", [])}
+    critical_count = severity_counts.get("CRITICAL", 0)
+    high_count = severity_counts.get("HIGH", 0)
+    medium_count = severity_counts.get("MEDIUM", 0)
+    low_count = severity_counts.get("LOW", 0)
     
     kpis = KPISummary(
         total_assets=stats.get("asset_count", 0),
-        critical=0,
-        high=0,
-        medium=0,
-        low=0,
-        migration_progress=0,
+        critical=critical_count,
+        high=high_count,
+        medium=medium_count,
+        low=low_count,
+        migration_progress=0,  # Could be derived from migrated assets if tracked
         pqc_readiness=readiness.overall_readiness_score if readiness else 0,
         last_scan="Recent"
     )
     
+    # Map Risk Distribution
+    risk_dist = [
+        RiskDistribution(name="Critical", value=critical_count, color="#ef4444"),
+        RiskDistribution(name="High", value=high_count, color="#f97316"),
+        RiskDistribution(name="Medium", value=medium_count, color="#eab308"),
+        RiskDistribution(name="Low", value=low_count, color="#22c55e")
+    ]
+    
+    # Map Algorithm Usage
+    algo_usage = [
+        AlgorithmUsage(algorithm=str(a["algorithm"]), count=a["count"])
+        for a in aggs.get("algorithms", [])
+    ]
+    
+    # Map Alerts
+    alerts = [
+        CriticalAlert(
+            id=str(alert["id"]), 
+            title=str(alert["title"]), 
+            reason=str(alert["reason"]), 
+            score=alert["score"]
+        )
+        for alert in aggs.get("alerts", [])
+    ]
+    
     return DashboardSummary(
         kpis=kpis,
-        risk_distribution=[],
-        algorithm_usage=[],
-        department_usage=[],
-        migration_trend=[],
+        risk_distribution=risk_dist,
+        algorithm_usage=algo_usage,
+        department_usage=[],  # Keep empty for now as departments aren't in the AST
+        migration_trend=[MigrationTrend(month="Current", migrated=0, planned=critical_count + high_count)],
         recent_scans=[],
         activity=[],
-        critical_alerts=[]
+        critical_alerts=alerts
     )
 
 @router.get("/graph", response_model=DashboardGraph)

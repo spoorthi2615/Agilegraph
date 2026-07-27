@@ -84,6 +84,79 @@ class GraphQueryService:
         with self.driver.session() as session:
             return session.execute_read(_get_stats)
 
+    def get_dashboard_aggregations(self) -> Dict[str, Any]:
+        """
+        Executes aggregation queries for the dashboard to populate risk distribution,
+        algorithm usage, and critical alerts from Neo4j.
+        """
+        def _get_aggs(tx: Transaction) -> Dict[str, Any]:
+            # Severity counts
+            severity_query = """
+            MATCH (n) 
+            WHERE n.severity IS NOT NULL
+            RETURN n.severity AS severity, count(n) AS count
+            """
+            severities = tx.run(severity_query).data()
+            
+            # Algorithm counts
+            algo_query = """
+            MATCH (n)
+            WHERE n.algorithm IS NOT NULL
+            RETURN n.algorithm AS algorithm, count(n) AS count
+            ORDER BY count DESC
+            LIMIT 7
+            """
+            algorithms = tx.run(algo_query).data()
+            
+            # Top critical alerts
+            alerts_query = """
+            MATCH (n)
+            WHERE toUpper(n.severity) = 'CRITICAL'
+            RETURN n.node_id AS id, n.label AS title, 'Critical cryptographic risk detected' AS reason, n.risk_score AS score
+            ORDER BY n.risk_score DESC
+            LIMIT 5
+            """
+            alerts = tx.run(alerts_query).data()
+            
+            return {
+                "severities": severities,
+                "algorithms": algorithms,
+                "alerts": alerts
+            }
+            
+        with self.driver.session() as session:
+            return session.execute_read(_get_aggs)
+
+    def get_entire_graph(self) -> Dict[str, Any]:
+        """
+        Retrieves all nodes and edges from the graph.
+        """
+        def _get_graph(tx: Transaction) -> Dict[str, Any]:
+            nodes_query = "MATCH (n) RETURN n"
+            edges_query = "MATCH (n)-[r]->(m) RETURN n.node_id AS source, m.node_id AS target, type(r) AS type"
+            
+            nodes_result = tx.run(nodes_query)
+            edges_result = tx.run(edges_query)
+            
+            nodes = [dict(record["n"]) for record in nodes_result]
+            edges = [dict(record) for record in edges_result]
+            
+            return {"nodes": nodes, "edges": edges}
+            
+        with self.driver.session() as session:
+            return session.execute_read(_get_graph)
+
+    def get_node_by_id(self, node_id: str) -> Dict[str, Any]:
+        """
+        Retrieves a single node by its node_id.
+        """
+        query = "MATCH (n {node_id: $node_id}) RETURN n"
+        with self.driver.session() as session:
+            result = session.execute_read(self._execute_and_fetch, query, {"node_id": node_id})
+            if result:
+                return result[0]
+            return {}
+
     @staticmethod
     def _execute_and_fetch(tx: Transaction, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """

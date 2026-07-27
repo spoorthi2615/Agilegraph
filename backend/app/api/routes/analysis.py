@@ -104,39 +104,43 @@ def get_asset_detail(
     Retrieves complete details for a single cryptographic asset, loading everything
     required for the frontend Asset Detail page in one request.
     """
+    node_data = query_service.get_node_by_id(asset_id)
+    if not node_data:
+        raise HTTPException(status_code=404, detail="Asset not found")
+
     detail = AssetDetail(
         id=asset_id,
-        name="Asset Details",
-        type="service",
+        name=node_data.get("label", "Asset Details"),
+        type=node_data.get("node_type", "service"),
         department="Engineering",
-        algorithm="AES",
-        key_size="256",
-        risk_score=50,
-        risk="medium",
-        recommended="AES-GCM",
-        migration_days=10,
-        risk_reduction=50,
+        algorithm=node_data.get("algorithm", "Unknown"),
+        key_size=str(node_data.get("key_size", "256")),
+        risk_score=node_data.get("risk_score", 0),
+        risk=str(node_data.get("severity", "medium")).lower(),
+        recommended="PQC-Safe Standard",
+        migration_days=0,
+        risk_reduction=node_data.get("risk_score", 0),
         status="not-started",
-        priority=2,
+        priority=node_data.get("risk_score", 0),
         discovered_at="2026-07-27T00:00:00Z",
-        location="/src/main.py",
+        location=node_data.get("file_path", "unknown"),
         connections=[],
-        description="Detailed asset information.",
+        description="Detailed asset information retrieved from graph.",
         heuristic_breakdown=[],
         connected_assets=[],
         dependencies=[],
         certificates=[],
         migration_projection=MigrationRecommendationDTO(
-            target_algorithm="AES-GCM",
+            target_algorithm="PQC-Safe Standard",
             estimated_days=10,
-            risk_reduction=50,
+            risk_reduction=node_data.get("risk_score", 0),
             steps=["Inventory", "Test", "Deploy"]
         ),
         explainability=ExplainabilitySummary(
             feature_importance=[],
             important_edges=[],
             confidence=0.9,
-            natural_language_explanation="Asset risk evaluated securely."
+            natural_language_explanation="Detailed explainability awaits Phase 6."
         )
     )
     

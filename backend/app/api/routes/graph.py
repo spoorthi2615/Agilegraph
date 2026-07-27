@@ -53,29 +53,32 @@ def get_graph(
     )
     
     try:
-        raw_assets = query_service.get_high_risk_assets()
+        raw_graph = query_service.get_entire_graph()
+        raw_nodes = raw_graph.get("nodes", [])
+        raw_edges = raw_graph.get("edges", [])
     except Exception:
-        raw_assets = []
+        raw_nodes = []
+        raw_edges = []
         
     nodes = []
     edges = []
     
-    for raw in raw_assets:
-        asset_id = str(raw.get("asset_id", "unknown"))
+    for raw in raw_nodes:
+        asset_id = str(raw.get("node_id", "unknown"))
         nodes.append(GraphNode(
             id=asset_id,
-            label=raw.get("name", "Unknown Asset"),
-            type=raw.get("asset_type", "service"),
-            risk=raw.get("severity", "medium").lower(),
+            label=raw.get("label", "Unknown Asset"),
+            type=raw.get("node_type", "service"),
+            risk=str(raw.get("severity", "medium")).lower(),
             x=0.0,
             y=0.0
         ))
         
-    # Generate mock edges between the first node and others for visual structure if nodes exist
-    if len(nodes) > 1:
-        source_id = nodes[0].id
-        for i in range(1, len(nodes)):
-            edges.append(GraphEdge(source=source_id, target=nodes[i].id))
+    for edge in raw_edges:
+        edges.append(GraphEdge(
+            source=str(edge.get("source")),
+            target=str(edge.get("target"))
+        ))
             
     stats = GraphStatistics(
         total_nodes=len(nodes),
@@ -110,19 +113,45 @@ def get_node_detail(
     """
     Retrieves complete details for a single graph node required for the side panel.
     """
+    node_data = query_service.get_node_by_id(node_id)
+    if not node_data:
+        # Return a fallback empty object if node isn't found
+        return NodeDetails(
+            id=node_id,
+            name="Unknown",
+            type="unknown",
+            department="N/A",
+            algorithm="N/A",
+            key_size="N/A",
+            risk_score=0,
+            risk="low",
+            status="not-started",
+            priority=0,
+            location="N/A",
+            description="Node not found.",
+            connected_assets=[],
+            incoming_relationships=[],
+            outgoing_relationships=[],
+            certificates=[],
+            dependencies=[],
+            explainability_summary={},
+            migration_recommendation={},
+            graph_metrics={}
+        )
+
     return NodeDetails(
         id=node_id,
-        name="Node Details",
-        type="service",
+        name=node_data.get("label", "Node Details"),
+        type=node_data.get("node_type", "service"),
         department="Engineering",
-        algorithm="AES",
-        key_size="256",
-        risk_score=50,
-        risk="medium",
+        algorithm=node_data.get("algorithm", "N/A"),
+        key_size=str(node_data.get("key_size", "N/A")),
+        risk_score=node_data.get("risk_score", 0),
+        risk=str(node_data.get("severity", "medium")).lower(),
         status="not-started",
-        priority=2,
-        location="/src/main.py",
-        description="Detailed graph node information.",
+        priority=node_data.get("risk_score", 0),
+        location=node_data.get("file_path", "N/A"),
+        description=f"Detailed view of {node_data.get('label', 'asset')}.",
         connected_assets=[],
         incoming_relationships=[],
         outgoing_relationships=[],

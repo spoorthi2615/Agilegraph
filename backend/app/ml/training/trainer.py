@@ -103,6 +103,7 @@ class GATv2Trainer:
         
         logging.info(f"Starting GATv2 Training Pipeline on {self.device.type.upper()}...")
         
+        best_val_f1 = 0.0
         for epoch in range(1, self.config.epochs + 1):
             start_time = time.time()
             
@@ -140,6 +141,7 @@ class GATv2Trainer:
                 self.checkpoint_manager.save_checkpoint(
                     self.model, self.optimizer, epoch, val_loss.item()
                 )
+                best_val_f1 = f1
                 checkpoint_msg = "Yes"
             else:
                 checkpoint_msg = "No"
@@ -163,3 +165,4 @@ class GATv2Trainer:
         # Post-training: Restore best weights
         self.early_stopping.restore_best_weights(self.model)
         logging.info("Training pipeline completed successfully.")
+        return best_val_f1

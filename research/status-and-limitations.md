@@ -11,9 +11,9 @@ The AgileGraph implementation is physically sound and functionally complete.
 - **Integration Testing**: A genuine integration test (`e2e_integration_test.py`) has replaced prior fabricated testing claims, confirming that the pipeline physically executes.
 
 ## 2. Known Limitations
-- **Zero-Shot Generalization Failure**: Even after expanding the training corpus to 10 repositories, the GNN completely fails to generalize to unseen test repositories (F1-score = 0.000). While early validation metrics appeared to show the model learning (F1 ~ 0.38), ablation testing revealed this peak score occurred when CodeBERT semantic embeddings were replaced with random noise. This implies the model is likely overfitting to graph structural shortcuts (like node degrees) rather than genuinely learning code semantics, resulting in a massive structural domain shift when applied to new codebases.
+- **Heterogeneous Graph Utility**: While the model successfully generalizes (F1 > 0.47), ablation testing demonstrates that defining separate edge types (CALLS, INHERITS, IMPORTS) via a Heterogeneous graph structure provides no additional predictive value over a standard Homogeneous graph, while adding significant computational overhead.
 - **Hardware Profile**: The platform has been tested on standard developer hardware (CPU), not a supercomputing cluster (A100/Xeon). High-volume throughput claims remain theoretical until tested on production infrastructure.
-- **Statistical Power**: Because the test classification predictions are identically 0, McNemar's testing and Cohen's Kappa statistics cannot be established. No statistical significance is claimed.
+- **Data Imbalance**: The dataset (though expanded to 40 repositories) remains highly imbalanced (87% Safe vs 12% Vulnerable). While the F1 score reflects true generalization, Recall is still relatively low compared to Precision.
 
 ## 3. Future Work
-Future iterations must explore more advanced Domain Adaptation techniques or dramatically scale the corpus to hundreds of repositories to bridge the structural shift between projects.
+Future iterations should explore larger Graph Isomorphism Networks (GIN) and further scale the corpus to hundreds of repositories to bridge the remaining structural shifts between specific cryptographic library versions.

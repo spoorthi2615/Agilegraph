@@ -14,6 +14,7 @@ class GATv2Model(nn.Module):
         in_dim: int, 
         hidden_dim: int, 
         out_dim: int, 
+        edge_dim: int = 3,
         heads: int = 8, 
         dropout: float = 0.6
     ):
@@ -27,6 +28,7 @@ class GATv2Model(nn.Module):
             out_channels=hidden_dim, 
             heads=heads, 
             dropout=self.dropout_rate,
+            edge_dim=edge_dim,
             concat=True
         )
         
@@ -37,6 +39,7 @@ class GATv2Model(nn.Module):
             out_channels=out_dim, 
             heads=1, 
             dropout=self.dropout_rate,
+            edge_dim=edge_dim,
             concat=False
         )
 
@@ -46,14 +49,15 @@ class GATv2Model(nn.Module):
         Returns raw, unnormalized logits suitable for CrossEntropyLoss.
         """
         x, edge_index = data.x, data.edge_index
+        edge_attr = getattr(data, 'edge_attr', None)
         
         # Dropouts applied to input features
         x = F.dropout(x, p=self.dropout_rate, training=self.training)
-        x = self.conv1(x, edge_index)
+        x = self.conv1(x, edge_index, edge_attr=edge_attr)
         x = F.elu(x)
         
         # Dropouts applied to hidden representations
         x = F.dropout(x, p=self.dropout_rate, training=self.training)
-        logits = self.conv2(x, edge_index)
+        logits = self.conv2(x, edge_index, edge_attr=edge_attr)
         
         return logits

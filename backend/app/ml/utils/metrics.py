@@ -1,4 +1,5 @@
 import torch
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 
 def compute_metrics(logits: torch.Tensor, labels: torch.Tensor):
     """
@@ -10,37 +11,17 @@ def compute_metrics(logits: torch.Tensor, labels: torch.Tensor):
     
     # Filter out unlabeled nodes
     mask = labels != -1
-    preds = preds[mask]
-    targets = labels[mask]
+    preds_filtered = preds[mask].cpu().numpy()
+    targets_filtered = labels[mask].cpu().numpy()
     
-    if len(targets) == 0:
-        return 0.0, 0.0, 0.0, 0.0
+    if len(targets_filtered) == 0:
+        return 0.0, 0.0, 0.0, 0.0, "No labeled nodes found in this split."
         
-    correct = (preds == targets).sum().item()
-    accuracy = correct / len(targets)
+    accuracy = accuracy_score(targets_filtered, preds_filtered)
+    macro_precision = precision_score(targets_filtered, preds_filtered, average='macro', zero_division=0)
+    macro_recall = recall_score(targets_filtered, preds_filtered, average='macro', zero_division=0)
+    macro_f1 = f1_score(targets_filtered, preds_filtered, average='macro', zero_division=0)
     
-    num_classes = logits.shape[1]
-    
-    precisions = []
-    recalls = []
-    
-    for c in range(num_classes):
-        true_positive = ((preds == c) & (targets == c)).sum().item()
-        false_positive = ((preds == c) & (targets != c)).sum().item()
-        false_negative = ((preds != c) & (targets == c)).sum().item()
+    report_string = classification_report(targets_filtered, preds_filtered, zero_division=0)
         
-        p = true_positive / (true_positive + false_positive) if (true_positive + false_positive) > 0 else 0.0
-        r = true_positive / (true_positive + false_negative) if (true_positive + false_negative) > 0 else 0.0
-        
-        precisions.append(p)
-        recalls.append(r)
-        
-    macro_precision = sum(precisions) / num_classes
-    macro_recall = sum(recalls) / num_classes
-    
-    if macro_precision + macro_recall > 0:
-        macro_f1 = 2 * (macro_precision * macro_recall) / (macro_precision + macro_recall)
-    else:
-        macro_f1 = 0.0
-        
-    return accuracy, macro_precision, macro_recall, macro_f1
+    return accuracy, macro_precision, macro_recall, macro_f1, report_string

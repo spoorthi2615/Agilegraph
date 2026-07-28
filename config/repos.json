@@ -3,62 +3,202 @@
     {
       "name": "WebGoat",
       "url": "https://github.com/WebGoat/WebGoat.git",
-      "language": "Java",
-      "purpose": "Validation set containing deliberate weak crypto (MD5, SHA1, XOR)"
+      "language": "Java"
     },
     {
       "name": "paramiko",
       "url": "https://github.com/paramiko/paramiko.git",
-      "language": "Python",
-      "purpose": "Real SSH library with mixed modern and legacy crypto"
+      "language": "Python"
     },
     {
       "name": "vault",
       "url": "https://github.com/hashicorp/vault.git",
-      "language": "Go",
-      "purpose": "Real secrets-management system, heavy crypto usage at scale"
+      "language": "Go"
     },
     {
       "name": "bc-java",
       "url": "https://github.com/bcgit/bc-java.git",
-      "language": "Java",
-      "purpose": "Bouncy Castle Crypto APIs for Java"
+      "language": "Java"
     },
     {
       "name": "cryptography",
       "url": "https://github.com/pyca/cryptography.git",
-      "language": "Python",
-      "purpose": "Python cryptography library for exposing cryptographic recipes and primitives"
+      "language": "Python"
     },
     {
       "name": "tink",
       "url": "https://github.com/tink-crypto/tink.git",
-      "language": "Java",
-      "purpose": "Multi-language, cross-platform, open source library that provides cryptographic APIs"
+      "language": "Java"
     },
     {
       "name": "cfssl",
       "url": "https://github.com/cloudflare/cfssl.git",
-      "language": "Go",
-      "purpose": "Cloudflare's PKI and TLS toolkit"
+      "language": "Go"
     },
     {
       "name": "consul",
       "url": "https://github.com/hashicorp/consul.git",
-      "language": "Go",
-      "purpose": "Service mesh solution providing a full featured control plane with service discovery, configuration, and segmentation"
+      "language": "Go"
     },
     {
       "name": "crypto",
       "url": "https://github.com/golang/crypto.git",
-      "language": "Go",
-      "purpose": "Supplementary Go cryptography libraries"
+      "language": "Go"
     },
     {
       "name": "requests",
       "url": "https://github.com/psf/requests.git",
-      "language": "Python",
-      "purpose": "A simple, yet elegant, HTTP library"
+      "language": "Python"
+    },
+    {
+      "name": "flask",
+      "url": "https://github.com/pallets/flask.git",
+      "language": "Python"
+    },
+    {
+      "name": "django",
+      "url": "https://github.com/django/django.git",
+      "language": "Python"
+    },
+    {
+      "name": "fastapi",
+      "url": "https://github.com/tiangolo/fastapi.git",
+      "language": "Python"
+    },
+    {
+      "name": "spring-boot",
+      "url": "https://github.com/spring-projects/spring-boot.git",
+      "language": "Java"
+    },
+    {
+      "name": "netty",
+      "url": "https://github.com/netty/netty.git",
+      "language": "Java"
+    },
+    {
+      "name": "guava",
+      "url": "https://github.com/google/guava.git",
+      "language": "Java"
+    },
+    {
+      "name": "grpc-java",
+      "url": "https://github.com/grpc/grpc-java.git",
+      "language": "Java"
+    },
+    {
+      "name": "jwt-go",
+      "url": "https://github.com/dgrijalva/jwt-go.git",
+      "language": "Go"
+    },
+    {
+      "name": "cert-manager",
+      "url": "https://github.com/cert-manager/cert-manager.git",
+      "language": "Go"
+    },
+    {
+      "name": "etcd",
+      "url": "https://github.com/etcd-io/etcd.git",
+      "language": "Go"
+    },
+    {
+      "name": "traefik",
+      "url": "https://github.com/traefik/traefik.git",
+      "language": "Go"
+    },
+    {
+      "name": "caddy",
+      "url": "https://github.com/caddyserver/caddy.git",
+      "language": "Go"
+    },
+    {
+      "name": "gin",
+      "url": "https://github.com/gin-gonic/gin.git",
+      "language": "Go"
+    },
+    {
+      "name": "echo",
+      "url": "https://github.com/labstack/echo.git",
+      "language": "Go"
+    },
+    {
+      "name": "tornado",
+      "url": "https://github.com/tornadoweb/tornado.git",
+      "language": "Python"
+    },
+    {
+      "name": "celery",
+      "url": "https://github.com/celery/celery.git",
+      "language": "Python"
+    },
+    {
+      "name": "urllib3",
+      "url": "https://github.com/urllib3/urllib3.git",
+      "language": "Python"
+    },
+    {
+      "name": "httpx",
+      "url": "https://github.com/projectdiscovery/httpx.git",
+      "language": "Go"
+    },
+    {
+      "name": "java-jwt",
+      "url": "https://github.com/auth0/java-jwt.git",
+      "language": "Java"
+    },
+    {
+      "name": "jjwt",
+      "url": "https://github.com/jwtk/jjwt.git",
+      "language": "Java"
+    },
+    {
+      "name": "pika",
+      "url": "https://github.com/pika/pika.git",
+      "language": "Python"
+    },
+    {
+      "name": "oauth2client",
+      "url": "https://github.com/googleapis/oauth2client.git",
+      "language": "Python"
+    },
+    {
+      "name": "oauthlib",
+      "url": "https://github.com/oauthlib/oauthlib.git",
+      "language": "Python"
+    },
+    {
+      "name": "jose",
+      "url": "https://github.com/go-jose/go-jose.git",
+      "language": "Go"
+    },
+    {
+      "name": "sops",
+      "url": "https://github.com/getsops/sops.git",
+      "language": "Go"
+    },
+    {
+      "name": "keycloak",
+      "url": "https://github.com/keycloak/keycloak.git",
+      "language": "Java"
+    },
+    {
+      "name": "cas",
+      "url": "https://github.com/apereo/cas.git",
+      "language": "Java"
+    },
+    {
+      "name": "pac4j",
+      "url": "https://github.com/pac4j/pac4j.git",
+      "language": "Java"
+    },
+    {
+      "name": "shiro",
+      "url": "https://github.com/apache/shiro.git",
+      "language": "Java"
+    },
+    {
+      "name": "pyjwt",
+      "url": "https://github.com/jpadilla/pyjwt.git",
+      "language": "Python"
     }
   ]
 }

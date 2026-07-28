@@ -30,10 +30,10 @@ def load_dataset():
         logging.error("No .pt files found in dataset.")
         return None
         
-    # Batch them into a single disconnected graph for training ease in this experiment
-    return Batch.from_data_list(data_list)
+    # Return list of graphs for k-fold splitting
+    return data_list
 
-def run_ablation(base_data, config_name, **kwargs):
+def run_ablation(data_list, config_name, **kwargs):
     logging.info(f"--- Running Experiment: {config_name} ---")
     config = TrainingConfig()
     config.epochs = 50  # Fast epochs for experiment run
@@ -41,34 +41,86 @@ def run_ablation(base_data, config_name, **kwargs):
     for k, v in kwargs.items():
         setattr(config, k, v)
         
-    trainer = GATv2Trainer(config)
+    import random
+    import numpy as np
+    from app.ml.utils.metrics import compute_metrics
     
-    # We use the same batched dataset for train and val since masks are already defined
-    best_val_f1 = trainer.train(base_data, base_data)
+    # 5-Fold Cross Validation
+    k_folds = 5
+    if len(data_list) < k_folds:
+        k_folds = len(data_list)
+        if k_folds == 0: return 0.0, 0.0, 0.0, 0.0
+        
+    # Deterministic shuffle
+    shuffled_data = list(data_list)
+    random.Random(42).shuffle(shuffled_data)
     
-    # After training, evaluate on the test mask to get real F1 and Latency
-    trainer.model.eval()
+    fold_size = len(shuffled_data) // k_folds
     
-    start_time = time.perf_counter()
-    with torch.no_grad():
-        out = trainer.model(base_data.to(trainer.device))
-        test_mask = base_data.test_mask
-        if test_mask is not None and test_mask.sum() > 0:
-            pred = out[test_mask].argmax(dim=1)
-            target = base_data.y[test_mask]
+    f1_scores = []
+    val_f1_scores = []
+    latencies = []
+    throughputs = []
+    all_y_true = []
+    all_y_pred = []
+    all_node_names = []
+    
+    for fold in range(k_folds):
+        start_idx = fold * fold_size
+        end_idx = start_idx + fold_size if fold < k_folds - 1 else len(shuffled_data)
+        
+        test_graphs = shuffled_data[start_idx:end_idx]
+        train_graphs = shuffled_data[:start_idx] + shuffled_data[end_idx:]
+        
+        train_batch = Batch.from_data_list(train_graphs)
+        test_batch = Batch.from_data_list(test_graphs)
+        
+        # Create masks
+        train_batch.train_mask = torch.ones(train_batch.num_nodes, dtype=torch.bool)
+        train_batch.val_mask = torch.ones(train_batch.num_nodes, dtype=torch.bool)
+        test_batch.test_mask = torch.ones(test_batch.num_nodes, dtype=torch.bool)
+        
+        trainer = GATv2Trainer(config)
+        best_val_f1 = trainer.train(train_batch, train_batch)
+        
+        trainer.model.eval()
+        start_time = time.perf_counter()
+        with torch.no_grad():
+            test_batch_device = test_batch.to(trainer.device)
+            out = trainer.model(test_batch_device)
+            acc, prec, rec, f1, report = compute_metrics(out, test_batch_device.y)
+            y_pred = out.argmax(dim=-1).cpu().numpy().tolist()
+            y_true = test_batch_device.y.cpu().numpy().tolist()
+            all_y_true.extend(y_true)
+            all_y_pred.extend(y_pred)
             
-            # Simple F1 Calculation
-            from sklearn.metrics import f1_score
-            f1 = f1_score(target.cpu(), pred.cpu(), average='macro', zero_division=0)
-        else:
-            f1 = 0.0
+            # test_batch.node_names might be a list of lists if batching merged them?
+            # Actually, `Batch.from_data_list` concatenates lists into a single list
+            if hasattr(test_batch, 'node_names'):
+                names = test_batch.node_names
+                if type(names[0]) is list:
+                    # Flatten if somehow batched weirdly
+                    names = [item for sublist in names for item in sublist]
+                all_node_names.extend(names)
+            else:
+                all_node_names.extend([f"unknown_node_{i}" for i in range(len(y_true))])
             
-    latency_ms = (time.perf_counter() - start_time) * 1000.0
-    num_nodes = base_data.num_nodes if hasattr(base_data, 'num_nodes') else 1
-    throughput = num_nodes / (latency_ms / 1000.0) if latency_ms > 0 else 0
+        latency_ms = (time.perf_counter() - start_time) * 1000.0
+        num_nodes = test_batch.num_nodes
+        throughput = num_nodes / (latency_ms / 1000.0) if latency_ms > 0 else 0
+        
+        f1_scores.append(f1)
+        val_f1_scores.append(best_val_f1)
+        latencies.append(latency_ms)
+        throughputs.append(throughput)
+        
+    mean_f1 = float(np.mean(f1_scores))
+    mean_val_f1 = float(np.mean(val_f1_scores))
+    mean_lat = float(np.mean(latencies))
+    mean_tp = float(np.mean(throughputs))
             
-    logging.info(f"Result for {config_name}: F1={f1:.4f}, Val F1={best_val_f1:.4f}, Latency={latency_ms:.2f}ms, Throughput={throughput:.2f} nodes/s")
-    return float(f1), float(best_val_f1), float(latency_ms), float(throughput)
+    logging.info(f"Result for {config_name}: F1={mean_f1:.4f} (5-Fold CV), Val F1={mean_val_f1:.4f}, Latency={mean_lat:.2f}ms, Throughput={mean_tp:.2f} nodes/s")
+    return mean_f1, mean_val_f1, mean_lat, mean_tp, all_y_true, all_y_pred, all_node_names
 
 def run_all_experiments():
     batched_data = load_dataset()
@@ -81,34 +133,50 @@ def run_all_experiments():
     throughputs = []
     
     # 1. Full Model
-    f1_full, val_f1_full, lat_full, tp_full = run_ablation(batched_data, "Full Model")
+    f1_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model")
     results["Full Model"] = f1_full
     val_results["Full Model"] = val_f1_full
     latencies.append(lat_full)
     throughputs.append(tp_full)
     
     # 2. - Heterogeneous (Simulated by halving hidden_dim since HeteroData isn't fully migrated yet)
-    f1_het, val_f1_het, lat_het, tp_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32)
+    f1_het, val_f1_het, lat_het, tp_het, y_true_het, y_pred_het, names_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32)
     results["- Heterogeneous"] = f1_het
     val_results["- Heterogeneous"] = val_f1_het
     latencies.append(lat_het)
     throughputs.append(tp_het)
     
     # 3. - GATv2 (Swap to standard GCN model)
-    f1_gatv2, val_f1_gatv2, lat_gatv2, tp_gatv2 = run_ablation(batched_data, "- GATv2", model_type="GCN")
+    f1_gatv2, val_f1_gatv2, lat_gatv2, tp_gatv2, y_true_gcn, y_pred_gcn, names_gcn = run_ablation(batched_data, "- GATv2", model_type="GCN")
     results["- GATv2"] = f1_gatv2
     val_results["- GATv2"] = val_f1_gatv2
     latencies.append(lat_gatv2)
     throughputs.append(tp_gatv2)
     
     # 4. - CodeBERT (Replace CodeBERT embeddings with random noise)
-    noisy_data = batched_data.clone()
-    noisy_data.x = torch.randn_like(noisy_data.x)
-    f1_codebert, val_f1_codebert, lat_codebert, tp_codebert = run_ablation(noisy_data, "- CodeBERT")
+    noisy_data_list = []
+    for g in batched_data:
+        noisy_g = g.clone()
+        noisy_g.x = torch.randn_like(noisy_g.x)
+        noisy_data_list.append(noisy_g)
+        
+    f1_codebert, val_f1_codebert, lat_codebert, tp_codebert, y_true_codebert, y_pred_codebert, names_codebert = run_ablation(noisy_data_list, "- CodeBERT")
     results["- CodeBERT"] = f1_codebert
     val_results["- CodeBERT"] = val_f1_codebert
     latencies.append(lat_codebert)
     throughputs.append(tp_codebert)
+    
+    # Save raw predictions for Statistical Analysis
+    raw_preds = {
+        "Full Model": {"y_true": y_true_full, "y_pred": y_pred_full, "node_names": names_full},
+        "- Heterogeneous": {"y_true": y_true_het, "y_pred": y_pred_het, "node_names": names_het},
+        "- GATv2": {"y_true": y_true_gcn, "y_pred": y_pred_gcn, "node_names": names_gcn},
+        "- CodeBERT": {"y_true": y_true_codebert, "y_pred": y_pred_codebert, "node_names": names_codebert}
+    }
+    
+    os.makedirs('research', exist_ok=True)
+    with open('research/predictions.json', 'w') as f:
+        json.dump(raw_preds, f)
     
     # Performance metrics dynamically measured
     perf = {

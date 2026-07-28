@@ -101,6 +101,20 @@ class GATv2Trainer:
         train_data = train_data.to(self.device)
         val_data = val_data.to(self.device)
         
+        # Calculate dynamic class weights to combat 87/12 imbalance
+        if hasattr(train_data, 'train_mask') and train_data.train_mask is not None:
+            train_y = train_data.y[train_data.train_mask]
+        else:
+            train_y = train_data.y
+            
+        class_counts = torch.bincount(train_y, minlength=2)
+        if len(class_counts) > 0:
+            weights = len(train_y) / (2.0 * class_counts.float())
+            weights[weights == float('inf')] = 1.0
+            weights = weights.to(self.device)
+            self.criterion = nn.CrossEntropyLoss(weight=weights)
+            logging.info(f"Initialized dynamic class weights: {weights.tolist()}")
+        
         logging.info(f"Starting GATv2 Training Pipeline on {self.device.type.upper()}...")
         
         best_val_f1 = 0.0
@@ -128,10 +142,10 @@ class GATv2Trainer:
                 
                 if hasattr(val_data, 'val_mask') and val_data.val_mask is not None:
                     val_loss = self.criterion(val_out[val_data.val_mask], val_data.y[val_data.val_mask])
-                    acc, prec, rec, f1 = compute_metrics(val_out[val_data.val_mask], val_data.y[val_data.val_mask])
+                    acc, prec, rec, f1, report_string = compute_metrics(val_out[val_data.val_mask], val_data.y[val_data.val_mask])
                 else:
                     val_loss = self.criterion(val_out, val_data.y)
-                    acc, prec, rec, f1 = compute_metrics(val_out, val_data.y)
+                    acc, prec, rec, f1, report_string = compute_metrics(val_out, val_data.y)
                     
             elapsed_time = time.time() - start_time
             
@@ -155,6 +169,7 @@ class GATv2Trainer:
                 f"Precision: {prec:.4f}\n"
                 f"Recall: {rec:.4f}\n"
                 f"F1-score: {f1:.4f}\n"
+                f"Classification Report:\n{report_string}\n"
                 f"Checkpoint Saved: {checkpoint_msg}\n"
                 f"Elapsed Time: {elapsed_time:.2f}s\n"
             )

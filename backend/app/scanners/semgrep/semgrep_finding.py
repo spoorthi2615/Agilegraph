@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 class SemgrepFinding(BaseModel):
     """

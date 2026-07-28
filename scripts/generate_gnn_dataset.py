@@ -39,30 +39,10 @@ def process_corpus():
     repo_paths = [p for p in corpus_dir.iterdir() if p.is_dir()]
     num_repos = len(repo_paths)
     
-    # Calculate repo-level splits (e.g. 80/10/10)
-    # Guarantee >= 1 repo for val and test if we have at least 3 repos
-    if num_repos >= 3:
-        num_test = max(1, int(0.1 * num_repos))
-        num_val = max(1, int(0.1 * num_repos))
-        num_train = max(1, num_repos - num_val - num_test)
-        
-        train_cutoff = num_train
-        val_cutoff = train_cutoff + num_val
-    else:
-        train_cutoff, val_cutoff = num_repos, num_repos
-        
+    # Repo level split assignments are removed. K-Fold cross-validation will be handled dynamically in run_experiments.py
     for i, repo_path in enumerate(repo_paths):
         project_id = repo_path.name
-        
-        # Assign this repo to a split
-        if i < train_cutoff:
-            split_assignment = "train"
-        elif i < val_cutoff:
-            split_assignment = "val"
-        else:
-            split_assignment = "test"
-            
-        logging.info(f"Processing repository: {project_id} (Split: {split_assignment})")
+        logging.info(f"Processing repository: {project_id}")
         
         try:
             # 1. Static Analysis
@@ -106,43 +86,57 @@ def process_corpus():
             
             x = torch.stack(embeddings)
             
+            # Feature Standardization: Zero-Mean, Unit-Variance per feature dimension
+            if x.shape[0] > 1:
+                x_mean = x.mean(dim=0, keepdim=True)
+                x_std = x.std(dim=0, keepdim=True)
+                x_std[x_std == 0] = 1.0  # Prevent division by zero
+                x = (x - x_mean) / x_std
+            
             # Edges (edge_index)
             edge_index = []
+            edge_attr = []
             for edge in graph.edges:
                 src = node_mapping.get(edge.source_node)
                 dst = node_mapping.get(edge.target_node)
                 if src is not None and dst is not None:
                     edge_index.append([src, dst])
+                    # One-hot encode edge_type
+                    etype = getattr(edge, 'edge_type', '')
+                    if etype == "CONTAINS":
+                        edge_attr.append([1.0, 0.0, 0.0])
+                    elif etype == "USES":
+                        edge_attr.append([0.0, 1.0, 0.0])
+                    else:
+                        edge_attr.append([0.0, 0.0, 1.0])
                     
             if not edge_index:
                 edge_index = torch.empty((2, 0), dtype=torch.long)
+                edge_attr = torch.empty((0, 3), dtype=torch.float)
             else:
                 edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
+                edge_attr = torch.tensor(edge_attr, dtype=torch.float)
                 
-            # Labels (y) - proxy labels derived from risk scores (0: Safe, 1: Vulnerable)
+            # Labels (y) - Deterministic labels derived from crypto primitives
+            # 1: Vulnerable/Legacy (RSA, ECDSA, DSA, 3DES, MD5, SHA1)
+            # 0: Safe/Neutral (ML-KEM, ML-DSA, SLH-DSA, or no crypto found)
             y = torch.zeros(num_nodes, dtype=torch.long)
+            vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
+            
+            node_names_list = []
             for idx, (node_id, node) in enumerate(graph.nodes.items()):
-                risk = node.metadata.get('risk_score', 0)
-                if risk > 40:  # Arbitrary threshold for vulnerable
+                # Extract text context to search for primitives
+                node_name = str(node.name) if hasattr(node, 'name') else str(node_id)
+                node_names_list.append(node_name)
+                
+                node_text = (node_name + " " + str(node.metadata)).lower()
+                is_vulnerable = any(prim in node_text for prim in vulnerable_primitives)
+                if is_vulnerable:
                     y[idx] = 1
                     
-            data = Data(x=x, edge_index=edge_index, y=y)
+            data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, node_names=node_names_list)
             
-            # Repository-level split: apply mask to ALL nodes in this repo
-            train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-            val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-            test_mask = torch.zeros(num_nodes, dtype=torch.bool)
-            
-            if split_assignment == "train":
-                train_mask[:] = True
-            elif split_assignment == "val":
-                val_mask[:] = True
-            else:
-                test_mask[:] = True
-                
-            data.train_mask = train_mask
-            data.val_mask = val_mask
-            data.test_mask = test_mask
+            # Save tensor (Masks are removed, run_experiments.py will handle train/val/test dynamically)
             
             # Save tensor
             out_file = output_dir / f"{project_id}.pt"

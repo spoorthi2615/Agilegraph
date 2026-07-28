@@ -13,7 +13,7 @@ class TrainingConfig(BaseModel):
     weight_decay: float = Field(default=5e-4, ge=0)
     
     hidden_dim: int = Field(default=64, ge=1)
-    out_dim: int = Field(default=4, ge=2)  # 4 classes: Safe (0), Low (1), Medium (2), High (3)
+    out_dim: int = Field(default=2, ge=2)  # 2 classes: Safe (0), Vulnerable (1)
     heads: int = Field(default=8, ge=1)
     dropout: float = Field(default=0.6, ge=0, le=1)
     

@@ -5,7 +5,7 @@ This document serves as a critical audit of the AgileGraph research methodology,
 ## 1. Internal Validity
 Internal validity assesses whether the experimental outcomes are mathematically sound or a byproduct of confounding variables.
 - **Data Leakage**: Mitigated. Train, Validation, and Test splits were rigidly enforced at the repository level. No nodes from a training repository exist in the testing matrix.
-- **Selection Bias**: Present. The dataset consists exclusively of 150 open-source repositories from GitHub heavily utilizing public libraries (`cryptography`, `bouncycastle`). It systematically excludes proprietary, isolated enterprise codebases.
+- **Selection Bias**: Present. The dataset consists exclusively of 10 open-source repositories from GitHub heavily utilizing public libraries (`cryptography`, `bouncycastle`, etc.). It systematically excludes proprietary, isolated enterprise codebases.
 - **Random Seed Dependence**: Mitigated. All experimental benchmarks (Sprint 79.2) and ablations (Sprint 79.5) explicitly froze Python, NumPy, and PyTorch seeds (`42`), mathematically neutralizing initial weight lottery variance.
 - **Measurement Bias**: Mitigated. The ground-truth node labels were generated using strict NIST PQC migration guidelines rather than subjective human annotation.
 
@@ -19,8 +19,8 @@ External validity defines the boundaries of the research's applicability to the 
 - **Explainability**: The implementation of GNNExplainer provides high theoretical construct validity by mapping neural predictions directly back to specific edges and syntax lines, directly supporting human decision-making during security audits.
 
 ## 4. Conclusion Validity
-- **Statistical Significance**: Robust. McNemar's Test (`p < 0.001`) and Bootstrap Confidence Intervals confirmed that AgileGraph's outperformance of baseline heuristics is not a byproduct of random chance.
-- **Effect Sizes**: The Cohen's *d* calculations proved the practical significance (Effect > 1.0) of the architectural choices, justifying the deployment overhead.
+- **Statistical Significance**: Not applicable. Because the zero-shot test classification predictions are identically 0.000, McNemar's Test and Bootstrap Confidence Intervals cannot be meaningfully established. No statistical significance is claimed.
+- **Effect Sizes**: Not applicable. Cohen's *d* and Kappa statistics cannot be computed when the model fails to predict the minority class.
 
 ## 5. Research Assumptions & Limitations
 1. **Static Analysis Completeness**: AgileGraph assumes that static AST compilation adequately represents runtime execution. It inherently fails to track dynamic cryptographic material loaded via runtime dependency injection or JNI/C-bindings.
@@ -32,7 +32,7 @@ An independent researcher can fundamentally reconstruct this study using the fol
 - **Environment**: Docker v24.0, Python 3.11.7, PyTorch 2.1.0+cu118.
 - **Datasets**: `AgileGraph-Code-Corpus v1.0.0` and `AgileGraph-GNN-Tensors v2.0.0`.
 - **Scripts**: `/scripts/run_benchmarks.py` and `/scripts/generate_ablation_figures.py`.
-- **Replicability**: High on Linux/NVIDIA hardware. However, replicating the exact latency metrics (165ms inference) requires an identical A100 GPU architecture. Running on consumer-grade hardware or CPU-only orchestration clusters will yield significantly different timing topologies.
+- **Replicability**: High on standard hardware. Replicating the exact latency metrics (~30-40ms inference) requires similar modern multi-core CPU architecture. Running on significantly older consumer hardware or massive distributed clusters will yield different timing topologies.
 
 ## 7. Future Threats to Validity
 - **Evolution of PQC Standards**: NIST's finalization of FIPS 203 (ML-KEM) and FIPS 204 (ML-DSA) may shift software development paradigms. If standard libraries natively abstract PQC negotiation away from the application layer, the relevance of AgileGraph's manual topological detection may diminish over time.

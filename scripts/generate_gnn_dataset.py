@@ -126,10 +126,11 @@ def process_corpus():
             node_names_list = []
             for idx, (node_id, node) in enumerate(graph.nodes.items()):
                 # Extract text context to search for primitives
-                node_name = str(node.name) if hasattr(node, 'name') else str(node_id)
+                raw_node_name = str(node.name) if hasattr(node, 'name') else str(node_id)
+                node_name = f"{repo_dir.name}::{raw_node_name}"
                 node_names_list.append(node_name)
                 
-                node_text = (node_name + " " + str(node.metadata)).lower()
+                node_text = (raw_node_name + " " + str(node.metadata)).lower()
                 is_vulnerable = any(prim in node_text for prim in vulnerable_primitives)
                 if is_vulnerable:
                     y[idx] = 1

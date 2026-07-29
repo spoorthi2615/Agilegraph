@@ -2,8 +2,13 @@ import os
 import json
 import numpy as np
 import logging
+import sys
 from sklearn.metrics import f1_score, precision_score, recall_score
 from statsmodels.stats.contingency_tables import mcnemar
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend')))
+from app.experiments.cohens_kappa.cohens_kappa_service import CohensKappaService
+from app.experiments.cohens_kappa.kappa_config import KappaConfig
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -129,6 +134,32 @@ def main():
         stats_out["mcnemar"] = {
             "full_vs_noise": {"statistic": float(stat_noise), "pvalue": float(p_noise)},
             "full_vs_het": {"statistic": float(stat_het), "pvalue": float(p_het)}
+        }
+        
+    # 3. Cohen's Kappa
+    kappa_service = CohensKappaService(KappaConfig())
+    y_true_str = [str(x) for x in y_true]
+    y_full_str = [str(x) for x in y_full]
+    
+    kappa_res = kappa_service.calculate_kappa("Ground Truth", "Full Model", y_true_str, y_full_str)
+    logging.info("Cohen's Kappa: Ground Truth vs Full Model")
+    logging.info(f"  Kappa Score: {kappa_res.kappa_score:.4f} ({kappa_res.interpretation})\n")
+    
+    stats_out["kappa"] = {
+        "full_model": {
+            "score": float(kappa_res.kappa_score),
+            "interpretation": kappa_res.interpretation
+        }
+    }
+    
+    if "CBOMkit Baseline" in preds:
+        y_cbom_str = [str(x) for x in y_cbom]
+        kappa_res_cbom = kappa_service.calculate_kappa("Ground Truth", "CBOMkit Baseline", y_true_str, y_cbom_str)
+        logging.info("Cohen's Kappa: Ground Truth vs CBOMkit Baseline")
+        logging.info(f"  Kappa Score: {kappa_res_cbom.kappa_score:.4f} ({kappa_res_cbom.interpretation})\n")
+        stats_out["kappa"]["cbomkit"] = {
+            "score": float(kappa_res_cbom.kappa_score),
+            "interpretation": kappa_res_cbom.interpretation
         }
     
     with open("research/statistical_results.json", "w") as f:

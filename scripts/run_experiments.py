@@ -72,16 +72,26 @@ def run_ablation(data_list, config_name, **kwargs):
         test_graphs = shuffled_data[start_idx:end_idx]
         train_graphs = shuffled_data[:start_idx] + shuffled_data[end_idx:]
         
-        train_batch = Batch.from_data_list(train_graphs)
+        # Within train_graphs, hold out the last 15% (e.g. 1-2 repos) for internal validation
+        # so trainer.train() doesn't cheat by evaluating early stopping against its own training data!
+        num_train_repos = len(train_graphs)
+        val_size = max(1, int(num_train_repos * 0.15))
+        
+        internal_train_graphs = train_graphs[:-val_size]
+        internal_val_graphs = train_graphs[-val_size:]
+        
+        trainer = GATv2Trainer(config)
+        
+        train_batch = Batch.from_data_list(internal_train_graphs).to(trainer.device)
+        val_batch = Batch.from_data_list(internal_val_graphs).to(trainer.device)
         test_batch = Batch.from_data_list(test_graphs)
         
         # Create masks
         train_batch.train_mask = torch.ones(train_batch.num_nodes, dtype=torch.bool)
-        train_batch.val_mask = torch.ones(train_batch.num_nodes, dtype=torch.bool)
+        val_batch.val_mask = torch.ones(val_batch.num_nodes, dtype=torch.bool)
         test_batch.test_mask = torch.ones(test_batch.num_nodes, dtype=torch.bool)
         
-        trainer = GATv2Trainer(config)
-        best_val_f1 = trainer.train(train_batch, train_batch)
+        best_val_f1 = trainer.train(train_batch, val_batch)
         
         trainer.model.eval()
         start_time = time.perf_counter()
@@ -115,12 +125,13 @@ def run_ablation(data_list, config_name, **kwargs):
         throughputs.append(throughput)
         
     mean_f1 = float(np.mean(f1_scores))
+    std_f1 = float(np.std(f1_scores))
     mean_val_f1 = float(np.mean(val_f1_scores))
     mean_lat = float(np.mean(latencies))
     mean_tp = float(np.mean(throughputs))
             
-    logging.info(f"Result for {config_name}: F1={mean_f1:.4f} (5-Fold CV), Val F1={mean_val_f1:.4f}, Latency={mean_lat:.2f}ms, Throughput={mean_tp:.2f} nodes/s")
-    return mean_f1, mean_val_f1, mean_lat, mean_tp, all_y_true, all_y_pred, all_node_names
+    logging.info(f"Result for {config_name}: F1={mean_f1:.4f}±{std_f1:.4f} (5-Fold CV), Val F1={mean_val_f1:.4f}, Latency={mean_lat:.2f}ms, Throughput={mean_tp:.2f} nodes/s")
+    return mean_f1, std_f1, mean_val_f1, mean_lat, mean_tp, all_y_true, all_y_pred, all_node_names
 
 def run_all_experiments():
     batched_data = load_dataset()
@@ -133,22 +144,22 @@ def run_all_experiments():
     throughputs = []
     
     # 1. Full Model
-    f1_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model")
-    results["Full Model"] = f1_full
+    f1_full, std_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model")
+    results["Full Model"] = {"mean": f1_full, "std": std_full}
     val_results["Full Model"] = val_f1_full
     latencies.append(lat_full)
     throughputs.append(tp_full)
     
     # 2. - Heterogeneous (Simulated by halving hidden_dim since HeteroData isn't fully migrated yet)
-    f1_het, val_f1_het, lat_het, tp_het, y_true_het, y_pred_het, names_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32)
-    results["- Heterogeneous"] = f1_het
+    f1_het, std_het, val_f1_het, lat_het, tp_het, y_true_het, y_pred_het, names_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32)
+    results["- Heterogeneous"] = {"mean": f1_het, "std": std_het}
     val_results["- Heterogeneous"] = val_f1_het
     latencies.append(lat_het)
     throughputs.append(tp_het)
     
     # 3. - GATv2 (Swap to standard GCN model)
-    f1_gatv2, val_f1_gatv2, lat_gatv2, tp_gatv2, y_true_gcn, y_pred_gcn, names_gcn = run_ablation(batched_data, "- GATv2", model_type="GCN")
-    results["- GATv2"] = f1_gatv2
+    f1_gatv2, std_gatv2, val_f1_gatv2, lat_gatv2, tp_gatv2, y_true_gcn, y_pred_gcn, names_gcn = run_ablation(batched_data, "- GATv2", model_type="GCN")
+    results["- GATv2"] = {"mean": f1_gatv2, "std": std_gatv2}
     val_results["- GATv2"] = val_f1_gatv2
     latencies.append(lat_gatv2)
     throughputs.append(tp_gatv2)
@@ -160,8 +171,8 @@ def run_all_experiments():
         noisy_g.x = torch.randn_like(noisy_g.x)
         noisy_data_list.append(noisy_g)
         
-    f1_codebert, val_f1_codebert, lat_codebert, tp_codebert, y_true_codebert, y_pred_codebert, names_codebert = run_ablation(noisy_data_list, "- CodeBERT")
-    results["- CodeBERT"] = f1_codebert
+    f1_codebert, std_codebert, val_f1_codebert, lat_codebert, tp_codebert, y_true_codebert, y_pred_codebert, names_codebert = run_ablation(noisy_data_list, "- CodeBERT")
+    results["- CodeBERT"] = {"mean": f1_codebert, "std": std_codebert}
     val_results["- CodeBERT"] = val_f1_codebert
     latencies.append(lat_codebert)
     throughputs.append(tp_codebert)

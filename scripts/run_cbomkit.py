@@ -67,17 +67,32 @@ def run_cbomkit():
             logging.error(f"Failed to run Docker for {repo_name}: {e}")
 
     # Map the repository-level CBOMkit findings down to the Node level to match GNN output.
-    # If CBOMkit found 'rsa' in 'repoA', and the node is 'rsa' in 'repoA', we predict 1.
     y_cbom = []
     
     for i, name in enumerate(node_names):
-        name_lower = str(name).lower()
-        # Fallback simplistic mapping: if the node name itself contains a vulnerable primitive,
-        # CBOMkit (as a specialized tool) would certainly detect it. 
-        # In reality, CBOMkit parses the AST deeply.
+        name_str = str(name)
+        # Format is expected to be "repo_name::raw_node_name"
+        if "::" in name_str:
+            repo_name, raw_name = name_str.split("::", 1)
+        else:
+            repo_name, raw_name = "unknown", name_str
+            
+        raw_name_lower = raw_name.lower()
         vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
         
-        is_vuln = any(prim in name_lower for prim in vulnerable_primitives)
+        # A node is predicted as vulnerable by CBOMkit ONLY IF:
+        # 1. The repository had a CBOMkit hit for a specific primitive.
+        # 2. This specific node matches the primitive that CBOMkit found in this repo.
+        is_vuln = False
+        for prim in vulnerable_primitives:
+            if f"{repo_name}_{prim}" in cbomkit_detected_algos:
+                # CBOMkit found this primitive somewhere in the repo.
+                # Now we map it to the node. If the node name references this primitive,
+                # we consider it a hit. If CBOMkit provided file-line locations, we would map those here.
+                if prim in raw_name_lower:
+                    is_vuln = True
+                    break
+                    
         y_cbom.append(1 if is_vuln else 0)
         
     preds["CBOMkit Baseline"] = {

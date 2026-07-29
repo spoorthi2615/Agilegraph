@@ -21,28 +21,23 @@ def main():
     with open(preds_path, "r") as f:
         preds = json.load(f)
         
-    # Calculate Cohens Kappa using sklearn (as the existing service might be complex to import standalone)
-    from sklearn.metrics import cohen_kappa_score
+    # kappas are now calculated properly in statistical_tests.py
     kappas = {}
-    
-    y_true = preds["Full Model"]["y_true"]
-    
-    for model_name, data in preds.items():
-        if "y_pred" in data:
-            kappa = cohen_kappa_score(y_true, data["y_pred"])
-            kappas[model_name] = kappa
+    kappa_stats = stats.get("kappa", {})
+    for m, d in kappa_stats.items():
+        kappas[m] = d.get("score", 0.0)
             
     # Regenerate dataset-validation.md
     dataset_md = f"""# Dataset Validation
-
-## Corpus Specifications
-- **Total Repositories**: 40
-- **Cross-Validation**: 5-Fold Repo-level splits
-- **Labeling Scheme**: Binary (`PQC-Safe` vs `Legacy-Vulnerable`) deterministically derived from AST primitive matching (e.g. RSA, ECDSA -> Vulnerable).
-- **Internal Validation**: Each fold holds out 15% of its training repos for early-stopping validation to prevent data leakage.
-
-*Note: The original 10-repository corpus was found to be statistically degenerate. The 40-repo dataset ensures that single-repo anomalies cannot drag the F1 score to 0.*
-"""
+    
+    ## Corpus Specifications
+    - **Total Repositories**: 40
+    - **Cross-Validation**: 5-Fold Repo-level splits
+    - **Labeling Scheme**: Binary (`PQC-Safe` vs `Legacy-Vulnerable`) deterministically derived from AST primitive matching (e.g. RSA, ECDSA -> Vulnerable).
+    - **Internal Validation**: Each fold holds out 15% of its training repos for early-stopping validation to prevent data leakage.
+    
+    *Note: The original 10-repository corpus was found to be statistically degenerate. The 40-repo dataset ensures that single-repo anomalies cannot drag the F1 score to 0.*
+    """
     with open("research/dataset-validation.md", "w") as f:
         f.write(dataset_md)
         
@@ -61,11 +56,20 @@ def main():
         kappa = kappas.get(model, 0.0)
         table_rows.append(f"| {model} | {f1_str} | {kappa:.3f} |")
         
-    if "CBOMkit Baseline" in preds:
-        cbom_kappa = kappas.get("CBOMkit Baseline", 0.0)
-        # We don't have folds for CBOMkit so no std deviation easily, but we have bootstrap stats.
-        # We will just write its kappa.
-        table_rows.append(f"| CBOMkit Baseline | N/A (See Benchmark) | {cbom_kappa:.3f} |")
+    # Also include models that might only be in preds (like baselines)
+    for model in preds.keys():
+        if model not in results.get("ablation_f1", {}):
+            if "CBOMkit Baseline" in model:
+                kappa = kappas.get(model, 0.0)
+                table_rows.append(f"| {model} | N/A (See Benchmark) | {kappa:.3f} |")
+            elif "Majority Class Baseline" in model:
+                kappa = kappas.get(model, 0.0)
+                # Compute majority class F1 dynamically
+                y_true = preds[model]["y_true"]
+                y_pred = preds[model]["y_pred"]
+                from sklearn.metrics import f1_score
+                f1 = f1_score(y_true, y_pred, average='macro', zero_division=0)
+                table_rows.append(f"| {model} | {f1:.3f} | {kappa:.3f} |")
         
     stats_md = f"""# Statistical Analysis
 

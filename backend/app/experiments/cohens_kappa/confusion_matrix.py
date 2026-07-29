@@ -6,12 +6,15 @@ class ConfusionMatrixEngine:
     Optimized native Python matrix builder that aggregates predictions into a paired frequency matrix.
     """
     @staticmethod
-    def build(a_labels: List[str], b_labels: List[str]) -> Tuple[List[List[int]], List[str]]:
+    def build(a_labels: List[str], b_labels: List[str], classes_override: List[str] = None) -> Tuple[List[List[int]], List[str]]:
         if not a_labels or not b_labels or len(a_labels) != len(b_labels):
             raise ValueError("Label arrays must be non-empty and of equal length.")
             
-        # Standardize the classes to the 5 RiskLabels for mathematical consistency
-        classes = [RiskLabel.LOW.value, RiskLabel.MEDIUM.value, RiskLabel.HIGH.value, RiskLabel.CRITICAL.value, RiskLabel.UNKNOWN.value]
+        if classes_override:
+            classes = classes_override
+        else:
+            classes = sorted(list(set(a_labels) | set(b_labels)))
+            
         class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
         
         n = len(classes)

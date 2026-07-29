@@ -72,17 +72,25 @@ def process_corpus():
             # Map node IDs to integers
             node_mapping = {node_id: idx for idx, node_id in enumerate(graph.nodes.keys())}
             
-            # Features (x) - Real CodeBERT embeddings
+            # Features (x) - Real CodeBERT embeddings + base_risk scalar
             embeddings = []
             with torch.no_grad():
                 for node_id, node in graph.nodes.items():
-                    # Extract semantic text. Use node name or metadata snippet
+                    # Extract semantic text
                     text_content = str(node.name) if hasattr(node, 'name') else str(node_id)
                     inputs = tokenizer(text_content, return_tensors="pt", truncation=True, max_length=512)
                     outputs = codebert_model(**inputs)
-                    # Use the CLS token representation
-                    cls_embedding = outputs.last_hidden_state[:, 0, :]
-                    embeddings.append(cls_embedding.squeeze(0))
+                    cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze(0)
+                    
+                    # Extract heuristic base risk (P2.1)
+                    meta = getattr(node, 'metadata', {})
+                    if not isinstance(meta, dict):
+                        meta = {}
+                    risk_score = float(meta.get("risk_score", 0.0))
+                    
+                    # Concatenate (768 + 1 = 769 dimensions)
+                    emb_with_risk = torch.cat([cls_embedding, torch.tensor([risk_score])], dim=-1)
+                    embeddings.append(emb_with_risk)
             
             x = torch.stack(embeddings)
             
@@ -127,7 +135,7 @@ def process_corpus():
             for idx, (node_id, node) in enumerate(graph.nodes.items()):
                 # Extract text context to search for primitives
                 raw_node_name = str(node.name) if hasattr(node, 'name') else str(node_id)
-                node_name = f"{repo_dir.name}::{raw_node_name}"
+                node_name = f"{repo_path.name}::{raw_node_name}"
                 node_names_list.append(node_name)
                 
                 node_text = (raw_node_name + " " + str(node.metadata)).lower()

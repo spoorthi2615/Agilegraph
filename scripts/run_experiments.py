@@ -143,10 +143,10 @@ def run_all_experiments():
     latencies = []
     throughputs = []
     
-    # 1. Full Model
-    f1_full, std_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model")
-    results["Full Model"] = {"mean": f1_full, "std": std_full}
-    val_results["Full Model"] = val_f1_full
+    # 1. Full Model (w/ Heuristic)
+    f1_full, std_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model (w/ Heuristic)")
+    results["Full Model (w/ Heuristic)"] = {"mean": f1_full, "std": std_full}
+    val_results["Full Model (w/ Heuristic)"] = val_f1_full
     latencies.append(lat_full)
     throughputs.append(tp_full)
     
@@ -177,12 +177,31 @@ def run_all_experiments():
     latencies.append(lat_codebert)
     throughputs.append(tp_codebert)
     
+    # 5. - Heuristic Feature (Isolate graph structural power by dropping the risk score)
+    no_heuristic_list = []
+    for g in batched_data:
+        nh_g = g.clone()
+        # Drop the last dimension which is the heuristic score
+        nh_g.x = nh_g.x[:, :-1]
+        no_heuristic_list.append(nh_g)
+        
+    f1_no_heur, std_no_heur, val_f1_no_heur, lat_no_heur, tp_no_heur, y_true_no_heur, y_pred_no_heur, names_no_heur = run_ablation(no_heuristic_list, "- Heuristic Feature")
+    results["- Heuristic Feature"] = {"mean": f1_no_heur, "std": std_no_heur}
+    val_results["- Heuristic Feature"] = val_f1_no_heur
+    latencies.append(lat_no_heur)
+    throughputs.append(tp_no_heur)
+    
+    # Majority Class Baseline
+    y_pred_majority = [0] * len(y_true_full)
+    
     # Save raw predictions for Statistical Analysis
     raw_preds = {
-        "Full Model": {"y_true": y_true_full, "y_pred": y_pred_full, "node_names": names_full},
+        "Full Model (w/ Heuristic)": {"y_true": y_true_full, "y_pred": y_pred_full, "node_names": names_full},
         "- Heterogeneous": {"y_true": y_true_het, "y_pred": y_pred_het, "node_names": names_het},
         "- GATv2": {"y_true": y_true_gcn, "y_pred": y_pred_gcn, "node_names": names_gcn},
-        "- CodeBERT": {"y_true": y_true_codebert, "y_pred": y_pred_codebert, "node_names": names_codebert}
+        "- CodeBERT": {"y_true": y_true_codebert, "y_pred": y_pred_codebert, "node_names": names_codebert},
+        "- Heuristic Feature": {"y_true": y_true_no_heur, "y_pred": y_pred_no_heur, "node_names": names_no_heur},
+        "Majority Class Baseline": {"y_true": y_true_full, "y_pred": y_pred_majority, "node_names": names_full}
     }
     
     os.makedirs('research', exist_ok=True)

@@ -1,49 +1,79 @@
 {
-  "Full Model": {
-    "mean_f1": 0.3952418621945869,
-    "ci_lower": 0.389469631064112,
-    "ci_upper": 0.40172924877726424
+  "Full Model (w/ Heuristic)": {
+    "mean_f1": 0.483767955103882,
+    "ci_lower": 0.4771736714333681,
+    "ci_upper": 0.49061091000623824
   },
   "- Heterogeneous": {
-    "mean_f1": 0.4439066436722525,
-    "ci_lower": 0.43734188963666765,
-    "ci_upper": 0.4505406726176049
+    "mean_f1": 0.5347699820885184,
+    "ci_lower": 0.5273161811757673,
+    "ci_upper": 0.5423125620834691
   },
   "- GATv2": {
-    "mean_f1": 0.31540407459036224,
-    "ci_lower": 0.3093319830730711,
-    "ci_upper": 0.32109823269229276
+    "mean_f1": 0.48128514145084555,
+    "ci_lower": 0.4741474950046267,
+    "ci_upper": 0.4878037721877715
   },
   "- CodeBERT": {
-    "mean_f1": 0.34637294731801666,
-    "ci_lower": 0.3400472173703061,
-    "ci_upper": 0.352586237018277
+    "mean_f1": 0.2884637445694805,
+    "ci_lower": 0.28267734869353106,
+    "ci_upper": 0.2941819764431541
+  },
+  "- Heuristic Feature": {
+    "mean_f1": 0.3233116199575567,
+    "ci_lower": 0.31702420323493863,
+    "ci_upper": 0.3300073181026747
+  },
+  "Majority Class Baseline": {
+    "mean_f1": 0.4672274638882793,
+    "ci_lower": 0.4660503824782598,
+    "ci_upper": 0.468394939221037
   },
   "CBOMkit Baseline": {
-    "mean_f1": 0.46720126446640825,
-    "ci_lower": 0.46597054352431033,
-    "ci_upper": 0.468382740043203
+    "mean_f1": 0.4672162024463451,
+    "ci_lower": 0.4660367450063367,
+    "ci_upper": 0.4684872386338269
   },
   "mcnemar": {
     "full_vs_noise": {
-      "statistic": 164.58323162144399,
-      "pvalue": 1.12811349034177e-37
+      "statistic": 2506.902381674757,
+      "pvalue": 0.0
     },
     "full_vs_het": {
-      "statistic": 430.40327695560256,
-      "pvalue": 1.3277458220145467e-95
+      "statistic": 463.69857779664613,
+      "pvalue": 7.533968265526479e-103
     },
     "full_vs_cbom": {
-      "statistic": 6758.160838625756,
+      "statistic": 4297.37655685014,
       "pvalue": 0.0
     }
   },
   "kappa": {
-    "full_model": {
+    "Full Model (w/ Heuristic)": {
+      "score": 0.09491993451820828,
+      "interpretation": "Slight"
+    },
+    "- Heterogeneous": {
+      "score": 0.15376000571787904,
+      "interpretation": "Slight"
+    },
+    "- GATv2": {
+      "score": 0.14343087748479355,
+      "interpretation": "Slight"
+    },
+    "- CodeBERT": {
+      "score": -0.03160968316303149,
+      "interpretation": "Poor"
+    },
+    "- Heuristic Feature": {
+      "score": 0.015477227105197547,
+      "interpretation": "Slight"
+    },
+    "Majority Class Baseline": {
       "score": 0.0,
       "interpretation": "Poor"
     },
-    "cbomkit": {
+    "CBOMkit Baseline": {
       "score": 0.0,
       "interpretation": "Poor"
     }

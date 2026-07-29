@@ -15,12 +15,12 @@ def run_cbomkit():
     with open(predictions_file, "r") as f:
         preds = json.load(f)
         
-    if "Full Model" not in preds:
+    if "Full Model (w/ Heuristic)" not in preds:
         logging.error("Full Model data missing from predictions.json")
         return
         
-    y_true = preds["Full Model"]["y_true"]
-    node_names = preds["Full Model"]["node_names"]
+    y_true = preds["Full Model (w/ Heuristic)"]["y_true"]
+    node_names = preds["Full Model (w/ Heuristic)"]["node_names"]
     
     corpus_dir = Path("backend/data/corpus").resolve()
     
@@ -42,24 +42,29 @@ def run_cbomkit():
             "docker", "run", "--rm",
             "-v", f"{str(repo_dir)}:/src",
             "ghcr.io/ibm/cbomkit-theia:latest",
-            "scan", "/src"
+            "dir", "/src"
         ]
         
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=120)
             
-            # Since we don't know the exact JSON schema of CBOMkit-theia, we'll do a robust text search
-            # over its JSON/text output for vulnerable primitives. In a production pipeline, this would
-            # rigorously parse the CycloneDX "cryptoProperties" block.
-            output_lower = result.stdout.lower() + result.stderr.lower()
-            
-            vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
-            for prim in vulnerable_primitives:
-                if prim in output_lower:
-                    cbomkit_detected_algos.add(f"{repo_name}_{prim}")
-                    
             if result.returncode != 0:
                 logging.warning(f"CBOMkit returned non-zero for {repo_name}: {result.stderr[:200]}")
+                continue
+                
+            try:
+                cbom_data = json.loads(result.stdout)
+                components = cbom_data.get("components") or []
+                vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
+                
+                for comp in components:
+                    if "cryptoProperties" in comp:
+                        comp_name = comp.get("name", "").lower()
+                        for prim in vulnerable_primitives:
+                            if prim in comp_name:
+                                cbomkit_detected_algos.add(f"{repo_name}_{prim}")
+            except json.JSONDecodeError:
+                logging.error(f"Failed to parse CBOMkit JSON output for {repo_name}")
                 
         except subprocess.TimeoutExpired:
             logging.error(f"CBOMkit timed out on {repo_name}")

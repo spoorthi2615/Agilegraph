@@ -94,8 +94,8 @@ def main():
         
     # 2. McNemar's Test
     # Compare Full Model vs Random Noise (CodeBERT)
-    y_true = preds["Full Model"]["y_true"]
-    y_full = preds["Full Model"]["y_pred"]
+    y_true = preds["Full Model (w/ Heuristic)"]["y_true"]
+    y_full = preds["Full Model (w/ Heuristic)"]["y_pred"]
     y_noise = preds["- CodeBERT"]["y_pred"]
     y_het = preds["- Heterogeneous"]["y_pred"]
     
@@ -139,28 +139,18 @@ def main():
     # 3. Cohen's Kappa
     kappa_service = CohensKappaService(KappaConfig())
     y_true_str = [str(x) for x in y_true]
-    y_full_str = [str(x) for x in y_full]
     
-    kappa_res = kappa_service.calculate_kappa("Ground Truth", "Full Model", y_true_str, y_full_str)
-    logging.info("Cohen's Kappa: Ground Truth vs Full Model")
-    logging.info(f"  Kappa Score: {kappa_res.kappa_score:.4f} ({kappa_res.interpretation})\n")
-    
-    stats_out["kappa"] = {
-        "full_model": {
-            "score": float(kappa_res.kappa_score),
-            "interpretation": kappa_res.interpretation
-        }
-    }
-    
-    if "CBOMkit Baseline" in preds:
-        y_cbom_str = [str(x) for x in y_cbom]
-        kappa_res_cbom = kappa_service.calculate_kappa("Ground Truth", "CBOMkit Baseline", y_true_str, y_cbom_str)
-        logging.info("Cohen's Kappa: Ground Truth vs CBOMkit Baseline")
-        logging.info(f"  Kappa Score: {kappa_res_cbom.kappa_score:.4f} ({kappa_res_cbom.interpretation})\n")
-        stats_out["kappa"]["cbomkit"] = {
-            "score": float(kappa_res_cbom.kappa_score),
-            "interpretation": kappa_res_cbom.interpretation
-        }
+    stats_out["kappa"] = {}
+    for model_name, data in preds.items():
+        if "y_pred" in data:
+            y_pred_str = [str(x) for x in data["y_pred"]]
+            kappa_res = kappa_service.calculate_kappa("Ground Truth", model_name, y_true_str, y_pred_str)
+            logging.info(f"Cohen's Kappa: Ground Truth vs {model_name}")
+            logging.info(f"  Kappa Score: {kappa_res.kappa_score:.4f} ({kappa_res.interpretation})\n")
+            stats_out["kappa"][model_name] = {
+                "score": float(kappa_res.kappa_score),
+                "interpretation": kappa_res.interpretation
+            }
     
     with open("research/statistical_results.json", "w") as f:
         json.dump(stats_out, f, indent=2)

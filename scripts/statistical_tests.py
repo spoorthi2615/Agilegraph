@@ -81,6 +81,17 @@ def main():
     
     # 1. Bootstrap Confidence Intervals
     for model_name, data in preds.items():
+        if "N/A" in data["y_pred"]:
+            logging.info(f"Model: {model_name}")
+            logging.info(f"  Macro-F1 (Bootstrap Mean): N/A")
+            logging.info(f"  95% CI: N/A\n")
+            stats_out[model_name] = {
+                "mean_f1": "N/A",
+                "ci_lower": "N/A",
+                "ci_upper": "N/A"
+            }
+            continue
+            
         mean_f1, lb, ub = bootstrap_ci(data["y_true"], data["y_pred"])
         logging.info(f"Model: {model_name}")
         logging.info(f"  Macro-F1 (Bootstrap Mean): {mean_f1:.4f}")
@@ -117,19 +128,27 @@ def main():
         
     if "CBOMkit Baseline" in preds:
         y_cbom = preds["CBOMkit Baseline"]["y_pred"]
-        stat_cbom, p_cbom = run_mcnemar_test(y_true, y_full, y_cbom)
-        logging.info(f"McNemar Test: Full Model vs CBOMkit Baseline")
-        logging.info(f"  Statistic: {stat_cbom:.4f}, p-value: {p_cbom:.4e}")
-        if p_cbom < 0.05:
-            logging.info("  Result: Statistically Significant Difference (p < 0.05)\n")
+        if "N/A" not in y_cbom:
+            stat_cbom, p_cbom = run_mcnemar_test(y_true, y_full, y_cbom)
+            logging.info(f"McNemar Test: Full Model vs CBOMkit Baseline")
+            logging.info(f"  Statistic: {stat_cbom:.4f}, p-value: {p_cbom:.4e}")
+            if p_cbom < 0.05:
+                logging.info("  Result: Statistically Significant Difference (p < 0.05)\n")
+            else:
+                logging.info("  Result: Not Statistically Significant\n")
+            
+            stats_out["mcnemar"] = {
+                "full_vs_noise": {"statistic": float(stat_noise), "pvalue": float(p_noise)},
+                "full_vs_het": {"statistic": float(stat_het), "pvalue": float(p_het)},
+                "full_vs_cbom": {"statistic": float(stat_cbom), "pvalue": float(p_cbom)}
+            }
         else:
-            logging.info("  Result: Not Statistically Significant\n")
-        
-        stats_out["mcnemar"] = {
-            "full_vs_noise": {"statistic": float(stat_noise), "pvalue": float(p_noise)},
-            "full_vs_het": {"statistic": float(stat_het), "pvalue": float(p_het)},
-            "full_vs_cbom": {"statistic": float(stat_cbom), "pvalue": float(p_cbom)}
-        }
+            logging.info("McNemar Test: Full Model vs CBOMkit Baseline skipped (predictions are N/A)\n")
+            stats_out["mcnemar"] = {
+                "full_vs_noise": {"statistic": float(stat_noise), "pvalue": float(p_noise)},
+                "full_vs_het": {"statistic": float(stat_het), "pvalue": float(p_het)},
+                "full_vs_cbom": {"statistic": "N/A", "pvalue": "N/A"}
+            }
     else:
         stats_out["mcnemar"] = {
             "full_vs_noise": {"statistic": float(stat_noise), "pvalue": float(p_noise)},
@@ -143,6 +162,15 @@ def main():
     stats_out["kappa"] = {}
     for model_name, data in preds.items():
         if "y_pred" in data:
+            if "N/A" in data["y_pred"]:
+                logging.info(f"Cohen's Kappa: Ground Truth vs {model_name}")
+                logging.info(f"  Kappa Score: N/A (N/A)\n")
+                stats_out["kappa"][model_name] = {
+                    "score": "N/A",
+                    "interpretation": "N/A"
+                }
+                continue
+                
             y_pred_str = [str(x) for x in data["y_pred"]]
             kappa_res = kappa_service.calculate_kappa("Ground Truth", model_name, y_true_str, y_pred_str)
             logging.info(f"Cohen's Kappa: Ground Truth vs {model_name}")

@@ -1,72 +1,72 @@
 {
   "Full Model (w/ Heuristic)": {
-    "mean_f1": 0.483767955103882,
-    "ci_lower": 0.4771736714333681,
-    "ci_upper": 0.49061091000623824
+    "mean_f1": 0.48440074276158646,
+    "ci_lower": 0.4779080231802672,
+    "ci_upper": 0.49103986764283736
   },
   "- Heterogeneous": {
-    "mean_f1": 0.5347699820885184,
-    "ci_lower": 0.5273161811757673,
-    "ci_upper": 0.5423125620834691
+    "mean_f1": 0.5166638048760555,
+    "ci_lower": 0.5100021578200877,
+    "ci_upper": 0.5235345778493798
   },
   "- GATv2": {
-    "mean_f1": 0.48128514145084555,
-    "ci_lower": 0.4741474950046267,
-    "ci_upper": 0.4878037721877715
+    "mean_f1": 0.433466400534464,
+    "ci_lower": 0.42733221979371955,
+    "ci_upper": 0.43974979175990664
   },
   "- CodeBERT": {
-    "mean_f1": 0.2884637445694805,
-    "ci_lower": 0.28267734869353106,
-    "ci_upper": 0.2941819764431541
+    "mean_f1": 0.44875732279057,
+    "ci_lower": 0.44309465364192707,
+    "ci_upper": 0.4547815903062136
   },
   "- Heuristic Feature": {
-    "mean_f1": 0.3233116199575567,
-    "ci_lower": 0.31702420323493863,
-    "ci_upper": 0.3300073181026747
+    "mean_f1": 0.42972714267715684,
+    "ci_lower": 0.4233142860949848,
+    "ci_upper": 0.4362223841598649
   },
   "Majority Class Baseline": {
-    "mean_f1": 0.4672274638882793,
-    "ci_lower": 0.4660503824782598,
-    "ci_upper": 0.468394939221037
+    "mean_f1": 0.467189407657148,
+    "ci_lower": 0.4660098006277743,
+    "ci_upper": 0.4684872386338269
   },
   "CBOMkit Baseline": {
-    "mean_f1": 0.4672162024463451,
-    "ci_lower": 0.4660367450063367,
-    "ci_upper": 0.4684872386338269
+    "mean_f1": "N/A",
+    "ci_lower": "N/A",
+    "ci_upper": "N/A"
   },
   "mcnemar": {
     "full_vs_noise": {
-      "statistic": 2506.902381674757,
-      "pvalue": 0.0
+      "statistic": 42.259848101265824,
+      "pvalue": 7.991656680971707e-11
     },
     "full_vs_het": {
-      "statistic": 463.69857779664613,
-      "pvalue": 7.533968265526479e-103
+      "statistic": 216.01500493583416,
+      "pvalue": 6.693419525323296e-49
     },
     "full_vs_cbom": {
-      "statistic": 4297.37655685014,
-      "pvalue": 0.0
+      "statistic": "N/A",
+      "pvalue": "N/A"
     }
   },
   "kappa": {
     "Full Model (w/ Heuristic)": {
-      "score": 0.09491993451820828,
+      "score": 0.1039353344237374,
       "interpretation": "Slight"
     },
     "- Heterogeneous": {
-      "score": 0.15376000571787904,
+      "score": 0.13309475000449758,
       "interpretation": "Slight"
     },
     "- GATv2": {
-      "score": 0.14343087748479355,
+      "score": 0.08599403152633998,
       "interpretation": "Slight"
     },
     "- CodeBERT": {
-      "score": -0.03160968316303149,
-      "interpretation": "Poor"
+      "score": 0.04209650901062149,
+      "interpretation": "Slight"
     },
     "- Heuristic Feature": {
-      "score": 0.015477227105197547,
+      "score": 0.07429086924709162,
       "interpretation": "Slight"
     },
     "Majority Class Baseline": {
@@ -74,8 +74,8 @@
       "interpretation": "Poor"
     },
     "CBOMkit Baseline": {
-      "score": 0.0,
-      "interpretation": "Poor"
+      "score": "N/A",
+      "interpretation": "N/A"
     }
   }
 }

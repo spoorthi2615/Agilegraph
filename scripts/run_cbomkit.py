@@ -85,20 +85,10 @@ def run_cbomkit():
         raw_name_lower = raw_name.lower()
         vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
         
-        # A node is predicted as vulnerable by CBOMkit ONLY IF:
-        # 1. The repository had a CBOMkit hit for a specific primitive.
-        # 2. This specific node matches the primitive that CBOMkit found in this repo.
-        is_vuln = False
-        for prim in vulnerable_primitives:
-            if f"{repo_name}_{prim}" in cbomkit_detected_algos:
-                # CBOMkit found this primitive somewhere in the repo.
-                # Now we map it to the node. If the node name references this primitive,
-                # we consider it a hit. If CBOMkit provided file-line locations, we would map those here.
-                if prim in raw_name_lower:
-                    is_vuln = True
-                    break
-                    
-        y_cbom.append(1 if is_vuln else 0)
+        # Because cbomkit-theia is explicitly not designed for source-code node classification,
+        # we explicitly mark these source nodes as "N/A" rather than falsely assigning them 0 (Safe)
+        # which would otherwise turn this into a deceptive majority-class predictor.
+        y_cbom.append("N/A")
         
     preds["CBOMkit Baseline"] = {
         "y_true": y_true,

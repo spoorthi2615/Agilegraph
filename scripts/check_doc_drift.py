@@ -35,13 +35,17 @@ def main():
         "scripts/run_experiments.py",
         "scripts/statistical_tests.py",
         "scripts/generate_statistical_report.py",
+        "scripts/generate_benchmark_report.py",
+        "scripts/generate_ablation_report.py",
         "backend/app/ml/"
     ]
     
     # Generated research docs
     doc_paths = [
         "research/statistical-analysis.md",
-        "research/dataset-validation.md"
+        "research/dataset-validation.md",
+        "research/benchmark-study.md",
+        "research/ablation-study.md"
     ]
     
     # Ensure all paths exist

@@ -1,54 +1,31 @@
-# Ablation Study & Component Contribution Analysis
+# AgileGraph Ablation Study
 
-This document details a strict ablation study designed to isolate and quantify the individual performance contribution of every major architectural component within the AgileGraph Post-Quantum Cryptography prediction pipeline. 
+This document details the ablation studies performed on the AgileGraph model to isolate the contribution of individual architectural components and feature sets.
 
-## 1. Experimental Design & Consistency
-To maintain absolute isolation, the study adheres to a single-component removal methodology. Each experiment selectively disables exactly one feature block while leaving all other elements (Dataset splits, Random Seed=42, Loss function, Early Stopping) completely unchanged from the Full Model baseline.
+## 1. Ablation Results (5-Fold CV Mean)
 
-### Ablated Variants
-- **Full AgileGraph**: The complete production architecture.
-- **- w/o Heterogeneous Edges**: Flattens the graph into a homogeneous structure (all edges treated as standard connections rather than distinguishing between `CALLS`, `IMPORTS`, `INHERITS`).
-- **- w/o GATv2 Attention**: Replaces the dynamic GATv2 attention heads with static GraphSAGE mean aggregation.
-- **- w/o Heuristic Edge Attributes**: Removes semantic edge weights (e.g., token distance, block scoping).
-- **- w/o CodeBERT Embeddings**: Replaces the contextual NLP node embeddings with standard bag-of-words (BoW) tf-idf vectors.
+| Model Variant | Macro-F1 | 95% Confidence Interval |
+|---|---|---|
+| Full Model (w/ Heuristic) | 0.484 | [0.478, 0.491] |
+| - Heterogeneous | 0.517 | [0.510, 0.524] |
+| - GATv2 | 0.433 | [0.427, 0.440] |
+| - CodeBERT | 0.449 | [0.443, 0.455] |
+| - Heuristic Feature | 0.430 | [0.423, 0.436] |
 
-## 2. Contribution Analysis Results
+## 2. Component Analysis
 
-| Variant | F1-Score (5-Fold Mean) | 95% Confidence Interval | Latency |
-|---------|------------------------|--------------------------|---------|
-| Full Model | **0.329** | [0.323, 0.335] | ~15ms |
-| - Heterogeneous | **0.336** | [0.331, 0.342] | ~12ms |
-| - GATv2 (Swap GCN) | 0.303 | [0.296, 0.309] | ~10ms |
-| - CodeBERT (Noise) | 0.291 | [0.285, 0.297] | ~15ms |
+### Section 5.1 Leakage Ablation (- Heuristic Feature)
+As required by the synopsis, we explicitly tested the model's reliance on the injected `risk_score` scalar. 
+**Finding**: The F1 score drops significantly from **0.484** to **0.430** when the heuristic feature is removed. 
+**Interpretation**: Because performance collapses without the heuristic feature, this is reported honestly as a limitation. The model relies heavily on this scalar rather than independently deriving strong structural risk from the graph propagation alone.
 
-*Note: All scores were rigorously tested using 1,000-iteration empirical bootstrapping. The 5-Fold Cross Validation spans 40 diverse repositories.*
+### Graph Convolution (- GATv2)
+Removing the Graph Attention mechanism (GATv2) and replacing it with a standard GCN convolution resulted in an F1 of **0.433**. This indicates that dynamic attention weighting over neighboring nodes provides minimal to no benefit for this specific task compared to standard symmetric normalization.
 
-## 3. Interpretation & Component Ranking
+### Relational Edges (- Heterogeneous)
+Treating all edges identically (Homogeneous GCN) resulted in an F1 of **0.517**, which actually outperformed the Full Model. This suggests that separating edge types (Calls, Inherits, Imports) into a heterogeneous graph structure added unnecessary noise or caused overfitting, rather than providing useful structural priors.
 
-## The Resolution of the "Noise Paradox"
+### Semantic Features (- CodeBERT)
+Replacing the 768-dimensional CodeBERT embeddings with random noise vectors caused the F1 score to drop to **0.449**. This confirms that the semantic meaning of the code tokens is strictly necessary for the network to make any meaningful predictions, and the graph structure alone (without node content) is insufficient.
 
-Previously, replacing the CodeBERT semantic embeddings with Gaussian noise (`x = torch.randn_like(x)`) yielded an identical F1-Score (0.00), leading to the hypothesis that the model was blind to the graph topology. 
-
-Under the remediated `v3.0.0` regime, the paradox is definitively resolved:
-- **Full Model F1:** 0.329
-- **Noise Ablation F1:** 0.291
-
-**Statistical Significance (McNemar's Test):**
-- **p-value:** $6.87 \times 10^{-23}$
-- **Conclusion:** The difference in error rates is highly statistically significant ($p \ll 0.05$). 
-
-The GATv2 architecture is irrefutably leveraging the CodeBERT semantic embeddings to successfully classify nodes. The original F1=0 paradox was entirely an artifact of a degenerate test-set split, not a failure of the architecture itself.
-
-## The Heterogeneous Penalty
-
-We hypothesized that encoding distinct edge types (`CONTAINS`, `USES`) would enrich the topological signal. However, ablating the heterogeneous relations (treating all edges equally) actually **increased** the F1-Score from 0.329 to 0.336.
-
-**Statistical Significance (McNemar's Test):**
-- **p-value:** $6.17 \times 10^{-6}$
-- **Conclusion:** The performance gain of the Homogeneous model is statistically significant.
-
-**Analysis:**
-Because this binary classification task (Safe vs. Vulnerable) hinges primarily on the presence of vulnerable cryptography *anywhere* in the local neighborhood, the exact nature of the relationship (`CONTAINS` vs `USES`) acts as noise. The extra weight matrices required for heterogeneous edge types dilute the learning signal across our relatively small 40-repo dataset. Homogeneous GNNs act as a more efficient low-pass filter for this specific domain.
-
-## 4. Threats to Validity & Unexpected Observations
-**Threat to Validity**: The ablation study currently only disables components independently. It does not measure higher-order interaction effects (e.g., removing *both* GATv2 and Heterogeneous edges simultaneously), which might trigger non-linear performance decay. Future factorial design studies are recommended.
+*This document is auto-generated by `scripts/generate_ablation_report.py` to prevent metrics drift.*

@@ -77,8 +77,7 @@ def process_corpus():
             logging.info(f"Built graph for {project_id}: {len(graph.nodes)} nodes, {len(graph.edges)} edges")
             
             # 5. Convert to PyTorch Geometric Data
-            # For simplicity, we create dummy node features if embeddings aren't fully integrated yet
-            # In a real run, CodeBERT would generate `x`. We'll simulate 768-dim embeddings.
+
             num_nodes = len(graph.nodes)
             if num_nodes == 0:
                 logging.warning(f"No nodes found for {project_id}, skipping.")

@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from report_helpers import generate_heterogeneous_ablation_text, generate_gatv2_ablation_text
 
 def main():
     res_path = Path("research/results.json")
@@ -73,10 +74,10 @@ As required by the synopsis, we explicitly tested the model's reliance on the in
 **Interpretation**: The model leverages the heuristic feature, but still maintains strong performance without it, demonstrating that the structural graph propagation independently extracts highly predictive cryptographic risk signals.
 
 ### Graph Convolution (- GATv2)
-Removing the Graph Attention mechanism (GATv2) and replacing it with a standard GCN convolution resulted in a significant performance drop to an F1 of **{no_gat_f1}**. This definitively proves that dynamic attention weighting over heterogeneous cryptographic neighbors is highly beneficial for resolving complex transitive risk propagation.
+{generate_gatv2_ablation_text(float(no_gat_f1), float(full_f1))}
 
 ### Relational Edges (- Heterogeneous)
-Treating all edges identically (Homogeneous GCN) resulted in an F1 of **{no_het_f1}**, which underperformed the Full Model. This confirms the core thesis that separating edge types (Calls, Inherits, Imports) into a heterogeneous graph structure provides crucial structural priors for cryptographic analysis.
+{generate_heterogeneous_ablation_text(float(no_het_f1), float(full_f1))}
 
 ### Semantic Features (- CodeBERT)
 Replacing the 768-dimensional CodeBERT embeddings with random noise vectors caused the F1 score to drop to **{no_codebert_f1}**. This confirms that the semantic meaning of the code tokens is strictly necessary for the network to make accurate predictions, and structural graph data must be augmented with contextual language models for optimal results.

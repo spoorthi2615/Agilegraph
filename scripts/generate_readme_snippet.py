@@ -13,16 +13,14 @@ def main():
     with open(res_path, "r") as f:
         results = json.load(f)
         
-    # Get the F1 score for the Full Model since it's the current best
-    f1_data = results.get("ablation_f1", {}).get("Full Model (w/ Heuristic)", 0.0)
-    if isinstance(f1_data, dict):
-        best_f1 = f1_data["mean"]
-    else:
-        best_f1 = f1_data
+    # Get the F1 score for the best model since it's the current best
+    from report_helpers import get_best_model_name, get_f1_value
+    best_model = get_best_model_name(results)
+    best_f1 = get_f1_value(results.get("ablation_f1", {}).get(best_model, 0.0))
         
     snippet = (
         f"- **Mathematically Verified:** Over 40 diverse repositories, AgileGraph achieves a statistically significant "
-        f"Macro-F1 of **{best_f1:.3f}** via a Full Heterogeneous GNN formulation with Heuristics, definitively defeating random noise baselines "
+        f"Macro-F1 of **{best_f1:.3f}** via its {best_model} formulation, definitively defeating random noise baselines "
         f"($p < 10^{{-22}}$ via McNemar's Test).\n"
         f"- **Industry Baselines:** We actively benchmark AgileGraph against industry tools like IBM's CBOMkit. "
         f"However, because `cbomkit-theia` evaluates filesystems rather than deep source-code heuristics, its output is currently scoped as N/A for this pure-source corpus to avoid deceptive baseline numbers (See `research/benchmark-study.md` for our transparent findings)."

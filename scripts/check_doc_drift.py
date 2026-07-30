@@ -38,7 +38,15 @@ def main():
         "scripts/generate_benchmark_report.py",
         "scripts/generate_ablation_report.py",
         "scripts/generate_readme_snippet.py",
+        "scripts/report_helpers.py",
         "backend/app/ml/"
+    ]
+    
+    # Data artifacts that impact the reports
+    data_paths = [
+        "research/results.json",
+        "research/predictions.json",
+        "research/statistical_results.json",
     ]
     
     # Generated research docs
@@ -51,25 +59,43 @@ def main():
     ]
     
     # Ensure all paths exist
-    for p in code_paths + doc_paths:
+    for p in code_paths + data_paths + doc_paths:
         if not os.path.exists(p):
+            # Ignore missing data paths, they might not be generated yet
+            if p in data_paths:
+                continue
             print(f"Warning: Path '{p}' does not exist.")
             # If doc doesn't exist, we definitely have drift
             if p in doc_paths:
                 print(f"ERROR: Required document '{p}' is missing. Please regenerate docs.")
                 sys.exit(1)
     
-    code_mtime, code_newest_file = get_latest_mtime(code_paths)
+    code_mtime, code_newest_file = get_latest_mtime(code_paths + data_paths)
     doc_mtime, doc_newest_file = get_latest_mtime(doc_paths)
     
     if code_mtime > doc_mtime:
         print(f"\n❌ DRIFT DETECTED!")
-        print(f"Code file '{code_newest_file}' was modified more recently than your research docs.")
+        print(f"File '{code_newest_file}' was modified more recently than your research docs.")
         print(f"This means your documentation might be reporting stale numbers.")
-        print(f"Please re-run the pipeline and/or `python scripts/generate_statistical_report.py` to update the docs.")
+        
+        # Check if the drift is due to data or code
+        if any(str(code_newest_file).endswith(dp.split('/')[-1]) for dp in data_paths):
+            print("The underlying results changed — re-run the report generators.")
+        else:
+            print("A generator script changed — re-run it, then verify output.")
+            
         sys.exit(1)
         
-    print(f"✅ Docs are up-to-date! (Code: {code_newest_file}, Docs: {doc_newest_file})")
+    print(f"✅ Docs are up-to-date! (Code/Data: {code_newest_file}, Docs: {doc_newest_file})")
+    
+    # Run linter as secondary check
+    try:
+        from lint_generated_docs import lint_docs
+        if not lint_docs():
+            sys.exit(1)
+    except ImportError:
+        print("Warning: Could not import lint_generated_docs.py")
+        
     sys.exit(0)
 
 if __name__ == "__main__":

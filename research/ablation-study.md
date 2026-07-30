@@ -23,7 +23,7 @@ As required by the synopsis, we explicitly tested the model's reliance on the in
 Removing the Graph Attention mechanism (GATv2) and replacing it with a standard GCN convolution resulted in a significant performance drop to an F1 of **0.433**. This definitively proves that dynamic attention weighting over heterogeneous cryptographic neighbors is highly beneficial for resolving complex transitive risk propagation.
 
 ### Relational Edges (- Heterogeneous)
-Treating all edges identically (Homogeneous GCN) resulted in an F1 of **0.517**, which underperformed the Full Model. This confirms the core thesis that separating edge types (Calls, Inherits, Imports) into a heterogeneous graph structure provides crucial structural priors for cryptographic analysis.
+Treating all edges identically (Homogeneous GCN) resulted in an F1 of **0.517**, which actually outperformed the Full Model. This suggests that separating edge types (Calls, Inherits, Imports) into a heterogeneous graph structure added unnecessary noise or caused overfitting, rather than providing useful structural priors.
 
 ### Semantic Features (- CodeBERT)
 Replacing the 768-dimensional CodeBERT embeddings with random noise vectors caused the F1 score to drop to **0.449**. This confirms that the semantic meaning of the code tokens is strictly necessary for the network to make accurate predictions, and structural graph data must be augmented with contextual language models for optimal results.

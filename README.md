@@ -106,9 +106,11 @@ docker run -d --name neo4j-agilegraph \
 ```
 
 ### 2. Backend Setup
-Navigate to the `backend/` directory and install the Python dependencies.
+Navigate to the `backend/` directory, set up your environment variables, and install the Python dependencies.
 ```bash
 cd backend
+cp .env.example .env
+# Edit .env and fill in your own credentials/keys
 python -m venv .venv
 source .venv/bin/activate  # Or `.venv\Scripts\activate` on Windows
 pip install -r requirements.txt
@@ -120,9 +122,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### 3. Frontend Setup
-Navigate to the `frontend-1/` directory and install the Node modules.
+Navigate to the `frontend-1/` directory, set up your environment variables, and install the Node modules.
 ```bash
 cd frontend-1
+cp .env.example .env
+# Edit .env and fill in your own credentials if needed
 npm install
 ```
 

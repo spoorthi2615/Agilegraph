@@ -1,5 +1,3 @@
-import json
-from typing import Dict, Any
 from app.explainability.explanation_result import ExplanationResult
 
 class ExplanationReport:

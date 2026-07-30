@@ -1,6 +1,6 @@
 import logging
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from app.cbom.cbom_parser import CBOMParser
 from app.cbom.cbom_comparator import CBOMComparator
 from app.cbom.cbom_model import CBOMAsset, CBOMComparison

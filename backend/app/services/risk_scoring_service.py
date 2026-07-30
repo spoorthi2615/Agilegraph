@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 from app.models.crypto_asset import CryptoAsset, AssetType, Severity
 

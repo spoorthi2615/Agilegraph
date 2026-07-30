@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple
 from datetime import datetime, timezone
 
 class ExplanationResult(BaseModel):

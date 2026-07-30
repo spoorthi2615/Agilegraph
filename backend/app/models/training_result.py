@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from uuid import UUID, uuid4
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Dict, Any
 
 class TrainingResult(BaseModel):

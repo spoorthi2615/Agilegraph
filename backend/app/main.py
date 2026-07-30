@@ -12,7 +12,6 @@ from fastapi import Depends
 import logging
 import uuid
 import time
-import logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -97,7 +96,7 @@ def create_app() -> FastAPI:
                     f"- Status: {response.status_code} - Duration: {process_time:.3f}s - Client: {request.client.host if request.client else 'unknown'}"
                 )
             return response
-        except Exception as e:
+        except Exception:
             process_time = time.time() - start_time
             metrics.increment_request_metrics(500)
             logger.error(

@@ -6,7 +6,7 @@ This document evaluates the computational efficiency and operational practicalit
 To ensure reproducibility, all pipeline testing was physically executed on standard consumer-grade development hardware (x86_64 CPU). The original hardware profile (Intel Xeon Platinum / NVIDIA A100) listed in previous iterations was fabricated and has been removed. High-volume throughput claims remain theoretical until tested on production infrastructure.
 
 ## 2. Runtime & Scalability Evaluation
-Because the dataset is currently restricted to 3 repositories due to data starvation, large-scale scalability profiling across tens of thousands of repositories has not been physically executed. Preliminary runs demonstrate that Neo4j graph ingestion (Cypher `MERGE` statements) is the primary computational bottleneck on CPU, rather than GNN inference.
+Because the dataset has been expanded to 40 repositories to address initial data starvation, large-scale scalability profiling across tens of thousands of repositories has not yet been physically executed. Preliminary runs demonstrate that Neo4j graph ingestion (Cypher `MERGE` statements) is the primary computational bottleneck on CPU, rather than GNN inference.
 
 ## 3. Bottleneck Analysis
 1. **Neo4j Graph Construction**: Writing thousands of highly connected edges via Cypher `MERGE` statements incurs heavy I/O latency. 

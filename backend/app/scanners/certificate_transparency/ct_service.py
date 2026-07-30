@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List
 from datetime import datetime, timezone
 from app.scanners.certificate_transparency.ct_client import CTClient
 from app.scanners.certificate_transparency.ct_parser import CTParser

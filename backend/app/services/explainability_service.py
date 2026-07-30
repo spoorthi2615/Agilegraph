@@ -1,4 +1,3 @@
-from typing import Optional
 from app.models.explanation import Explanation, ExplanationType
 from app.models.crypto_asset import CryptoAsset
 from app.models.migration_recommendation import MigrationRecommendation

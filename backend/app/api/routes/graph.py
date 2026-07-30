@@ -6,7 +6,7 @@ from app.services.graph_query_service import GraphQueryService
 from app.services.recommendation_workflow_service import RecommendationWorkflowService
 from app.models.graph import (
     GraphResponse, GraphNode, GraphEdge, GraphMetadata, GraphStatistics, GraphFilter,
-    NodeDetails, NodeRelationship
+    NodeDetails
 )
 
 router = APIRouter()

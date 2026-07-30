@@ -1,0 +1,36 @@
+{
+  "run_id": "6a69a1b4",
+  "ablation_f1": {
+    "Full Model (w/ Heuristic)": {
+      "mean": 0.852726962335039,
+      "std": 0.03642632573006621
+    },
+    "- Heterogeneous": {
+      "mean": 0.7932904345336714,
+      "std": 0.015512875859641817
+    },
+    "- GATv2": {
+      "mean": 0.7205111748706567,
+      "std": 0.02055139127600705
+    },
+    "- CodeBERT": {
+      "mean": 0.3224858166373182,
+      "std": 0.06812823278995937
+    },
+    "- Heuristic Feature": {
+      "mean": 0.8438413058461119,
+      "std": 0.03661058697348391
+    }
+  },
+  "validation_f1": {
+    "Full Model (w/ Heuristic)": 0.9051918480124279,
+    "- Heterogeneous": 0.8465572480211472,
+    "- GATv2": 0.5680090594220679,
+    "- CodeBERT": 0.4639735865575115,
+    "- Heuristic Feature": 0.8528239932131358
+  },
+  "performance": {
+    "Latency": [],
+    "Throughput": []
+  }
+}

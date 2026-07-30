@@ -1,5 +1,4 @@
 from typing import List, Dict
-from datetime import datetime, timezone
 from collections import defaultdict
 
 from app.models.expert_validation import ExpertValidation

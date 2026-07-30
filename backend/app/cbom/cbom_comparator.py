@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Any
+from typing import List
 from app.cbom.cbom_model import CBOMAsset, CBOMInventory, CBOMComparison
 
 logger = logging.getLogger(__name__)

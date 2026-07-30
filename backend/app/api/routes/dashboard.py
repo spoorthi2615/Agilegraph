@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from typing import List, Dict, Any
-from pathlib import Path
+from typing import List
 from pydantic import BaseModel
 
 from app.config.settings import settings
@@ -11,8 +10,6 @@ from app.services.pqc_readiness_service import PQCReadinessService
 from app.services.migration_roadmap_service import MigrationRoadmapService
 from app.services.security_report_service import SecurityReportService
 from app.services.explainability_service import ExplainabilityService
-from app.scanners.scanner_registry import get_default_registry
-from app.graph.graph_builder import GraphBuilder
 
 from app.models.project_analysis import ProjectAnalysisResult
 from app.models.crypto_graph import CryptoGraph
@@ -23,7 +20,8 @@ from app.models.explanation import Explanation
 from app.models.security_report import SecurityReport
 
 from app.models.dashboard import (
-    DashboardSummary, KPISummary, DashboardGraph, DashboardNode, DashboardEdge, ReportRecord
+    DashboardSummary, KPISummary, DashboardGraph, DashboardNode, DashboardEdge, ReportRecord,
+    RiskDistribution, AlgorithmUsage, CriticalAlert, MigrationTrend
 )
 
 router = APIRouter()

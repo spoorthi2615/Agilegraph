@@ -1,5 +1,4 @@
 import logging
-from typing import List
 from app.experiments.fleiss_kappa.fleiss_config import FleissConfig
 from app.experiments.fleiss_kappa.fleiss_result import FleissResult
 from app.experiments.fleiss_kappa.agreement_matrix import AgreementMatrixEngine

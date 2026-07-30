@@ -14,7 +14,6 @@ class Baseline(ABC):
         """
         Prepares any heavy resources or static initializations before benchmarking begins.
         """
-        pass
 
     @abstractmethod
     def get_name(self) -> str:
@@ -29,4 +28,3 @@ class Baseline(ABC):
         """
         Executes the baseline algorithm over the repository and returns structured predictions.
         """
-        pass

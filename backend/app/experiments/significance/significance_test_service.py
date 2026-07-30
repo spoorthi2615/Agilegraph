@@ -1,5 +1,5 @@
 import random
-from typing import Dict, List
+from typing import List
 from app.experiments.significance.significance_config import SignificanceConfig
 from app.experiments.significance.significance_result import SignificanceResult
 from app.experiments.significance.permutation_test import PermutationTest

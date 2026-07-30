@@ -1,4 +1,3 @@
-import json
 import csv
 from io import StringIO
 from app.compliance.compliance_models import SynopsisComplianceReport
@@ -10,14 +9,14 @@ class ComplianceReportGenerator:
         
     @staticmethod
     def generate_markdown(report: SynopsisComplianceReport) -> str:
-        md = f"# AgileGraph Synopsis Compliance Report\n\n"
+        md = "# AgileGraph Synopsis Compliance Report\n\n"
         md += f"## Overall Readiness Score: {report.production_readiness.overall_readiness_score}%\n\n"
         
-        md += f"### Module Implementation Status\n"
+        md += "### Module Implementation Status\n"
         for mod in report.synopsis_cross_check:
             md += f"- **{mod.name}**: {mod.status}\n"
             
-        md += f"\n### Scanners\n"
+        md += "\n### Scanners\n"
         md += f"- Java: {report.scanner_verification.java_implemented}\n"
         md += f"- Python: {report.scanner_verification.python_implemented}\n"
         md += f"- Go: {report.scanner_verification.go_implemented}\n"

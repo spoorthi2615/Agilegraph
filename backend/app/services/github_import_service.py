@@ -64,7 +64,7 @@ class GitHubImportService:
                 if request.access_token:
                     err_msg = err_msg.replace(request.access_token, "***")
                 logger.error(f"Git clone failed: {err_msg}")
-                raise AgileGraphException(f"Failed to clone repository: Git error.")
+                raise AgileGraphException("Failed to clone repository: Git error.")
                 
             # Execute pipeline
             from app.services.analysis_workflow_service import AnalysisWorkflowService
@@ -76,7 +76,7 @@ class GitHubImportService:
             export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
             
             workflow = AnalysisWorkflowService(analysis_service, export_service)
-            pipeline_result = workflow.execute_pipeline(project_id, Path(clone_dir))
+            workflow.execute_pipeline(project_id, Path(clone_dir))
             
             return GithubImportResponse(
                 project_id=project_id,

@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from app.heuristics.heuristic_breakdown import HeuristicBreakdown
 
 logger = logging.getLogger(__name__)

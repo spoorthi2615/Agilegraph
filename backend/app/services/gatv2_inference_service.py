@@ -30,7 +30,6 @@ class GATv2InferenceService:
         Executes a highly optimized, deterministic forward pass over the dataset with gradients disabled.
         Generates continuous risk scores and discrete labels mapped to exact graph nodes.
         """
-        started_at = datetime.now(timezone.utc)
         start_time = time.perf_counter()
         
         # 1. Read the classification threshold from ModelConfig (with safe fallback)

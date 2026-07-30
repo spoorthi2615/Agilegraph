@@ -4,7 +4,7 @@ import json
 import csv
 import numpy as np
 from datetime import datetime, timezone
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 from collections import defaultdict
 
 from app.models.crypto_graph import CryptoGraph

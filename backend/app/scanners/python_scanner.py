@@ -1,11 +1,11 @@
 import ast
 import time
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Any
 
 from app.scanners.base_scanner import BaseScanner
 from app.scanners.scanner_result import ScannerResult
-from app.models.crypto_asset import CryptoAsset, AssetType, Severity
+from app.models.crypto_asset import CryptoAsset, AssetType
 
 # Pre-defined mapping of known API calls to their respective AssetType and Algorithm
 API_MAPPING: Dict[str, Tuple[AssetType, str]] = {

@@ -1,21 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Path as PathParam
-from typing import List, Dict, Any, Optional
-from uuid import UUID
+from typing import Optional
 import math
 
 from app.config.settings import settings
-from app.services.project_analysis_service import ProjectAnalysisService
-from app.services.risk_scoring_service import RiskScoringService
-from app.services.neo4j_export_service import Neo4jExportService
 from app.services.graph_query_service import GraphQueryService
-from app.services.analysis_workflow_service import AnalysisWorkflowService
 from app.services.recommendation_workflow_service import RecommendationWorkflowService
-from app.services.explainability_service import ExplainabilityService
-from app.scanners.scanner_registry import get_default_registry
-from app.models.crypto_asset import CryptoAsset
 from app.models.analysis import (
     AssetSummary, AssetDetail, PaginatedAssetResponse, 
-    RiskRecommendation, MigrationRecommendationDTO, ExplainabilitySummary
+    MigrationRecommendationDTO, ExplainabilitySummary
 )
 
 router = APIRouter()

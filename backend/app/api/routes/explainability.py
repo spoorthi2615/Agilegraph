@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, Path as PathParam
-from typing import Optional
 from datetime import datetime
 
 from app.config.settings import settings
-from app.services.explainability_service import ExplainabilityService
 from app.services.graph_query_service import GraphQueryService
 from app.services.recommendation_workflow_service import RecommendationWorkflowService
 from app.models.explainability import (
     ExplainabilityResponse, AssetInformation, GNNExplanation, HeuristicExplanation,
     MigrationImpact, ConfidenceMetrics, ExplanationMetadata, HeuristicBreakdown,
-    FeatureImportance, ImportantEdge
+    FeatureImportance
 )
 
 router = APIRouter()

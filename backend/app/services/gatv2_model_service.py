@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 # This maintains application stability in lightweight scanner environments (Docker) 
 # that intentionally exclude PyTorch to save gigabytes of space.
 try:
-    import torch
     import torch.nn as nn
     import torch.nn.functional as F
     from torch_geometric.nn import GATv2Conv

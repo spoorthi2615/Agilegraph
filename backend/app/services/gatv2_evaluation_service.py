@@ -48,7 +48,6 @@ class GATv2EvaluationService:
         if not training_result.training_completed:
             raise ValueError("Evaluation aborted: The provided model has not successfully completed training.")
             
-        started_at = datetime.now(timezone.utc)
         start_time = time.perf_counter()
         
         # 2. Check Compatibility

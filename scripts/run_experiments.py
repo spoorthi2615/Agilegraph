@@ -80,6 +80,14 @@ def run_ablation(data_list, config_name, **kwargs):
         internal_train_graphs = train_graphs[:-val_size]
         internal_val_graphs = train_graphs[-val_size:]
         
+        # EXPLICIT LEAKAGE ASSERTION (Task 2.4)
+        train_repo_names = {getattr(g, 'repo_name', None) for g in internal_train_graphs}
+        val_repo_names = {getattr(g, 'repo_name', None) for g in internal_val_graphs}
+        test_repo_names = {getattr(g, 'repo_name', None) for g in test_graphs}
+        assert train_repo_names & val_repo_names == set(), f"DATA LEAKAGE: Val repos {train_repo_names & val_repo_names} are in Train!"
+        assert train_repo_names & test_repo_names == set(), f"DATA LEAKAGE: Test repos {train_repo_names & test_repo_names} are in Train!"
+        assert val_repo_names & test_repo_names == set(), f"DATA LEAKAGE: Test repos {val_repo_names & test_repo_names} are in Val!"
+        
         trainer = GATv2Trainer(config)
         
         train_batch = Batch.from_data_list(internal_train_graphs).to(trainer.device)

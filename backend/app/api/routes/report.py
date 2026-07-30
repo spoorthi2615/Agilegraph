@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Path as PathParam, HTTPException
+from fastapi import APIRouter, Depends, Query, Path as PathParam
 from fastapi.responses import StreamingResponse
 from typing import Optional
 from datetime import datetime
@@ -6,12 +6,11 @@ import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from app.models.report import (
-    ReportSummary, ReportDetail, PaginatedReportResponse, ReportMetadata,
-    ReportStatistics, ReportPreview, DownloadLink, ReportCategory, ExportFormat
+    ReportDetail, PaginatedReportResponse, ReportMetadata, ReportStatistics,
+    ReportPreview, DownloadLink, ReportCategory, ExportFormat
 )
 from app.models.security_report import SecurityReport
 from app.api.routes.dashboard import provide_security_report
-import json
 
 router = APIRouter()
 
@@ -147,11 +146,11 @@ def download_report(
         md_lines = [
             f"# AgileGraph Security Report: {report.project_id}",
             f"\n## Executive Summary\n{report.executive_summary}",
-            f"\n## Key Metrics",
+            "\n## Key Metrics",
             f"- Total Assets: {report.total_assets}",
             f"- High Risk Assets: {report.total_high_risk_assets}",
             f"- PQC Readiness: {report.pqc_readiness_score}% ({report.pqc_readiness_level.value})",
-            f"\n## Migration Roadmap",
+            "\n## Migration Roadmap",
             f"{report.roadmap_summary}"
         ]
         content = "\n".join(md_lines).encode('utf-8')

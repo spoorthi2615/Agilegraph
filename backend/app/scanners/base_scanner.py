@@ -14,7 +14,6 @@ class BaseScanner(ABC):
         """
         The unique name of the scanner.
         """
-        pass
         
     @property
     @abstractmethod
@@ -22,11 +21,9 @@ class BaseScanner(ABC):
         """
         A list of programming languages this scanner supports.
         """
-        pass
         
     @abstractmethod
     def scan(self, project_path: Path) -> ScannerResult:
         """
         Executes the scan against the given project directory.
         """
-        pass

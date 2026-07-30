@@ -1,65 +1,65 @@
 {
-  "run_id": "6a69a1b4",
+  "run_id": "a5f01720",
   "Full Model (w/ Heuristic)": {
-    "mean_f1": 0.920633619687033,
-    "ci_lower": 0.915233814689289,
-    "ci_upper": 0.9264090010215218
+    "mean_f1": 0.9132286639853531,
+    "ci_lower": 0.9077024984272254,
+    "ci_upper": 0.9190741453061483
   },
   "- Heterogeneous": {
-    "mean_f1": 0.8053882877058258,
-    "ci_lower": 0.7981724086977026,
-    "ci_upper": 0.8124733793603246
+    "mean_f1": 0.8021160171462184,
+    "ci_lower": 0.7945886155757448,
+    "ci_upper": 0.8093189195688626
   },
   "- GATv2": {
-    "mean_f1": 0.716428412617677,
-    "ci_lower": 0.7095702707773238,
-    "ci_upper": 0.7237927639763778
+    "mean_f1": 0.6762376821359749,
+    "ci_lower": 0.6691174201309015,
+    "ci_upper": 0.6829334661008478
   },
   "- CodeBERT": {
-    "mean_f1": 0.3732540429752879,
-    "ci_lower": 0.36761890699038874,
-    "ci_upper": 0.37932020281912143
+    "mean_f1": 0.3207221024745362,
+    "ci_lower": 0.31468452924414086,
+    "ci_upper": 0.32638472695159365
   },
   "- Heuristic Feature": {
-    "mean_f1": 0.9062089020645185,
-    "ci_lower": 0.9003868907021836,
-    "ci_upper": 0.9122715315267163
+    "mean_f1": 0.8760768660523408,
+    "ci_lower": 0.8690350301077805,
+    "ci_upper": 0.8824587630520094
   },
   "Majority Class Baseline": {
-    "mean_f1": 0.4672073387556594,
-    "ci_lower": 0.4659676736482953,
-    "ci_upper": 0.4684827603301688
+    "mean_f1": 0.4672395830673494,
+    "ci_lower": 0.466083635932238,
+    "ci_upper": 0.4684664584262978
   },
   "mcnemar": {
     "full_vs_noise": {
-      "statistic": 11324.825117839739,
+      "statistic": 12456.710661712163,
       "pvalue": 0.0
     },
     "full_vs_het": {
-      "statistic": 1202.7067553735926,
-      "pvalue": 1.5741504324998356e-263
+      "statistic": 1028.6923461730864,
+      "pvalue": 1.0415290500633081e-225
     }
   },
   "kappa": {
     "Full Model (w/ Heuristic)": {
-      "score": 0.8412007377605168,
+      "score": 0.8266909019779506,
       "interpretation": "Almost Perfect"
     },
     "- Heterogeneous": {
-      "score": 0.6152371918606925,
+      "score": 0.6074418439468409,
       "interpretation": "Substantial"
     },
     "- GATv2": {
-      "score": 0.46005520303443276,
-      "interpretation": "Moderate"
+      "score": 0.39638766739104664,
+      "interpretation": "Fair"
     },
     "- CodeBERT": {
-      "score": 0.02034958174079693,
-      "interpretation": "Slight"
+      "score": -0.023371077539325234,
+      "interpretation": "Poor"
     },
     "- Heuristic Feature": {
-      "score": 0.8125000506695113,
-      "interpretation": "Almost Perfect"
+      "score": 0.7525783908427423,
+      "interpretation": "Substantial"
     },
     "Majority Class Baseline": {
       "score": 0.0,

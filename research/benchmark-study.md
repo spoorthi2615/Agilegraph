@@ -36,11 +36,11 @@ AgileGraph was evaluated against two distinct baseline paradigms:
 |---|---|---|---|
 | IBM CBOMkit Baseline | N/A | N/A | ~2500 ms (Docker) |
 | Majority Class Baseline | 0.467 | [0.466, 0.468] | N/A |
-| AgileGraph (- Heterogeneous) | 0.805 | [0.798, 0.812] | N/A |
-| AgileGraph (Full Model w/ Heuristic) | 0.921 | [0.915, 0.926] | N/A |
-| AgileGraph (- GATv2) | 0.716 | [0.710, 0.724] | N/A |
-| Random Noise (- CodeBERT) | 0.373 | [0.368, 0.379] | N/A |
-| AgileGraph (- Heuristic Feature) | 0.906 | [0.900, 0.912] | N/A |
+| AgileGraph (- Heterogeneous) | 0.802 | [0.795, 0.809] | N/A |
+| AgileGraph (Full Model w/ Heuristic) | 0.913 | [0.908, 0.919] | N/A |
+| AgileGraph (- GATv2) | 0.676 | [0.669, 0.683] | N/A |
+| Random Noise (- CodeBERT) | 0.321 | [0.315, 0.326] | N/A |
+| AgileGraph (- Heuristic Feature) | 0.876 | [0.869, 0.882] | N/A |
 
 ## 4. Error Analysis
 
@@ -50,8 +50,8 @@ A rigorous error analysis reveals critical insights into the pipeline's behavior
 Earlier versions of this report incorrectly framed CBOMkit's performance as a strong baseline win, when in reality, the `cbomkit-theia` tool (when run against raw source code) defaulted to a majority-class predictor (predicting everything as safe). Because of the 87/12 class imbalance, predicting the majority class yields a deceptively high Macro-F1. The tables now explicitly include a **Majority Class Baseline** to provide proper context, and explicitly marks CBOMkit as N/A for source code nodes.
 
 ### Strengths
-- **Successful Generalization**: AgileGraph's best-performing configuration (Full Model (w/ Heuristic)) achieved an F1-score of **0.921**, bounded by a 95% Confidence Interval [0.915, 0.926] generated via 1,000-iteration empirical bootstrapping.
-- **Heterogeneous vs Homogeneous**: The Full AgileGraph GATv2 model outperformed the Homogeneous GCN (0.853 vs 0.793). This confirms that distinguishing edge types (Calls, Inherits, Imports) in a heterogeneous graph adds crucial predictive power for this specific static analysis task, proving the core architecture is robust.
+- **Successful Generalization**: AgileGraph's best-performing configuration (Full Model (w/ Heuristic)) achieved an F1-score of **0.913**, bounded by a 95% Confidence Interval [0.908, 0.919] generated via 1,000-iteration empirical bootstrapping.
+- **Heterogeneous vs Homogeneous**: The Full AgileGraph GATv2 model outperformed the Homogeneous GCN (0.859 vs 0.792). This confirms that distinguishing edge types (Calls, Inherits, Imports) in a heterogeneous graph adds crucial predictive power for this specific static analysis task, proving the core architecture is robust.
 - **Defeating the Noise Paradox**: The GNN statistically outperforms the CodeBERT noise baseline with high significance (p < 0.05 via McNemar's Test), proving that it learns meaningful topological and semantic representations.
 
 ### Weaknesses & Architectural Limitations

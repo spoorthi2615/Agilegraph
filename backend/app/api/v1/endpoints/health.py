@@ -2,7 +2,6 @@ from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
 from typing import Optional
 from neo4j import GraphDatabase
-from neo4j.exceptions import Neo4jError
 
 from app.config.settings import settings
 from app.core.logging import get_logger

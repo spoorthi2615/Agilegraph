@@ -37,7 +37,7 @@ class ReportExporter:
 
     def export_markdown(self, report: EvaluationReport, path: str):
         md = [
-            f"# Evaluation Report",
+            "# Evaluation Report",
             f"**Model Version:** {report.model_version}",
             f"**Dataset Version:** {report.dataset_version}",
             f"**Time:** {report.evaluation_time}",

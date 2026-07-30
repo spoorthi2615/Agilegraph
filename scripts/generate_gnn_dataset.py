@@ -180,7 +180,7 @@ def process_corpus():
                 if is_vulnerable:
                     y[idx] = 1
                     
-            data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, node_names=node_names_list)
+            data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, node_names=node_names_list, repo_name=project_id)
             
             # Save tensor (Masks are removed, run_experiments.py will handle train/val/test dynamically)
             

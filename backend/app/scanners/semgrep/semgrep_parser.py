@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from typing import List, Optional
+from typing import List
 from app.scanners.semgrep.semgrep_finding import SemgrepFinding
 
 logger = logging.getLogger(__name__)

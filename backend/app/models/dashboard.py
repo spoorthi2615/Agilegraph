@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from typing import List
 
 def to_camel(string: str) -> str:
     parts = string.split("_")

@@ -6,12 +6,9 @@ class AgileGraphException(Exception):
 
 class ValidationException(AgileGraphException):
     """Raised when an entity fails validation."""
-    pass
 
 class ResourceNotFoundException(AgileGraphException):
     """Raised when a requested resource is not found."""
-    pass
 
 class EntityTooLargeException(AgileGraphException):
     """Raised when a payload or archive exceeds size limits."""
-    pass

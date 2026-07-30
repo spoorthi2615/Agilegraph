@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import logging
 
 logger = logging.getLogger(__name__)

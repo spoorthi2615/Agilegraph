@@ -30,7 +30,7 @@ class CTFinding(BaseModel):
         edges = []
         domain_node = f"Domain:{self.domain}"
         cert_node = f"Certificate:{self.serial_number}"
-        log_node = f"TransparencyLog:crt.sh"
+        log_node = "TransparencyLog:crt.sh"
         ca_node = f"CA:{self.issuer}"
         
         edges.append((log_node, "LOGS", cert_node))

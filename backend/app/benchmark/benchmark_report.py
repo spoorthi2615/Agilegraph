@@ -49,7 +49,7 @@ class BenchmarkReport:
                 
     def _generate_markdown(self, results: List[BenchmarkResult], path: str) -> None:
         md = [
-            f"# Benchmark Execution Report",
+            "# Benchmark Execution Report",
             f"**Project ID:** {results[0].project_id}",
             f"**Execution Time:** {results[0].timestamp}",
             "",

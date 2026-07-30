@@ -23,9 +23,9 @@ def test_integration_pipeline():
     service = ProjectAnalysisService(registry)
     
     # 2. Target a real repository
-    target_repo = Path("data/corpus/WebGoat")
+    target_repo = Path("backend/data/corpus/WebGoat")
     if not target_repo.exists() or not list(target_repo.iterdir()):
-        print("ERROR: WebGoat repository not found in data/corpus/WebGoat.")
+        print("ERROR: WebGoat repository not found in backend/data/corpus/WebGoat.")
         print("Please run fetch_github_corpus.py first.")
         sys.exit(1)
         

@@ -1,5 +1,4 @@
 from typing import List, Tuple
-from app.experiments.expert_validation.expert_label import RiskLabel
 
 class ConfusionMatrixEngine:
     """

@@ -2,21 +2,17 @@ import json
 import os
 import sys
 from pathlib import Path
-from report_helpers import generate_heterogeneous_ablation_text, generate_gatv2_ablation_text
+from report_helpers import generate_heterogeneous_ablation_text, generate_gatv2_ablation_text, load_and_validate_sources, get_f1_for_model
 
 def main():
-    res_path = Path("research/results.json")
-    stats_path = Path("research/statistical_results.json")
+    res_path = "research/results.json"
+    stats_path = "research/statistical_results.json"
     
-    if not res_path.exists() or not stats_path.exists():
+    if not os.path.exists(res_path) or not os.path.exists(stats_path):
         print("Missing JSON outputs. Run experiments and statistics first.")
         return
         
-    with open(res_path, "r") as f:
-        results = json.load(f)
-        
-    with open(stats_path, "r") as f:
-        stats = json.load(f)
+    results, stats = load_and_validate_sources(res_path, stats_path)
         
     # Helper to get CI
     def get_ci(model):
@@ -28,19 +24,9 @@ def main():
             return f"[{lb:.3f}, {ub:.3f}]"
         return "N/A"
         
-    # Helper to get F1
     def get_f1(model):
-        if model in stats and "mean_f1" in stats[model]:
-            mean = stats[model]["mean_f1"]
-            if mean == "N/A":
-                return "N/A"
-            return f"{mean:.3f}"
-        if model in results.get("ablation_f1", {}):
-            val = results["ablation_f1"][model]
-            if isinstance(val, dict):
-                return f"{val['mean']:.3f}"
-            return f"{val:.3f}"
-        return "N/A"
+        val = get_f1_for_model(model, results, stats)
+        return f"{val:.3f}" if val != 0.0 else "N/A"
 
     full_f1 = get_f1('Full Model (w/ Heuristic)')
     no_heur_f1 = get_f1('- Heuristic Feature')

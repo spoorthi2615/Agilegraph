@@ -4,15 +4,16 @@ import sys
 from pathlib import Path
 
 def main():
-    res_path = Path("research/results.json")
+    res_path = "research/results.json"
+    stats_path = "research/statistical_results.json"
     
-    if not res_path.exists():
-        print("Missing research/results.json")
+    if not os.path.exists(res_path) or not os.path.exists(stats_path):
+        print("Missing research/results.json or statistical_results.json")
         return
         
-    with open(res_path, "r") as f:
-        results = json.load(f)
-        
+    from report_helpers import load_and_validate_sources
+    results, stats = load_and_validate_sources(res_path, stats_path)
+    
     # Get the F1 score for the best model since it's the current best
     from report_helpers import get_best_model_name, get_f1_value
     best_model = get_best_model_name(results)

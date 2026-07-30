@@ -1,7 +1,42 @@
 import pytest
-from report_helpers import compare_performance, generate_heterogeneous_ablation_text, generate_gatv2_ablation_text, get_f1_value, get_best_model_name
+import json
+import tempfile
+import os
+from report_helpers import compare_performance, generate_heterogeneous_ablation_text, generate_gatv2_ablation_text, get_f1_value, get_best_model_name, load_and_validate_sources, get_f1_for_model
 
-def test_compare_performance():
+def test_load_and_validate_sources_matches(monkeypatch):
+    import hashlib
+    empty_hash = hashlib.sha256(json.dumps({}, sort_keys=True).encode('utf-8')).hexdigest()[:8]
+    
+    # Mock files
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as res_f, tempfile.NamedTemporaryFile(mode='w', delete=False) as stat_f:
+        json.dump({"run_id": empty_hash, "ablation_f1": {}}, res_f)
+        json.dump({"run_id": empty_hash, "mcnemar": {}}, stat_f)
+        res_name = res_f.name
+        stat_name = stat_f.name
+        
+    results, stats = load_and_validate_sources(res_name, stat_name)
+    assert results["run_id"] == empty_hash
+    assert stats["run_id"] == empty_hash
+    
+    os.unlink(res_name)
+    os.unlink(stat_name)
+
+def test_load_and_validate_sources_mismatches(monkeypatch):
+    import hashlib
+    empty_hash = hashlib.sha256(json.dumps({}, sort_keys=True).encode('utf-8')).hexdigest()[:8]
+    
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as res_f, tempfile.NamedTemporaryFile(mode='w', delete=False) as stat_f:
+        json.dump({"run_id": empty_hash, "ablation_f1": {}}, res_f)
+        json.dump({"run_id": "456", "mcnemar": {}}, stat_f)
+        res_name = res_f.name
+        stat_name = stat_f.name
+        
+    with pytest.raises(SystemExit):
+        load_and_validate_sources(res_name, stat_name)
+        
+    os.unlink(res_name)
+    os.unlink(stat_name)
     assert compare_performance("Model A", 0.8, "Model B", 0.5) == "Model A outperformed Model B"
     assert compare_performance("Model A", 0.5, "Model B", 0.8) == "Model A underperformed relative to Model B"
     assert compare_performance("Model A", 0.5, "Model B", 0.5) == "Model A performed comparably to Model B"

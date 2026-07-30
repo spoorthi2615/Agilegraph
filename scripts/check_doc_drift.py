@@ -26,8 +26,41 @@ def get_latest_mtime(paths):
                         latest_file = file_path
     return latest_time, latest_file
 
+import json
+
+def check_pipeline_stage_freshness():
+    res_path = Path("research/results.json")
+    stats_path = Path("research/statistical_results.json")
+    
+    if not res_path.exists() or not stats_path.exists():
+        return # Skip if they don't exist yet
+        
+    try:
+        with open(res_path, "r") as f:
+            res_data = json.load(f)
+        with open(stats_path, "r") as f:
+            stats_data = json.load(f)
+            
+        res_run_id = res_data.get("run_id")
+        stat_run_id = stats_data.get("run_id")
+        
+        if res_run_id and stat_run_id and res_run_id != stat_run_id:
+            print("❌ PIPELINE DRIFT: research/results.json (run_id) does not match research/statistical_results.json.")
+            print("   Run `python scripts/statistical_tests.py` before regenerating reports.")
+            sys.exit(1)
+            
+        if not res_run_id or not stat_run_id:
+            # Fallback to mtime
+            if res_path.stat().st_mtime > stats_path.stat().st_mtime:
+                print("❌ PIPELINE DRIFT: research/results.json is newer than research/statistical_results.json.")
+                print("   Run `python scripts/statistical_tests.py` before regenerating reports.")
+                sys.exit(1)
+    except Exception as e:
+        print(f"Warning: Error checking pipeline freshness: {e}")
+
 def main():
     print("Checking for document drift...")
+    check_pipeline_stage_freshness()
     
     # Source code that impacts the pipeline
     code_paths = [

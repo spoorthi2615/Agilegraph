@@ -243,7 +243,13 @@ def run_all_experiments():
         "Throughput": throughputs
     }
     
+    import hashlib
+    # Create a stable hash of the ablation metrics to serve as a run_id
+    hash_input = json.dumps(final_results, sort_keys=True).encode('utf-8')
+    run_id = hashlib.sha256(hash_input).hexdigest()[:8]
+    
     out_data = {
+        "run_id": run_id,
         "ablation_f1": final_results,
         "validation_f1": val_results,
         "performance": perf

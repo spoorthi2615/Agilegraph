@@ -66,18 +66,25 @@ def run_mcnemar_test(y_true, y_pred_model_a, y_pred_model_b):
 
 def main():
     pred_file = "research/predictions.json"
-    if not os.path.exists(pred_file):
-        logging.error(f"Cannot find {pred_file}. Run run_experiments.py first.")
+    res_file = "research/results.json"
+    if not os.path.exists(pred_file) or not os.path.exists(res_file):
+        logging.error(f"Cannot find data files. Run run_experiments.py first.")
         return
         
     with open(pred_file, "r") as f:
         preds = json.load(f)
         
+    with open(res_file, "r") as f:
+        results = json.load(f)
+        
+    run_id = results.get("run_id", "missing")
+        
     logging.info("=" * 50)
     logging.info("PHASE 3 STATISTICAL ANALYSIS")
     logging.info("=" * 50)
     
-    stats_out = {}
+    stats_out = {"run_id": run_id}
+
     
     # 1. Bootstrap Confidence Intervals
     for model_name, data in preds.items():

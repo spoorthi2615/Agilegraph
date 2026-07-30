@@ -1,7 +1,4 @@
-import json
 import os
-import sys
-from pathlib import Path
 from report_helpers import load_and_validate_sources, get_f1_for_model
 
 def main():
@@ -39,7 +36,7 @@ def main():
         return "N/A"
 
     table_rows = [
-        f"| IBM CBOMkit Baseline | N/A | N/A | ~2500 ms (Docker) |",
+        "| IBM CBOMkit Baseline | N/A | N/A | ~2500 ms (Docker) |",
         f"| Majority Class Baseline | {get_f1('Majority Class Baseline')} | {get_ci('Majority Class Baseline')} | N/A |",
         f"| AgileGraph (- Heterogeneous) | {get_f1('- Heterogeneous')} | {get_ci('- Heterogeneous')} | {get_inference('- Heterogeneous')} |",
         f"| AgileGraph (Full Model w/ Heuristic) | {get_f1('Full Model (w/ Heuristic)')} | {get_ci('Full Model (w/ Heuristic)')} | {get_inference('Full Model (w/ Heuristic)')} |",
@@ -48,12 +45,12 @@ def main():
         f"| AgileGraph (- Heuristic Feature) | {get_f1('- Heuristic Feature')} | {get_ci('- Heuristic Feature')} | {get_inference('- Heuristic Feature')} |",
     ]
 
-    from report_helpers import get_best_model_name, get_f1_value
+    from report_helpers import get_best_model_name
     
     best_model = get_best_model_name(results)
-    full_f1_val = get_f1_value(results.get("ablation_f1", {}).get("Full Model (w/ Heuristic)", 0.0))
-    het_f1_val = get_f1_value(results.get("ablation_f1", {}).get("- Heterogeneous", 0.0))
-    codebert_f1_val = get_f1_value(results.get("ablation_f1", {}).get("- CodeBERT", 0.0))
+    full_f1_val = get_f1_for_model("Full Model (w/ Heuristic)", results, stats)
+    het_f1_val = get_f1_for_model("- Heterogeneous", results, stats)
+    codebert_f1_val = get_f1_for_model("- CodeBERT", results, stats)
     
     if full_f1_val - het_f1_val > 1e-4:
         het_vs_full_bullet = f"- **Heterogeneous vs Homogeneous**: The Full AgileGraph GATv2 model outperformed the Homogeneous GCN ({full_f1_val:.3f} vs {het_f1_val:.3f}). This confirms that distinguishing edge types (Calls, Inherits, Imports) in a heterogeneous graph adds crucial predictive power for this specific static analysis task, proving the core architecture is robust."
@@ -68,19 +65,19 @@ def main():
         strengths_bullets = f"{het_vs_full_bullet}\n"
         weaknesses_bullets = ""
         
-    best_f1_val = get_f1_value(results.get("ablation_f1", {}).get(best_model, 0.0))
+    best_f1_val = get_f1_for_model(best_model, results, stats)
     
     if best_f1_val - codebert_f1_val > 1e-4:
-        noise_paradox_bullet = f"- **Defeating the Noise Paradox**: The GNN statistically outperforms the CodeBERT noise baseline with high significance (p < 0.05 via McNemar's Test), proving that it learns meaningful topological and semantic representations."
+        noise_paradox_bullet = "- **Defeating the Noise Paradox**: The GNN statistically outperforms the CodeBERT noise baseline with high significance (p < 0.05 via McNemar's Test), proving that it learns meaningful topological and semantic representations."
     else:
-        noise_paradox_bullet = f"- **Noise Paradox**: The CodeBERT noise baseline performed comparably to or outperformed the GNN, indicating that the graph structure may not be providing additional predictive power over raw semantic tokens."
+        noise_paradox_bullet = "- **Noise Paradox**: The CodeBERT noise baseline performed comparably to or outperformed the GNN, indicating that the graph structure may not be providing additional predictive power over raw semantic tokens."
         
     if "outperforms" in noise_paradox_bullet:
         strengths_bullets += f"{noise_paradox_bullet}\n"
     else:
         weaknesses_bullets += f"{noise_paradox_bullet}\n"
 
-    benchmark_md = f"""# AgileGraph Performance Benchmark Study & Baseline Comparison
+    benchmark_md = """# AgileGraph Performance Benchmark Study & Baseline Comparison
 
 This document details the rigorous empirical evaluation of the AgileGraph algorithm against established baseline methodologies. The objective is to provide a scientifically defensible, transparent, and fair comparison of Post-Quantum Cryptography (PQC) readiness detection capabilities.
 

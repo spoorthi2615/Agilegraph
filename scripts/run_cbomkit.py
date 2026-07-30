@@ -1,4 +1,3 @@
-import os
 import json
 import subprocess
 import logging
@@ -78,13 +77,10 @@ def run_cbomkit():
         name_str = str(name)
         # Format is expected to be "repo_name::raw_node_name"
         if "::" in name_str:
-            repo_name, raw_name = name_str.split("::", 1)
+            repo_name = name_str.split("::", 1)[0]
         else:
-            repo_name, raw_name = "unknown", name_str
+            repo_name = "unknown"
             
-        raw_name_lower = raw_name.lower()
-        vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
-        
         # Because cbomkit-theia is explicitly not designed for source-code node classification,
         # we explicitly mark these source nodes as "N/A" rather than falsely assigning them 0 (Safe)
         # which would otherwise turn this into a deceptive majority-class predictor.

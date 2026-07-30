@@ -37,7 +37,6 @@ def process_corpus():
     dataset = []
     
     repo_paths = sorted([p for p in corpus_dir.iterdir() if p.is_dir()])
-    num_repos = len(repo_paths)
     
     # Repo level split assignments are removed. K-Fold cross-validation will be handled dynamically in run_experiments.py
     for i, repo_path in enumerate(repo_paths):

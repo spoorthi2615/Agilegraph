@@ -1,6 +1,4 @@
-import json
 import os
-import sys
 from pathlib import Path
 
 def main():
@@ -15,9 +13,9 @@ def main():
     results, stats = load_and_validate_sources(res_path, stats_path)
     
     # Get the F1 score for the best model since it's the current best
-    from report_helpers import get_best_model_name, get_f1_value
+    from report_helpers import get_best_model_name, get_f1_for_model
     best_model = get_best_model_name(results)
-    best_f1 = get_f1_value(results.get("ablation_f1", {}).get(best_model, 0.0))
+    best_f1 = get_f1_for_model(best_model, results, stats)
         
     snippet = (
         f"- **Mathematically Verified:** Over 40 diverse repositories, AgileGraph achieves a statistically significant "

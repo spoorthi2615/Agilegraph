@@ -2,7 +2,7 @@ import pytest
 import json
 import tempfile
 import os
-from report_helpers import compare_performance, generate_heterogeneous_ablation_text, generate_gatv2_ablation_text, get_f1_value, get_best_model_name, load_and_validate_sources, get_f1_for_model
+from report_helpers import compare_performance, generate_heterogeneous_ablation_text, generate_gatv2_ablation_text, get_best_model_name, load_and_validate_sources
 
 def test_load_and_validate_sources_matches(monkeypatch):
     import hashlib

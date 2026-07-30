@@ -3,7 +3,7 @@
 This addendum serves to clarify the discrepancies between the early exploratory claims made in the original project synopsis and the final, mathematically rigorous, and verified implementation of the AgileGraph framework. These updates reflect the natural maturation of the research from theoretical design to practical execution.
 
 ## 1. Corpus Expansion (10 to 40 Repositories)
-**Initial Synopsis Claim:** The dataset was scoped to 8–10 expert-annotated Java repositories.
+**Initial Synopsis Claim:** The training corpus (§Expected Outcomes) was scoped to 8–10 real open-source projects across at least 3 languages and 2 size tiers. (Note: this is distinct from the separate 150–200 item expert-annotated validation sample described in synopsis §5.2, which uses a different, smaller, hand-labeled dataset.)
 **Final Reality:** To eliminate data starvation and ensure the Graph Neural Network (GNN) could properly generalize, the corpus was aggressively expanded to **40 repositories**. This significantly bolsters the statistical validity of the dataset.
 
 ## 2. CBOMkit Baseline Scope
@@ -12,8 +12,13 @@ This addendum serves to clarify the discrepancies between the early exploratory 
 
 ## 3. Reconciled Performance Metrics
 **Initial Synopsis Claim:** Outdated or aspirational F1 scores scattered across early documentation drafts.
-**Final Reality:** After patching a rigorous 5-fold cross-validation pipeline with strict Train/Validation isolation (preventing any data leakage), the final, mathematically verified performance for the Full Model (w/ Heuristics) is a **Macro-F1 score of 0.859**. This single source of truth is now perfectly synchronized across all generated research reports and the README.
+**Final Reality:** After standardizing every generated report on the bootstrapped Macro-F1 (see `research/METRIC_CONVENTIONS.md`), the canonical Full Model (w/ Heuristic) performance is **0.913** (95% CI [0.908, 0.919]). This is enforced automatically: `scripts/lint_generated_docs.py`'s cross-document consistency check fails the build if any generated document reports a different unlabeled value for this metric.
 
 ## 4. Addition of the AHP-Lite Expert Panel Module
 **Initial Synopsis Claim:** An "expert panel pairwise weighting mechanism" was referenced but unimplemented in the early codebase.
 **Final Reality:** To close this gap identified during review, the mathematical backend for the AHP-lite module was fully implemented (`ahp_lite_service.py`). It mathematically derives objective weights from expert pairwise comparisons by calculating the Principal Eigenvector via eigenvalue decomposition, and mathematically verifies the experts' logic by calculating the standard Consistency Ratio (CR).
+
+## 5. Changelog of Fixed Issues (for transparency)
+- **CBOMkit circularity bug**: an earlier version of the CBOMkit baseline re-derived its "output" from the same regex ground-truth labeler used to generate training labels, rather than from CBOMkit's actual Docker output. Fixed in `scripts/run_cbomkit.py` — it now shells out to the real `cbomkit-theia` container.
+- **Train/validation leakage**: an earlier training loop did not guarantee validation repos were disjoint from training repos within a fold. Fixed with explicit repo-set assertions in `scripts/run_experiments.py`.
+- **Cross-document metric drift**: multiple research documents reported different Full-Model F1 values (0.859 raw vs 0.913 bootstrapped) without labeling which was which; one document even contradicted itself between its own table and prose. Fixed by standardizing all generator scripts on `report_helpers.get_f1_for_model()` and adding an automated cross-document consistency check (see `research/METRIC_CONVENTIONS.md`).

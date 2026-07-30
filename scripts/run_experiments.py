@@ -189,7 +189,6 @@ def run_all_experiments():
         
         # 4. - CodeBERT
         noisy_data_list = []
-        import torch
         torch.manual_seed(seed)
         for g in batched_data:
             noisy_g = g.clone()
@@ -224,7 +223,7 @@ def run_all_experiments():
             "std": float(np.std(f1_accum[model]))
         }
         
-    logging.info(f"--- Multi-Seed Aggregation ---")
+    logging.info("--- Multi-Seed Aggregation ---")
     for model, data in final_results.items():
         logging.info(f"{model}: {data['mean']:.3f} ± {data['std']:.3f}")
         

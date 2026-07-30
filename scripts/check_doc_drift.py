@@ -88,7 +88,9 @@ def main():
         "research/statistical-analysis.md",
         "research/dataset-validation.md",
         "research/benchmark-study.md",
-        "research/ablation-study.md"
+        "research/ablation-study.md",
+        "research/status-and-limitations.md",
+        "research/threats-to-validity.md"
     ]
     
     # Ensure all paths exist
@@ -107,9 +109,9 @@ def main():
     doc_mtime, doc_newest_file = get_latest_mtime(doc_paths)
     
     if code_mtime > doc_mtime:
-        print(f"\n❌ DRIFT DETECTED!")
+        print("\n❌ DRIFT DETECTED!")
         print(f"File '{code_newest_file}' was modified more recently than your research docs.")
-        print(f"This means your documentation might be reporting stale numbers.")
+        print("This means your documentation might be reporting stale numbers.")
         
         # Check if the drift is due to data or code
         if any(str(code_newest_file).endswith(dp.split('/')[-1]) for dp in data_paths):
@@ -123,8 +125,18 @@ def main():
     
     # Run linter as secondary check
     try:
-        from lint_generated_docs import lint_docs
-        if not lint_docs():
+        from lint_generated_docs import lint_docs, check_cross_doc_consistency
+        doc_paths_for_lint = [
+            "README.md",
+            "research/statistical-analysis.md",
+            "research/dataset-validation.md",
+            "research/benchmark-study.md",
+            "research/ablation-study.md",
+            "research/status-and-limitations.md",
+        ]
+        lint_ok = lint_docs()
+        consistency_ok = check_cross_doc_consistency(doc_paths_for_lint)
+        if not (lint_ok and consistency_ok):
             sys.exit(1)
     except ImportError:
         print("Warning: Could not import lint_generated_docs.py")

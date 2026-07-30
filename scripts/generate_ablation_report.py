@@ -1,7 +1,4 @@
-import json
 import os
-import sys
-from pathlib import Path
 from report_helpers import generate_heterogeneous_ablation_text, generate_gatv2_ablation_text, load_and_validate_sources, get_f1_for_model
 
 def main():
@@ -42,7 +39,7 @@ def main():
         f"| - Heuristic Feature | {no_heur_f1} | {get_ci('- Heuristic Feature')} |"
     ]
 
-    ablation_md = f"""# AgileGraph Ablation Study
+    ablation_md = """# AgileGraph Ablation Study
 
 This document details the ablation studies performed on the AgileGraph model to isolate the contribution of individual architectural components and feature sets.
 

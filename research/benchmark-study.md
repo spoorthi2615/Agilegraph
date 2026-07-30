@@ -51,7 +51,7 @@ Earlier versions of this report incorrectly framed CBOMkit's performance as a st
 
 ### Strengths
 - **Successful Generalization**: AgileGraph's best-performing configuration (Full Model (w/ Heuristic)) achieved an F1-score of **0.913**, bounded by a 95% Confidence Interval [0.908, 0.919] generated via 1,000-iteration empirical bootstrapping.
-- **Heterogeneous vs Homogeneous**: The Full AgileGraph GATv2 model outperformed the Homogeneous GCN (0.859 vs 0.792). This confirms that distinguishing edge types (Calls, Inherits, Imports) in a heterogeneous graph adds crucial predictive power for this specific static analysis task, proving the core architecture is robust.
+- **Heterogeneous vs Homogeneous**: The Full AgileGraph GATv2 model outperformed the Homogeneous GCN (0.913 vs 0.802). This confirms that distinguishing edge types (Calls, Inherits, Imports) in a heterogeneous graph adds crucial predictive power for this specific static analysis task, proving the core architecture is robust.
 - **Defeating the Noise Paradox**: The GNN statistically outperforms the CodeBERT noise baseline with high significance (p < 0.05 via McNemar's Test), proving that it learns meaningful topological and semantic representations.
 
 ### Weaknesses & Architectural Limitations

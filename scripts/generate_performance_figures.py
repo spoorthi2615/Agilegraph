@@ -1,6 +1,5 @@
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 
 def generate_runtime_vs_size():
     sizes = ['Small', 'Medium', 'Large', 'Very Large']

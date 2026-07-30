@@ -3,7 +3,7 @@ import json
 import numpy as np
 import logging
 import sys
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import f1_score
 from statsmodels.stats.contingency_tables import mcnemar
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend')))
@@ -68,7 +68,7 @@ def main():
     pred_file = "research/predictions.json"
     res_file = "research/results.json"
     if not os.path.exists(pred_file) or not os.path.exists(res_file):
-        logging.error(f"Cannot find data files. Run run_experiments.py first.")
+        logging.error("Cannot find data files. Run run_experiments.py first.")
         return
         
     with open(pred_file, "r") as f:
@@ -90,8 +90,8 @@ def main():
     for model_name, data in preds.items():
         if "N/A" in data["y_pred"]:
             logging.info(f"Model: {model_name}")
-            logging.info(f"  Macro-F1 (Bootstrap Mean): N/A")
-            logging.info(f"  95% CI: N/A\n")
+            logging.info("  Macro-F1 (Bootstrap Mean): N/A")
+            logging.info("  95% CI: N/A\n")
             stats_out[model_name] = {
                 "mean_f1": "N/A",
                 "ci_lower": "N/A",
@@ -118,7 +118,7 @@ def main():
     y_het = preds["- Heterogeneous"]["y_pred"]
     
     stat_noise, p_noise = run_mcnemar_test(y_true, y_full, y_noise)
-    logging.info(f"McNemar Test: Full Model vs Random Noise (- CodeBERT)")
+    logging.info("McNemar Test: Full Model vs Random Noise (- CodeBERT)")
     logging.info(f"  Statistic: {stat_noise:.4f}, p-value: {p_noise:.4e}")
     if p_noise < 0.05:
         logging.info("  Result: Statistically Significant Difference (p < 0.05)\n")
@@ -126,7 +126,7 @@ def main():
         logging.info("  Result: Not Statistically Significant\n")
         
     stat_het, p_het = run_mcnemar_test(y_true, y_full, y_het)
-    logging.info(f"McNemar Test: Full Model vs Homogeneous GCN (- Heterogeneous)")
+    logging.info("McNemar Test: Full Model vs Homogeneous GCN (- Heterogeneous)")
     logging.info(f"  Statistic: {stat_het:.4f}, p-value: {p_het:.4e}")
     if p_het < 0.05:
         logging.info("  Result: Statistically Significant Difference (p < 0.05)\n")
@@ -137,7 +137,7 @@ def main():
         y_cbom = preds["CBOMkit Baseline"]["y_pred"]
         if "N/A" not in y_cbom:
             stat_cbom, p_cbom = run_mcnemar_test(y_true, y_full, y_cbom)
-            logging.info(f"McNemar Test: Full Model vs CBOMkit Baseline")
+            logging.info("McNemar Test: Full Model vs CBOMkit Baseline")
             logging.info(f"  Statistic: {stat_cbom:.4f}, p-value: {p_cbom:.4e}")
             if p_cbom < 0.05:
                 logging.info("  Result: Statistically Significant Difference (p < 0.05)\n")
@@ -171,7 +171,7 @@ def main():
         if "y_pred" in data:
             if "N/A" in data["y_pred"]:
                 logging.info(f"Cohen's Kappa: Ground Truth vs {model_name}")
-                logging.info(f"  Kappa Score: N/A (N/A)\n")
+                logging.info("  Kappa Score: N/A (N/A)\n")
                 stats_out["kappa"][model_name] = {
                     "score": "N/A",
                     "interpretation": "N/A"

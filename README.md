@@ -24,7 +24,7 @@ All discovered assets are normalized and mapped into a dense structural represen
 ### 🧠 Graph Neural Network (GNN) Intelligence
 AgileGraph leverages PyTorch Geometric to train and deploy a **GATv2 (Graph Attention Network v2)**.
 <!-- AUTO-GENERATED:RESULTS:START -->
-- **Mathematically Verified:** Over 40 diverse repositories, AgileGraph achieves a statistically significant Macro-F1 of **0.859** via its Full Model (w/ Heuristic) formulation, definitively defeating random noise baselines ($p < 10^{-22}$ via McNemar's Test).
+- **Mathematically Verified:** Over 40 diverse repositories, AgileGraph achieves a statistically significant Macro-F1 of **0.913** via its Full Model (w/ Heuristic) formulation, definitively defeating random noise baselines ($p < 10^{-22}$ via McNemar's Test).
 - **Industry Baselines:** We actively benchmark AgileGraph against industry tools like IBM's CBOMkit. However, because `cbomkit-theia` evaluates filesystems rather than deep source-code heuristics, its output is currently scoped as N/A for this pure-source corpus to avoid deceptive baseline numbers (See `research/benchmark-study.md` for our transparent findings).
 <!-- AUTO-GENERATED:RESULTS:END -->
 - Includes **GNNExplainer** integration (Explainable AI) to expose exactly which node features and edges led the neural network to its decision.

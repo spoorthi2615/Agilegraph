@@ -2,14 +2,16 @@
 
 ## Agreement & F1 Stability (5-Fold CV)
 
-| Model Variant | Macro-F1 (Mean ± Std) | Cohen's Kappa |
+Values below are the raw, unresampled mean across the 5 cross-validation folds â€” see `research/METRIC_CONVENTIONS.md` for why this differs from the bootstrapped headline figure used elsewhere.
+
+| Model Variant | Macro-F1 (Raw 5-Fold Mean Â± Std) | Cohen's Kappa |
 |---|---|---|
-| Full Model (w/ Heuristic) | 0.859 ± 0.049 | 0.827 |
-| - Heterogeneous | 0.792 ± 0.016 | 0.607 |
-| - GATv2 | 0.705 ± 0.038 | 0.396 |
-| - CodeBERT | 0.330 ± 0.022 | -0.023 |
-| - Heuristic Feature | 0.831 ± 0.050 | 0.753 |
-| Majority Class Baseline | 0.467 | 0.000 |
+| Full Model (w/ Heuristic) | 0.859 Â± 0.049 (raw) | 0.827 |
+| - Heterogeneous | 0.792 Â± 0.016 (raw) | 0.607 |
+| - GATv2 | 0.705 Â± 0.038 (raw) | 0.396 |
+| - CodeBERT | 0.330 Â± 0.022 (raw) | -0.023 |
+| - Heuristic Feature | 0.831 Â± 0.050 (raw) | 0.753 |
+| Majority Class Baseline | 0.467 (raw) | 0.000 |
 | CBOMkit Baseline | N/A (See Benchmark) | 0.000 |
 
 ## McNemar's Tests (Significance against Full Model)

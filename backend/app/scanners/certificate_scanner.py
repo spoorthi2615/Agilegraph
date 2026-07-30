@@ -37,7 +37,7 @@ class CertificateScanner(BaseScanner):
         target_extensions = {".pem", ".crt", ".cer", ".der"}
         
         if project_path.exists() and project_path.is_dir():
-            for file_path in project_path.rglob("*"):
+            for file_path in sorted(project_path.rglob("*")):
                 if file_path.suffix.lower() in target_extensions:
                     self._parse_certificate(file_path, findings, errors)
                     

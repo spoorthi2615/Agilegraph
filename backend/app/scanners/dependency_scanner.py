@@ -27,8 +27,8 @@ class DependencyScanner(BaseScanner):
         
         if project_path.exists() and project_path.is_dir():
             processed_deps: set = set()
-            # Traverse the project only once
-            for file_path in project_path.rglob("*"):
+            # Traverse the project only once deterministically
+            for file_path in sorted(project_path.rglob("*")):
                 if file_path.name == "requirements.txt":
                     self._parse_requirements_txt(file_path, findings, errors, processed_deps)
                 elif file_path.name == "pyproject.toml":

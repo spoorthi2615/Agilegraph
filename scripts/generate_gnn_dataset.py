@@ -36,7 +36,7 @@ def process_corpus():
     
     dataset = []
     
-    repo_paths = [p for p in corpus_dir.iterdir() if p.is_dir()]
+    repo_paths = sorted([p for p in corpus_dir.iterdir() if p.is_dir()])
     num_repos = len(repo_paths)
     
     # Repo level split assignments are removed. K-Fold cross-validation will be handled dynamically in run_experiments.py
@@ -48,6 +48,16 @@ def process_corpus():
             # 1. Static Analysis
             analysis_result = analysis_service.analyze_project(project_id, repo_path)
             
+            # Sort the findings deterministically to ensure GraphBuilder insertion order is stable
+            analysis_result.scanner_results.sort(key=lambda sr: str(sr.scanner_name))
+            for scanner_result in analysis_result.scanner_results:
+                scanner_result.findings.sort(key=lambda f: (
+                    str(f.get('file_path', '')),
+                    str(f.get('line_number', '')),
+                    str(f.get('algorithm', '')),
+                    str(f.get('asset_type', ''))
+                ))
+            
             # 2. Scoring
             for scanner_result in analysis_result.scanner_results:
                 assets = [CryptoAsset(**finding) for finding in scanner_result.findings]
@@ -55,7 +65,12 @@ def process_corpus():
                 scanner_result.findings = [asset.model_dump(mode="json") for asset in scored_assets]
                 
             # 3. Dependency Mapping
-            dependency_map = DependencyMappingService.map_dependencies(repo_path)
+            raw_dependency_map = DependencyMappingService.map_dependencies(repo_path)
+            
+            # Sort the dependency map deterministically
+            dependency_map = {
+                k: sorted(v) for k, v in sorted(raw_dependency_map.items())
+            }
             
             # 4. Graph Building
             graph = GraphBuilder.build_graph(analysis_result, dependency_map)
@@ -69,15 +84,26 @@ def process_corpus():
                 logging.warning(f"No nodes found for {project_id}, skipping.")
                 continue
                 
-            # Map node IDs to integers
-            node_mapping = {node_id: idx for idx, node_id in enumerate(graph.nodes.keys())}
+            # Map node IDs to integers deterministically (UUIDs are random, so we must sort by node properties!)
+            def node_sort_key(node_id):
+                n = graph.nodes[node_id]
+                return (
+                    str(getattr(n, 'node_type', '')),
+                    str(getattr(n, 'label', '')),
+                    str(getattr(n, 'metadata', {}).get('file_path', '')),
+                    str(getattr(n, 'metadata', {}).get('line_number', ''))
+                )
+                
+            sorted_node_ids = sorted(graph.nodes.keys(), key=node_sort_key)
+            node_mapping = {node_id: idx for idx, node_id in enumerate(sorted_node_ids)}
             
             # Features (x) - Real CodeBERT embeddings + base_risk scalar
             embeddings = []
             with torch.no_grad():
-                for node_id, node in graph.nodes.items():
+                for node_id in sorted_node_ids:
+                    node = graph.nodes[node_id]
                     # Extract semantic text
-                    text_content = str(node.name) if hasattr(node, 'name') else str(node_id)
+                    text_content = str(node.label) if hasattr(node, 'label') else "unknown"
                     inputs = tokenizer(text_content, return_tensors="pt", truncation=True, max_length=512)
                     outputs = codebert_model(**inputs)
                     cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze(0)
@@ -104,7 +130,18 @@ def process_corpus():
             # Edges (edge_index)
             edge_index = []
             edge_attr = []
-            for edge in graph.edges:
+            
+            # Sort edges by source and target properties to ensure deterministic message passing order
+            def edge_sort_key(e):
+                return (
+                    node_sort_key(e.source_node),
+                    node_sort_key(e.target_node),
+                    str(getattr(e, 'edge_type', ''))
+                )
+                
+            sorted_edges = sorted(graph.edges, key=edge_sort_key)
+            
+            for edge in sorted_edges:
                 src = node_mapping.get(edge.source_node)
                 dst = node_mapping.get(edge.target_node)
                 if src is not None and dst is not None:
@@ -132,9 +169,10 @@ def process_corpus():
             vulnerable_primitives = ["rsa", "ecdsa", "dsa", "des", "3des", "md5", "sha1"]
             
             node_names_list = []
-            for idx, (node_id, node) in enumerate(graph.nodes.items()):
+            for idx, node_id in enumerate(sorted_node_ids):
+                node = graph.nodes[node_id]
                 # Extract text context to search for primitives
-                raw_node_name = str(node.name) if hasattr(node, 'name') else str(node_id)
+                raw_node_name = str(node.label) if hasattr(node, 'label') else "unknown"
                 node_name = f"{repo_path.name}::{raw_node_name}"
                 node_names_list.append(node_name)
                 

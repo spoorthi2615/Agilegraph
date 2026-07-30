@@ -22,7 +22,7 @@ def load_dataset():
         return None
         
     data_list = []
-    for pt_file in tensor_dir.glob("*.pt"):
+    for pt_file in sorted(tensor_dir.glob("*.pt")):
         data = torch.load(pt_file, weights_only=False)
         data_list.append(data)
         
@@ -138,63 +138,92 @@ def run_all_experiments():
     if not batched_data:
         return
         
-    results = {}
-    val_results = {}
-    latencies = []
-    throughputs = []
+    seeds = [42, 43, 44]
+    logging.info(f"Running experiments across {len(seeds)} seeds for determinism check...")
     
-    # 1. Full Model (w/ Heuristic)
-    f1_full, std_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model (w/ Heuristic)")
-    results["Full Model (w/ Heuristic)"] = {"mean": f1_full, "std": std_full}
-    val_results["Full Model (w/ Heuristic)"] = val_f1_full
-    latencies.append(lat_full)
-    throughputs.append(tp_full)
+    all_results = []
     
-    # 2. - Heterogeneous (Simulated by halving hidden_dim since HeteroData isn't fully migrated yet)
-    f1_het, std_het, val_f1_het, lat_het, tp_het, y_true_het, y_pred_het, names_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32)
-    results["- Heterogeneous"] = {"mean": f1_het, "std": std_het}
-    val_results["- Heterogeneous"] = val_f1_het
-    latencies.append(lat_het)
-    throughputs.append(tp_het)
+    # We will accumulate the F1 for each model across seeds
+    f1_accum = {
+        "Full Model (w/ Heuristic)": [],
+        "- Heterogeneous": [],
+        "- GATv2": [],
+        "- CodeBERT": [],
+        "- Heuristic Feature": []
+    }
     
-    # 3. - GATv2 (Swap to standard GCN model)
-    f1_gatv2, std_gatv2, val_f1_gatv2, lat_gatv2, tp_gatv2, y_true_gcn, y_pred_gcn, names_gcn = run_ablation(batched_data, "- GATv2", model_type="GCN")
-    results["- GATv2"] = {"mean": f1_gatv2, "std": std_gatv2}
-    val_results["- GATv2"] = val_f1_gatv2
-    latencies.append(lat_gatv2)
-    throughputs.append(tp_gatv2)
-    
-    # 4. - CodeBERT (Replace CodeBERT embeddings with random noise)
-    noisy_data_list = []
-    for g in batched_data:
-        noisy_g = g.clone()
-        noisy_g.x = torch.randn_like(noisy_g.x)
-        noisy_data_list.append(noisy_g)
+    for seed in seeds:
+        logging.info(f"=== Starting Run with Seed {seed} ===")
+        results = {}
+        val_results = {}
+        latencies = []
+        throughputs = []
         
-    f1_codebert, std_codebert, val_f1_codebert, lat_codebert, tp_codebert, y_true_codebert, y_pred_codebert, names_codebert = run_ablation(noisy_data_list, "- CodeBERT")
-    results["- CodeBERT"] = {"mean": f1_codebert, "std": std_codebert}
-    val_results["- CodeBERT"] = val_f1_codebert
-    latencies.append(lat_codebert)
-    throughputs.append(tp_codebert)
-    
-    # 5. - Heuristic Feature (Isolate graph structural power by dropping the risk score)
-    no_heuristic_list = []
-    for g in batched_data:
-        nh_g = g.clone()
-        # Drop the last dimension which is the heuristic score
-        nh_g.x = nh_g.x[:, :-1]
-        no_heuristic_list.append(nh_g)
+        # We need to pass seed to run_ablation to set the TrainingConfig
         
-    f1_no_heur, std_no_heur, val_f1_no_heur, lat_no_heur, tp_no_heur, y_true_no_heur, y_pred_no_heur, names_no_heur = run_ablation(no_heuristic_list, "- Heuristic Feature")
-    results["- Heuristic Feature"] = {"mean": f1_no_heur, "std": std_no_heur}
-    val_results["- Heuristic Feature"] = val_f1_no_heur
-    latencies.append(lat_no_heur)
-    throughputs.append(tp_no_heur)
-    
+        # 1. Full Model (w/ Heuristic)
+        f1_full, std_full, val_f1_full, lat_full, tp_full, y_true_full, y_pred_full, names_full = run_ablation(batched_data, "Full Model (w/ Heuristic)", seed=seed)
+        results["Full Model (w/ Heuristic)"] = {"mean": f1_full, "std": std_full}
+        f1_accum["Full Model (w/ Heuristic)"].append(f1_full)
+        val_results["Full Model (w/ Heuristic)"] = val_f1_full
+        
+        # 2. - Heterogeneous
+        f1_het, std_het, val_f1_het, lat_het, tp_het, y_true_het, y_pred_het, names_het = run_ablation(batched_data, "- Heterogeneous", hidden_dim=32, seed=seed)
+        results["- Heterogeneous"] = {"mean": f1_het, "std": std_het}
+        f1_accum["- Heterogeneous"].append(f1_het)
+        val_results["- Heterogeneous"] = val_f1_het
+        
+        # 3. - GATv2
+        f1_gatv2, std_gatv2, val_f1_gatv2, lat_gatv2, tp_gatv2, y_true_gcn, y_pred_gcn, names_gcn = run_ablation(batched_data, "- GATv2", model_type="GCN", seed=seed)
+        results["- GATv2"] = {"mean": f1_gatv2, "std": std_gatv2}
+        f1_accum["- GATv2"].append(f1_gatv2)
+        val_results["- GATv2"] = val_f1_gatv2
+        
+        # 4. - CodeBERT
+        noisy_data_list = []
+        import torch
+        torch.manual_seed(seed)
+        for g in batched_data:
+            noisy_g = g.clone()
+            noisy_g.x = torch.randn_like(noisy_g.x)
+            noisy_data_list.append(noisy_g)
+            
+        f1_codebert, std_codebert, val_f1_codebert, lat_codebert, tp_codebert, y_true_codebert, y_pred_codebert, names_codebert = run_ablation(noisy_data_list, "- CodeBERT", seed=seed)
+        results["- CodeBERT"] = {"mean": f1_codebert, "std": std_codebert}
+        f1_accum["- CodeBERT"].append(f1_codebert)
+        val_results["- CodeBERT"] = val_f1_codebert
+        
+        # 5. - Heuristic Feature
+        no_heuristic_list = []
+        for g in batched_data:
+            nh_g = g.clone()
+            nh_g.x = nh_g.x[:, :-1]
+            no_heuristic_list.append(nh_g)
+            
+        f1_no_heur, std_no_heur, val_f1_no_heur, lat_no_heur, tp_no_heur, y_true_no_heur, y_pred_no_heur, names_no_heur = run_ablation(no_heuristic_list, "- Heuristic Feature", seed=seed)
+        results["- Heuristic Feature"] = {"mean": f1_no_heur, "std": std_no_heur}
+        f1_accum["- Heuristic Feature"].append(f1_no_heur)
+        val_results["- Heuristic Feature"] = val_f1_no_heur
+        
+        all_results.append(results)
+        
+    # Aggregate F1 across seeds for the final results.json
+    import numpy as np
+    final_results = {}
+    for model in f1_accum:
+        final_results[model] = {
+            "mean": float(np.mean(f1_accum[model])),
+            "std": float(np.std(f1_accum[model]))
+        }
+        
+    logging.info(f"--- Multi-Seed Aggregation ---")
+    for model, data in final_results.items():
+        logging.info(f"{model}: {data['mean']:.3f} ± {data['std']:.3f}")
+        
     # Majority Class Baseline
     y_pred_majority = [0] * len(y_true_full)
     
-    # Save raw predictions for Statistical Analysis
+    # Save raw predictions for Statistical Analysis (using the last seed's predictions)
     raw_preds = {
         "Full Model (w/ Heuristic)": {"y_true": y_true_full, "y_pred": y_pred_full, "node_names": names_full},
         "- Heterogeneous": {"y_true": y_true_het, "y_pred": y_pred_het, "node_names": names_het},
@@ -215,7 +244,7 @@ def run_all_experiments():
     }
     
     out_data = {
-        "ablation_f1": results,
+        "ablation_f1": final_results,
         "validation_f1": val_results,
         "performance": perf
     }

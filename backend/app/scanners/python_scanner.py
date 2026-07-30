@@ -119,7 +119,7 @@ class PythonScanner(BaseScanner):
         errors: List[str] = []
         
         if project_path.exists() and project_path.is_dir():
-            for file_path in project_path.rglob("*.py"):
+            for file_path in sorted(project_path.rglob("*.py")):
                 try:
                     source_code = file_path.read_text(encoding="utf-8")
                     tree = ast.parse(source_code, filename=str(file_path))

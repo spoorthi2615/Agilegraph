@@ -44,7 +44,7 @@ class GoScanner(BaseScanner):
         errors: List[str] = []
         
         if project_path.exists() and project_path.is_dir():
-            for file_path in project_path.rglob("*.go"):
+            for file_path in sorted(project_path.rglob("*.go")):
                 self._scan_file(file_path, findings, errors)
                 
         execution_time_ms = (time.time() - start_time) * 1000.0

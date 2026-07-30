@@ -23,7 +23,7 @@ class DependencyMappingService:
             return dependency_map
             
         # Extensible point for adding Java and Go parsers in the future
-        for file_path in project_path.rglob("*.py"):
+        for file_path in sorted(project_path.rglob("*.py")):
             imports = DependencyMappingService._parse_python_imports(file_path)
             if imports:
                 dependency_map[file_path.as_posix()] = list(imports)

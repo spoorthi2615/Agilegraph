@@ -30,13 +30,26 @@ def fetch_corpus():
         target_path = corpus_dir / name
         
         if target_path.exists():
-            logging.info(f"Repository {name} already exists at {target_path}. Skipping clone.")
+            logging.info(f"Repository {name} already exists at {target_path}. Resetting to pinned commit if needed.")
+            if "commit" in repo:
+                try:
+                    subprocess.run(["git", "fetch", "--depth", "1", "origin", repo["commit"]], cwd=str(target_path), check=True)
+                    subprocess.run(["git", "reset", "--hard", repo["commit"]], cwd=str(target_path), check=True)
+                except subprocess.CalledProcessError as e:
+                    logging.error(f"Failed to reset {name} to {repo['commit']}: {e}")
             continue
             
         logging.info(f"Cloning {name} from {url}...")
         try:
-            # Clone with depth 1 to save space and time
-            subprocess.run(["git", "clone", "--depth", "1", url, str(target_path)], check=True)
+            if "commit" in repo:
+                # To clone a specific commit, we first init, remote add, fetch depth 1 for the commit, and reset
+                target_path.mkdir(parents=True, exist_ok=True)
+                subprocess.run(["git", "init"], cwd=str(target_path), check=True)
+                subprocess.run(["git", "remote", "add", "origin", url], cwd=str(target_path), check=True)
+                subprocess.run(["git", "fetch", "--depth", "1", "origin", repo["commit"]], cwd=str(target_path), check=True)
+                subprocess.run(["git", "reset", "--hard", repo["commit"]], cwd=str(target_path), check=True)
+            else:
+                subprocess.run(["git", "clone", "--depth", "1", url, str(target_path)], check=True)
             logging.info(f"Successfully cloned {name}.")
         except subprocess.CalledProcessError as e:
             logging.error(f"Failed to clone {name}: {e}")

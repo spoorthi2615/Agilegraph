@@ -4,13 +4,12 @@
 
 | Model Variant | Macro-F1 (Mean ± Std) | Cohen's Kappa |
 |---|---|---|
-| Full Model (w/ Heuristic) | 0.478 ± 0.124 | 0.104 |
-| - Heterogeneous | 0.495 ± 0.134 | 0.133 |
-| - GATv2 | 0.424 ± 0.105 | 0.086 |
-| - CodeBERT | 0.454 ± 0.041 | 0.042 |
-| - Heuristic Feature | 0.364 ± 0.121 | 0.074 |
+| Full Model (w/ Heuristic) | 0.853 ± 0.036 | 0.104 |
+| - Heterogeneous | 0.793 ± 0.016 | 0.133 |
+| - GATv2 | 0.721 ± 0.021 | 0.086 |
+| - CodeBERT | 0.322 ± 0.068 | 0.042 |
+| - Heuristic Feature | 0.844 ± 0.037 | 0.074 |
 | Majority Class Baseline | 0.467 | 0.000 |
-| CBOMkit Baseline | N/A (See Benchmark) | N/A |
 
 ## McNemar's Tests (Significance against Full Model)
 

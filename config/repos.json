@@ -3,202 +3,242 @@
     {
       "name": "WebGoat",
       "url": "https://github.com/WebGoat/WebGoat.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "5142935bf7c279882c3b0fc0ecec42c447de6fd5"
     },
     {
       "name": "paramiko",
       "url": "https://github.com/paramiko/paramiko.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "d60d5c17d78f344b51ed651e796d2931133a9b22"
     },
     {
       "name": "vault",
       "url": "https://github.com/hashicorp/vault.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "caee104669ce2dac38cfaf65e4ab00ee84803c7a"
     },
     {
       "name": "bc-java",
       "url": "https://github.com/bcgit/bc-java.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "88c6a3ab7deb1dedda6f0e7d92e746909e73760e"
     },
     {
       "name": "cryptography",
       "url": "https://github.com/pyca/cryptography.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "2bcff0ae809defbdfd50c29ecc143f558c1b1045"
     },
     {
       "name": "tink",
       "url": "https://github.com/tink-crypto/tink.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "1f4cd38874ec0be85f5aa55ba86d95d18c3fd965"
     },
     {
       "name": "cfssl",
       "url": "https://github.com/cloudflare/cfssl.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "e429e72785df640e0dd3320dc895d4dd03c66cdb"
     },
     {
       "name": "consul",
       "url": "https://github.com/hashicorp/consul.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "04c0d1c7c9a2d58290cfb9a906042f19d35b0413"
     },
     {
       "name": "crypto",
       "url": "https://github.com/golang/crypto.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "d701c51f7e4e57f61c4947390514fe631e06202f"
     },
     {
       "name": "requests",
       "url": "https://github.com/psf/requests.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "414f0513c33883adf6f2b46901d4f0b38a455851"
     },
     {
       "name": "flask",
       "url": "https://github.com/pallets/flask.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81"
     },
     {
       "name": "django",
       "url": "https://github.com/django/django.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "50e5264a458961134d34d6340a00d9a1b269df7a"
     },
     {
       "name": "fastapi",
       "url": "https://github.com/tiangolo/fastapi.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "628663f4f899c465da423bce681c7adf9a218948"
     },
     {
       "name": "spring-boot",
       "url": "https://github.com/spring-projects/spring-boot.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "55fae927d7003fc3158751e854455d058d9cfda0"
     },
     {
       "name": "netty",
       "url": "https://github.com/netty/netty.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "163a33ea181dfe86c6030e52a31f3cbe0f944d54"
     },
     {
       "name": "guava",
       "url": "https://github.com/google/guava.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "3072ff864429b745661bd78e81d37f0076d7dc90"
     },
     {
       "name": "grpc-java",
       "url": "https://github.com/grpc/grpc-java.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "21d6c71a20181d41083e127b8e0c35452d1d8d6d"
     },
     {
       "name": "jwt-go",
       "url": "https://github.com/dgrijalva/jwt-go.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "9742bd7fca1c67ba2eb793750f56ee3094d1b04f"
     },
     {
       "name": "cert-manager",
       "url": "https://github.com/cert-manager/cert-manager.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "49f887bf9dfbe272feab19d47aecdb709148c2dc"
     },
     {
       "name": "etcd",
       "url": "https://github.com/etcd-io/etcd.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "d519de5b57564c74442e6727f3750b54d0518e76"
     },
     {
       "name": "traefik",
       "url": "https://github.com/traefik/traefik.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "fd5a576df2e8aeb0bfc8a96b6ef6e60a61f7ec0a"
     },
     {
       "name": "caddy",
       "url": "https://github.com/caddyserver/caddy.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "c96bca12693419ac5be751a0cbbae2c3cbf89c58"
     },
     {
       "name": "gin",
       "url": "https://github.com/gin-gonic/gin.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "34dac209ffb6ef85cc78c5d217bbb7ad001d68fd"
     },
     {
       "name": "echo",
       "url": "https://github.com/labstack/echo.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "2e1ed480a17f5839468dddc4bdf26373a67ce60a"
     },
     {
       "name": "tornado",
       "url": "https://github.com/tornadoweb/tornado.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "e530031405e2154654dedc4c84d5656b557ea310"
     },
     {
       "name": "celery",
       "url": "https://github.com/celery/celery.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "7c5d9a62d90c685bd0e1ae002d66ae40980b2847"
     },
     {
       "name": "urllib3",
       "url": "https://github.com/urllib3/urllib3.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "6a8536b6e1b0cbe69ae801337c599951e527ae29"
     },
     {
       "name": "httpx",
       "url": "https://github.com/projectdiscovery/httpx.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "d403a4097fa3eff27c2e5c45ae1fb30dd27050e1"
     },
     {
       "name": "java-jwt",
       "url": "https://github.com/auth0/java-jwt.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "8920eedfe6be0d6650c9959c7e9df6d272cffada"
     },
     {
       "name": "jjwt",
       "url": "https://github.com/jwtk/jjwt.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "401ba26ee72969c373d62a618b48444fc01e0e73"
     },
     {
       "name": "pika",
       "url": "https://github.com/pika/pika.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "2e7e1e784f1b56de041aa0670f7354dc8a2f4232"
     },
     {
       "name": "oauth2client",
       "url": "https://github.com/googleapis/oauth2client.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "50d20532a748f18e53f7d24ccbe6647132c979a9"
     },
     {
       "name": "oauthlib",
       "url": "https://github.com/oauthlib/oauthlib.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "40b0ab56da3682c2484a4b78bbff309f8025d950"
     },
     {
       "name": "jose",
       "url": "https://github.com/go-jose/go-jose.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "8d4e64dd6193f330ff4babb4038c99c56974abff"
     },
     {
       "name": "sops",
       "url": "https://github.com/getsops/sops.git",
-      "language": "Go"
+      "language": "Go",
+      "commit": "d0899194fb2a41af3a405c393f3cd1d34228db13"
     },
     {
       "name": "keycloak",
       "url": "https://github.com/keycloak/keycloak.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "b34d015ad6a2abd7b0e1b4016b8d3557f0623187"
     },
     {
       "name": "cas",
       "url": "https://github.com/apereo/cas.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "87e1a5e987bd7ca2bffaa3bcbc0c491d23226462"
     },
     {
       "name": "pac4j",
       "url": "https://github.com/pac4j/pac4j.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "3e82805fbcba55aa77384df8f261f42d2461c080"
     },
     {
       "name": "shiro",
       "url": "https://github.com/apache/shiro.git",
-      "language": "Java"
+      "language": "Java",
+      "commit": "cde5990d5e98e3518fe02cf9b42245c30b8cde87"
     },
     {
       "name": "pyjwt",
       "url": "https://github.com/jpadilla/pyjwt.git",
-      "language": "Python"
+      "language": "Python",
+      "commit": "7144e4534c34810f4525dc4578a32addd8212cff"
     }
   ]
 }

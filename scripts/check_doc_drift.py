@@ -37,11 +37,13 @@ def main():
         "scripts/generate_statistical_report.py",
         "scripts/generate_benchmark_report.py",
         "scripts/generate_ablation_report.py",
+        "scripts/generate_readme_snippet.py",
         "backend/app/ml/"
     ]
     
     # Generated research docs
     doc_paths = [
+        "README.md",
         "research/statistical-analysis.md",
         "research/dataset-validation.md",
         "research/benchmark-study.md",

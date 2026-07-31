@@ -11,6 +11,12 @@ export function AnimatedNumber({
   const fromRef = useRef(0);
 
   useEffect(() => {
+    const shouldAnimate = localStorage.getItem('animatedCounters') !== 'false';
+    if (!shouldAnimate) {
+      setDisplay(value);
+      return;
+    }
+
     fromRef.current = display;
     startRef.current = null;
     let raf = 0;

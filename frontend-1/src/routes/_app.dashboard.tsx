@@ -36,8 +36,17 @@ function DashboardWithBoundary() {
   );
 }
 
+import { useState, useEffect } from "react";
+
 function Dashboard() {
   const { data, isLoading, error, refetch } = useDashboardSummary();
+  const [showProgress, setShowProgress] = useState(true);
+  const [defaultView, setDefaultView] = useState("exec");
+
+  useEffect(() => {
+    setShowProgress(localStorage.getItem('showProgress') !== 'false');
+    setDefaultView(localStorage.getItem('defaultView') || 'exec');
+  }, []);
 
   if (isLoading) return (
     <div className="p-4 md:p-6 space-y-6">
@@ -69,18 +78,20 @@ function Dashboard() {
 
   const { kpis, riskDistribution, algorithmUsage, departmentUsage, migrationTrend, activity, criticalAlerts } = data;
 
+  const viewTitle = defaultView === 'eng' ? 'Engineering View' : defaultView === 'compliance' ? 'Compliance View' : 'Executive View';
+
   return (
     <>
       <AppTopbar
         title="Dashboard"
-        subtitle="Cryptographic posture — Acme Bank, Production"
+        subtitle={`${viewTitle} — Acme Bank, Production`}
         actions={<Button asChild size="sm"><Link to="/scan">New Scan</Link></Button>}
       />
       <main className="p-4 md:p-6 space-y-6">
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
           <KpiCard label="Total Cryptographic Assets" value={kpis.totalAssets} icon={Boxes} tint="primary" delta={8} hint="+8% vs last scan" />
           <KpiCard label="High Risk Assets" value={kpis.critical + kpis.high} icon={ShieldAlert} tint="critical" delta={-4} hint={`${kpis.critical} critical · ${kpis.high} high`} />
-          <KpiCard label="Migration Progress" value={kpis.migrationProgress} suffix="%" icon={TrendingUp} tint="success" delta={12} hint="On track for Q2 target" />
+          {showProgress && <KpiCard label="Migration Progress" value={kpis.migrationProgress} suffix="%" icon={TrendingUp} tint="success" delta={12} hint="On track for Q2 target" />}
           <KpiCard label="PQC Readiness Score" value={kpis.pqcReadiness} suffix="/100" icon={GaugeCircle} tint="primary" delta={5} hint="NIST FIPS 203/204/205" />
         </section>
 
@@ -109,10 +120,12 @@ function Dashboard() {
             <DepartmentUsageChart data={departmentUsage} />
           </div>
 
-          <div className="rounded-xl border bg-card p-5">
-            <SectionHead title="Migration Progress" hint="Migrated vs. planned assets per month" />
-            <MigrationTrendChart data={migrationTrend} />
-          </div>
+          {showProgress && (
+            <div className="rounded-xl border bg-card p-5">
+              <SectionHead title="Migration Progress" hint="Migrated vs. planned assets per month" />
+              <MigrationTrendChart data={migrationTrend} />
+            </div>
+          )}
         </section>
 
         <section className="grid gap-4 lg:grid-cols-3">

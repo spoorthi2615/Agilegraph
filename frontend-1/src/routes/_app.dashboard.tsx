@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { AppTopbar } from "@/components/app-topbar";
 import { KpiCard } from "@/components/kpi-card";
 import { RiskBadge } from "@/components/risk-badge";
@@ -35,8 +36,6 @@ function DashboardWithBoundary() {
     </ErrorBoundary>
   );
 }
-
-import { useState, useEffect } from "react";
 
 function Dashboard() {
   const { data, isLoading, error, refetch } = useDashboardSummary();

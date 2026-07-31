@@ -27,9 +27,10 @@ class ScannerManager:
                 
                 if target_languages is not None:
                     # Verify intersection between detected languages and the scanner's supported languages
+                    # "All" is a wildcard — always runs regardless of detected languages
                     supported = set(scanner.supported_languages)
                     targets = set(target_languages)
-                    if not supported.intersection(targets):
+                    if "All" not in supported and not supported.intersection(targets):
                         continue
                 
                 

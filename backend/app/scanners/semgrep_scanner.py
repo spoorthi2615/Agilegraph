@@ -27,8 +27,12 @@ class SemgrepScanner(BaseScanner):
     def scan(self, project_path: Path) -> ScannerResult:
         start_time = time.time()
         
+        # Build config: use lightweight named rules (p/secrets, p/python) — no full registry download
+        from app.scanners.semgrep.semgrep_config import SemgrepConfig
+        config = SemgrepConfig(use_default_rules=True, timeout_seconds=120)
+        
         # Instantiate dependencies for the service
-        runner = SemgrepRunner()
+        runner = SemgrepRunner(config)
         parser = SemgrepParser()
         normalizer = FindingNormalizer()
         

@@ -32,13 +32,20 @@ class SemgrepRunner:
         try:
             safe_target = self._validate_path(target_directory)
             
-            cmd = ["semgrep", "scan", "--json"]
+            cmd = ["semgrep", "scan", "--json", "--no-rewrite-rule-ids"]
             
             if self.config.custom_rules_dir:
                 safe_rule_dir = self._validate_path(self.config.custom_rules_dir)
                 cmd.extend(["--config", safe_rule_dir])
             elif self.config.use_default_rules:
-                cmd.extend(["--config", "auto"])
+                # Use named lightweight rule packs instead of "auto" (which downloads the full registry)
+                cmd.extend(["--config", "p/secrets", "--config", "p/python"])
+            else:
+                # No rules — semgrep will return 0 findings cleanly without hanging
+                cmd.extend(["--config", "r/python.lang.correctness"])
+                # If no config at all, semgrep errors; skip execution safely
+                logger.info("Semgrep: no rules configured, skipping.")
+                return None
                 
             for ext in self.config.exclude_dirs:
                 safe_ext = self._validate_path(ext)

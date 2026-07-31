@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_app/settings")({
   component: Settings,
@@ -20,10 +21,95 @@ export const Route = createFileRoute("/_app/settings")({
 });
 
 function Settings() {
+  // Theme state
+  const [colorMode, setColorMode] = useState(localStorage.getItem('theme') || 'light');
+  const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue');
+  const [compact, setCompact] = useState(localStorage.getItem('compact') === 'true');
+
+  // Notifications state
+  const [notifyCritical, setNotifyCritical] = useState(localStorage.getItem('notifyCritical') !== 'false');
+  const [notifyScan, setNotifyScan] = useState(localStorage.getItem('notifyScan') !== 'false');
+  const [notifyWeekly, setNotifyWeekly] = useState(localStorage.getItem('notifyWeekly') !== 'false');
+  const [slackChannel, setSlackChannel] = useState(localStorage.getItem('slackChannel') || '');
+
+  // Scan state
+  const [deepGraph, setDeepGraph] = useState(localStorage.getItem('deepGraph') !== 'false');
+  const [includeKeys, setIncludeKeys] = useState(localStorage.getItem('includeKeys') !== 'false');
+  const [scanConcurrency, setScanConcurrency] = useState(localStorage.getItem('scanConcurrency') || '4');
+  const [failCritical, setFailCritical] = useState(localStorage.getItem('failCritical') === 'true');
+
+  // Dashboard state
+  const [defaultView, setDefaultView] = useState(localStorage.getItem('defaultView') || 'exec');
+  const [showProgress, setShowProgress] = useState(localStorage.getItem('showProgress') !== 'false');
+  const [animatedCounters, setAnimatedCounters] = useState(localStorage.getItem('animatedCounters') !== 'false');
+
+  // Apply visual changes instantly
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    if (colorMode === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.add(colorMode);
+    }
+  }, [colorMode]);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (compact) {
+      root.classList.add('compact-density');
+    } else {
+      root.classList.remove('compact-density');
+    }
+  }, [compact]);
+
+  const handleSave = () => {
+    localStorage.setItem('theme', colorMode);
+    localStorage.setItem('accent', accent);
+    localStorage.setItem('compact', compact.toString());
+    
+    localStorage.setItem('notifyCritical', notifyCritical.toString());
+    localStorage.setItem('notifyScan', notifyScan.toString());
+    localStorage.setItem('notifyWeekly', notifyWeekly.toString());
+    localStorage.setItem('slackChannel', slackChannel);
+    
+    localStorage.setItem('deepGraph', deepGraph.toString());
+    localStorage.setItem('includeKeys', includeKeys.toString());
+    localStorage.setItem('scanConcurrency', scanConcurrency);
+    localStorage.setItem('failCritical', failCritical.toString());
+    
+    localStorage.setItem('defaultView', defaultView);
+    localStorage.setItem('showProgress', showProgress.toString());
+    localStorage.setItem('animatedCounters', animatedCounters.toString());
+
+    toast.success("Settings saved successfully", {
+      description: "Your workspace preferences have been updated."
+    });
+  };
+
+  const handleReset = () => {
+    setColorMode('light');
+    setAccent('blue');
+    setCompact(false);
+    setNotifyCritical(true);
+    setNotifyScan(true);
+    setNotifyWeekly(true);
+    setSlackChannel('');
+    setDeepGraph(true);
+    setIncludeKeys(true);
+    setScanConcurrency('4');
+    setFailCritical(false);
+    setDefaultView('exec');
+    setShowProgress(true);
+    setAnimatedCounters(true);
+    toast.info("Settings reset to defaults", { description: "Click save to confirm." });
+  };
+
   return (
     <>
       <AppTopbar title="Settings" subtitle="Manage your workspace preferences" />
-      <main className="p-4 md:p-6">
+      <main className="p-4 md:p-6 animate-in fade-in slide-in-from-bottom-4">
         <Tabs defaultValue="theme" orientation="vertical" className="grid gap-6 lg:grid-cols-[220px_1fr]">
           <TabsList className="flex h-auto flex-col items-stretch justify-start bg-transparent p-0">
             {[
@@ -41,29 +127,29 @@ function Settings() {
 
           <div>
             <TabsContent value="theme"><Section title="Theme" desc="Customize how AgileGraph looks.">
-              <Row label="Color mode" desc="Light theme is optimized for readability."><Select defaultValue="light"><SelectTrigger className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="light">Light</SelectItem><SelectItem value="system">System</SelectItem></SelectContent></Select></Row>
-              <Row label="Accent color" desc="Used for primary actions and highlights."><Select defaultValue="blue"><SelectTrigger className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="blue">AgileGraph Blue</SelectItem><SelectItem value="violet">Violet</SelectItem><SelectItem value="emerald">Emerald</SelectItem></SelectContent></Select></Row>
-              <Row label="Compact density" desc="Reduce padding across tables and cards."><Switch /></Row>
+              <Row label="Color mode" desc="Light theme is optimized for readability."><Select value={colorMode} onValueChange={setColorMode}><SelectTrigger className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="light">Light</SelectItem><SelectItem value="dark">Dark</SelectItem><SelectItem value="system">System</SelectItem></SelectContent></Select></Row>
+              <Row label="Accent color" desc="Used for primary actions and highlights."><Select value={accent} onValueChange={setAccent}><SelectTrigger className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="blue">AgileGraph Blue</SelectItem><SelectItem value="violet">Violet</SelectItem><SelectItem value="emerald">Emerald</SelectItem></SelectContent></Select></Row>
+              <Row label="Compact density" desc="Reduce padding across tables and cards."><Switch checked={compact} onCheckedChange={setCompact} /></Row>
             </Section></TabsContent>
 
             <TabsContent value="notifications"><Section title="Notifications" desc="Control how you're alerted.">
-              <Row label="Critical asset alerts" desc="Immediate notification for critical findings."><Switch defaultChecked /></Row>
-              <Row label="Scan completion" desc="Notify when scans finish."><Switch defaultChecked /></Row>
-              <Row label="Weekly digest" desc="Executive summary emailed weekly."><Switch defaultChecked /></Row>
-              <Row label="Slack channel" desc="Send alerts to a Slack channel."><Input placeholder="#security-pqc" className="w-56" /></Row>
+              <Row label="Critical asset alerts" desc="Immediate notification for critical findings."><Switch checked={notifyCritical} onCheckedChange={setNotifyCritical} /></Row>
+              <Row label="Scan completion" desc="Notify when scans finish."><Switch checked={notifyScan} onCheckedChange={setNotifyScan} /></Row>
+              <Row label="Weekly digest" desc="Executive summary emailed weekly."><Switch checked={notifyWeekly} onCheckedChange={setNotifyWeekly} /></Row>
+              <Row label="Slack channel" desc="Send alerts to a Slack channel."><Input placeholder="#security-pqc" className="w-56" value={slackChannel} onChange={(e) => setSlackChannel(e.target.value)} /></Row>
             </Section></TabsContent>
 
             <TabsContent value="scan"><Section title="Scan Preferences" desc="Defaults for new scans.">
-              <Row label="Deep dependency graph" desc="Analyze transitive dependencies."><Switch defaultChecked /></Row>
-              <Row label="Include private keys" desc="Scan discovered keys against known-weak databases."><Switch defaultChecked /></Row>
-              <Row label="Scan concurrency" desc="Parallel workers per scan."><Select defaultValue="4"><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="2">2</SelectItem><SelectItem value="4">4</SelectItem><SelectItem value="8">8</SelectItem></SelectContent></Select></Row>
-              <Row label="Fail on critical" desc="CI: exit non-zero when critical assets are found."><Switch /></Row>
+              <Row label="Deep dependency graph" desc="Analyze transitive dependencies."><Switch checked={deepGraph} onCheckedChange={setDeepGraph} /></Row>
+              <Row label="Include private keys" desc="Scan discovered keys against known-weak databases."><Switch checked={includeKeys} onCheckedChange={setIncludeKeys} /></Row>
+              <Row label="Scan concurrency" desc="Parallel workers per scan."><Select value={scanConcurrency} onValueChange={setScanConcurrency}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="2">2</SelectItem><SelectItem value="4">4</SelectItem><SelectItem value="8">8</SelectItem></SelectContent></Select></Row>
+              <Row label="Fail on critical" desc="CI: exit non-zero when critical assets are found."><Switch checked={failCritical} onCheckedChange={setFailCritical} /></Row>
             </Section></TabsContent>
 
             <TabsContent value="dashboard"><Section title="Dashboard Preferences" desc="Personalize your dashboard layout.">
-              <Row label="Default view" desc="Which dashboard opens on login."><Select defaultValue="exec"><SelectTrigger className="w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="exec">Executive</SelectItem><SelectItem value="eng">Engineering</SelectItem><SelectItem value="compliance">Compliance</SelectItem></SelectContent></Select></Row>
-              <Row label="Show migration progress" desc="Include the migration chart on the dashboard."><Switch defaultChecked /></Row>
-              <Row label="Animated counters" desc="Animate KPI numbers on load."><Switch defaultChecked /></Row>
+              <Row label="Default view" desc="Which dashboard opens on login."><Select value={defaultView} onValueChange={setDefaultView}><SelectTrigger className="w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="exec">Executive</SelectItem><SelectItem value="eng">Engineering</SelectItem><SelectItem value="compliance">Compliance</SelectItem></SelectContent></Select></Row>
+              <Row label="Show migration progress" desc="Include the migration chart on the dashboard."><Switch checked={showProgress} onCheckedChange={setShowProgress} /></Row>
+              <Row label="Animated counters" desc="Animate KPI numbers on load."><Switch checked={animatedCounters} onCheckedChange={setAnimatedCounters} /></Row>
             </Section></TabsContent>
 
             <TabsContent value="about"><Section title="About AgileGraph" desc="Platform version and credits.">
@@ -88,8 +174,8 @@ function Settings() {
         </Tabs>
 
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="outline">Reset</Button>
-          <Button onClick={() => toast.success("Settings saved")}>Save changes</Button>
+          <Button variant="outline" onClick={handleReset}>Reset</Button>
+          <Button onClick={handleSave}>Save changes</Button>
         </div>
       </main>
     </>

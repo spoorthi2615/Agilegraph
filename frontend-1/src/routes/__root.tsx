@@ -94,7 +94,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('theme') || 'dark';
+                if (theme === 'system') {
+                  theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                if (theme === 'dark') document.documentElement.classList.add('dark');
+                
+                var accent = localStorage.getItem('accent') || 'blue';
+                document.documentElement.classList.add('theme-accent-' + accent);
+                
+                if (localStorage.getItem('compact') === 'true') {
+                  document.documentElement.classList.add('compact-density');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body>
         {children}
         <Scripts />

@@ -24,7 +24,7 @@ function Settings() {
   const [activeTab, setActiveTab] = useState("theme");
 
   // Theme state
-  const [colorMode, setColorMode] = useState(localStorage.getItem('theme') || 'light');
+  const [colorMode, setColorMode] = useState(localStorage.getItem('theme') || 'dark');
   const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue');
   const [compact, setCompact] = useState(localStorage.getItem('compact') === 'true');
 
@@ -97,7 +97,7 @@ function Settings() {
   };
 
   const handleReset = () => {
-    setColorMode('light');
+    setColorMode('dark');
     setAccent('blue');
     setCompact(false);
     setNotifyCritical(true);

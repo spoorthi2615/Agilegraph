@@ -50,6 +50,7 @@ class AnalysisWorkflowService:
             graph = GraphBuilder.build_graph(analysis_result, dependency_map)
             
             # Step 3.5: Run ML Inference to override heuristic risk scores
+            # Only runs if CodeBERT is already cached locally — skips gracefully on Vercel/cold start
             try:
                 import torch
                 from transformers import AutoTokenizer, AutoModel
@@ -57,15 +58,25 @@ class AnalysisWorkflowService:
                 from app.ml.inference.inference_config import InferenceConfig
                 from app.ml.inference.model_loader import ModelLoader
                 from app.services.gatv2_inference_service import GATv2InferenceService
-                
                 import logging
+
+                # Check if model is cached before trying to load it (avoids hanging download)
+                from pathlib import Path as _Path
+                import os as _os
+                _hf_cache = _os.environ.get("HF_HOME", _os.path.expanduser("~/.cache/huggingface"))
+                _model_cached = (_Path(_hf_cache) / "hub" / "models--microsoft--codebert-base").exists()
+
+                if not _model_cached:
+                    logging.info(f"[{project_id}] CodeBERT not cached locally — skipping ML inference, using heuristic scores.")
+                    raise RuntimeError("CodeBERT not cached; skipping ML step.")
+                
                 logging.info(f"[{project_id}] Building InferenceDataset via CodeBERT...")
                 
                 node_mapping = {node_id: idx for idx, node_id in enumerate(graph.nodes.keys())}
                 index_to_uuid = {idx: node_id for node_id, idx in node_mapping.items()}
                 
-                tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
-                codebert_model = AutoModel.from_pretrained("microsoft/codebert-base")
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base", local_files_only=True)
+                codebert_model = AutoModel.from_pretrained("microsoft/codebert-base", local_files_only=True)
                 codebert_model.eval()
 
                 embeddings = []
@@ -108,11 +119,15 @@ class AnalysisWorkflowService:
                 logging.info(f"[{project_id}] Successfully overrode graph with ML predictions.")
             except Exception as ml_err:
                 import logging
-                logging.error(f"[{project_id}] ML Inference Failed (Falling back to heuristics): {ml_err}")
+                logging.warning(f"[{project_id}] ML Inference skipped (using heuristic scores): {ml_err}")
             
-            # Step 4: Export to physical Neo4j cluster
+            # Step 4: Export to physical Neo4j cluster (best-effort — scan completes even if Neo4j is down)
             ScanStatusService.set_status(project_id, ScanStage.EXPORTING)
-            self.export_service.export_graph(graph)
+            try:
+                self.export_service.export_graph(graph)
+            except Exception as neo4j_err:
+                import logging
+                logging.warning(f"[{project_id}] Neo4j export failed (scan still marked complete): {neo4j_err}")
             
             ScanStatusService.set_status(project_id, ScanStage.COMPLETED)
             

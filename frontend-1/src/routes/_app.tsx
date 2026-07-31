@@ -15,7 +15,7 @@ function AppLayout() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        navigate({ to: "/login", replace: true });
+        navigate({ to: "/", replace: true });
       } else {
         setLoading(false);
       }
@@ -25,7 +25,7 @@ function AppLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        navigate({ to: "/login", replace: true });
+        navigate({ to: "/", replace: true });
       } else {
         setLoading(false);
       }

@@ -32,8 +32,11 @@ function AdminDashboard() {
 
       // Check if user is admin (hardcoded to bypass DB issues)
       if (user.email !== 'spoorthipyadav@gmail.com' && user.email !== 'spoorthi2615@gmail.com') {
-        toast.error('Unauthorized access');
-        navigate({ to: '/dashboard' });
+        await supabase.auth.signOut();
+        toast.info('Oops! Admin access only.', { 
+          description: 'It looks like you are not an administrator. Please use the standard User Login to access your workspace! 😊',
+          duration: 6000,
+        });
         return;
       }
 

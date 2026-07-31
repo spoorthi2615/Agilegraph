@@ -69,7 +69,7 @@ function Hero() {
       <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
         <div className="grid items-center gap-14 lg:grid-cols-2">
           <div className="animate-fade-up">
-            <Badge variant="secondary" className="mb-5 gap-2 rounded-full border bg-white px-3 py-1 shadow-[var(--shadow-soft)]">
+            <Badge variant="secondary" className="mb-5 gap-2 rounded-full border bg-background/50 px-3 py-1 shadow-[var(--shadow-soft)]">
               <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
               NIST PQC ready · CNSA 2.0 aligned
             </Badge>

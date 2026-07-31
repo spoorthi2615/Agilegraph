@@ -4,6 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
 import { Info, ShieldCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/services/api-client";
 
 export const Route = createFileRoute("/_app/mosca")({
   component: Mosca,
@@ -21,8 +22,7 @@ function Mosca() {
   const { data: moscaData, isLoading } = useQuery({
     queryKey: ['moscaReadiness', z],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:8000/api/v1/dashboard/mosca?z=${z}`);
-      return await res.json();
+      return await apiClient.get<any>(`/dashboard/mosca?z=${z}`);
     }
   });
 

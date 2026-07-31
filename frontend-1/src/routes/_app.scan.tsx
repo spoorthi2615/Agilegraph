@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { UploadCloud, Github, Globe, FileKey2, Play, X, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import { useDashboardSummary, useUploadProject, useGitHubImport } from "@/hooks/use-agilegraph";
+import { api } from "@/services/api";
 import { Dropzone } from "@/components/ui/dropzone";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -43,8 +44,7 @@ function ScanPage() {
     queryKey: ['scanStatus', currentProjectId],
     queryFn: async () => {
       if (!currentProjectId) return null;
-      const res = await fetch(`http://localhost:8000/api/v1/scan/status/${currentProjectId}`);
-      const data = await res.json();
+      const data = await api.getScanStatus(currentProjectId);
       const s = data.status;
       
       const phaseMap: Record<string, {name: string, p: number}> = {

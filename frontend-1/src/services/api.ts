@@ -20,6 +20,10 @@ export const api = {
     return apiClient.get<DashboardSummary>("/dashboard/summary");
   },
 
+  getScanStatus: async (projectId: string): Promise<any> => {
+    return apiClient.get<any>(`/scan/status/${projectId}`);
+  },
+
   getGraph: async (): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }> => {
     return apiClient.get<{ nodes: GraphNode[], edges: GraphEdge[] }>("/graph");
   },

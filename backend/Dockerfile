@@ -1,5 +1,4 @@
-# Stage 1: Build dependencies
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -8,34 +7,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies globally in the container
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
-
-# Stage 2: Runtime
-FROM python:3.11-slim
-
-WORKDIR /app
-
-# Create non-root user
-RUN groupadd -r agilegraph && useradd -r -g agilegraph agilegraph \
-    && mkdir -p /app/data /app/uploads \
-    && chown -R agilegraph:agilegraph /app
-
-# Copy dependencies from builder
-COPY --from=builder /root/.local /home/agilegraph/.local
-ENV PATH=/home/agilegraph/.local/bin:$PATH
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source code
-COPY --chown=agilegraph:agilegraph . .
+COPY . .
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
-
-# Switch to non-root user
-USER agilegraph
 
 # Expose backend port
 EXPOSE 8000

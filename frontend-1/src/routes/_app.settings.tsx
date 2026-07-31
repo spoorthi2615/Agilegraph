@@ -64,6 +64,12 @@ function Settings() {
     }
   }, [compact]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('theme-accent-blue', 'theme-accent-violet', 'theme-accent-emerald');
+    root.classList.add(`theme-accent-${accent}`);
+  }, [accent]);
+
   const handleSave = () => {
     localStorage.setItem('theme', colorMode);
     localStorage.setItem('accent', accent);

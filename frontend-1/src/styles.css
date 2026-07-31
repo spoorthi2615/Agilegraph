@@ -105,6 +105,52 @@
   --sidebar-ring: oklch(0.548 0.212 265);
 }
 
+.dark {
+  --background: oklch(0.13 0.02 265);
+  --foreground: oklch(0.985 0.005 240);
+  --card: oklch(0.16 0.02 265);
+  --card-foreground: oklch(0.985 0.005 240);
+  --popover: oklch(0.16 0.02 265);
+  --popover-foreground: oklch(0.985 0.005 240);
+
+  --primary: oklch(0.648 0.212 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.25 0.02 265);
+  --secondary-foreground: oklch(0.985 0.005 240);
+  --muted: oklch(0.2 0.02 265);
+  --muted-foreground: oklch(0.7 0.02 265);
+  --accent: oklch(0.25 0.02 265);
+  --accent-foreground: oklch(0.985 0.005 240);
+
+  --border: oklch(0.25 0.02 265);
+  --input: oklch(0.25 0.02 265);
+
+  --sidebar: oklch(0.13 0.02 265);
+  --sidebar-foreground: oklch(0.985 0.005 240);
+  --sidebar-border: oklch(0.25 0.02 265);
+  --sidebar-accent: oklch(0.2 0.02 265);
+  --sidebar-accent-foreground: oklch(0.985 0.005 240);
+}
+
+.theme-accent-violet {
+  --primary: oklch(0.62 0.15 300);
+  --ring: oklch(0.62 0.15 300);
+  --sidebar-primary: oklch(0.62 0.15 300);
+}
+
+.theme-accent-emerald {
+  --primary: oklch(0.708 0.155 163);
+  --ring: oklch(0.708 0.155 163);
+  --sidebar-primary: oklch(0.708 0.155 163);
+}
+
+.compact-density .p-6 { padding: 1rem !important; }
+.compact-density .p-4 { padding: 0.5rem !important; }
+.compact-density .py-4 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.compact-density .gap-6 { gap: 1rem !important; }
+.compact-density .gap-4 { gap: 0.5rem !important; }
+
+
 @layer base {
   * {
     border-color: var(--color-border);

@@ -24,26 +24,26 @@ function Settings() {
   const [activeTab, setActiveTab] = useState("theme");
 
   // Theme state
-  const [colorMode, setColorMode] = useState(localStorage.getItem('theme') || 'dark');
-  const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue');
-  const [compact, setCompact] = useState(localStorage.getItem('compact') === 'true');
+  const [colorMode, setColorMode] = useState((typeof window !== 'undefined' ? localStorage.getItem('theme') : null) || 'dark');
+  const [accent, setAccent] = useState((typeof window !== 'undefined' ? localStorage.getItem('accent') : null) || 'blue');
+  const [compact, setCompact] = useState((typeof window !== 'undefined' ? localStorage.getItem('compact') : null) === 'true');
 
   // Notifications state
-  const [notifyCritical, setNotifyCritical] = useState(localStorage.getItem('notifyCritical') !== 'false');
-  const [notifyScan, setNotifyScan] = useState(localStorage.getItem('notifyScan') !== 'false');
-  const [notifyWeekly, setNotifyWeekly] = useState(localStorage.getItem('notifyWeekly') !== 'false');
-  const [slackChannel, setSlackChannel] = useState(localStorage.getItem('slackChannel') || '');
+  const [notifyCritical, setNotifyCritical] = useState((typeof window !== 'undefined' ? localStorage.getItem('notifyCritical') : null) !== 'false');
+  const [notifyScan, setNotifyScan] = useState((typeof window !== 'undefined' ? localStorage.getItem('notifyScan') : null) !== 'false');
+  const [notifyWeekly, setNotifyWeekly] = useState((typeof window !== 'undefined' ? localStorage.getItem('notifyWeekly') : null) !== 'false');
+  const [slackChannel, setSlackChannel] = useState((typeof window !== 'undefined' ? localStorage.getItem('slackChannel') : null) || '');
 
   // Scan state
-  const [deepGraph, setDeepGraph] = useState(localStorage.getItem('deepGraph') !== 'false');
-  const [includeKeys, setIncludeKeys] = useState(localStorage.getItem('includeKeys') !== 'false');
-  const [scanConcurrency, setScanConcurrency] = useState(localStorage.getItem('scanConcurrency') || '4');
-  const [failCritical, setFailCritical] = useState(localStorage.getItem('failCritical') === 'true');
+  const [deepGraph, setDeepGraph] = useState((typeof window !== 'undefined' ? localStorage.getItem('deepGraph') : null) !== 'false');
+  const [includeKeys, setIncludeKeys] = useState((typeof window !== 'undefined' ? localStorage.getItem('includeKeys') : null) !== 'false');
+  const [scanConcurrency, setScanConcurrency] = useState((typeof window !== 'undefined' ? localStorage.getItem('scanConcurrency') : null) || '4');
+  const [failCritical, setFailCritical] = useState((typeof window !== 'undefined' ? localStorage.getItem('failCritical') : null) === 'true');
 
   // Dashboard state
-  const [defaultView, setDefaultView] = useState(localStorage.getItem('defaultView') || 'exec');
-  const [showProgress, setShowProgress] = useState(localStorage.getItem('showProgress') !== 'false');
-  const [animatedCounters, setAnimatedCounters] = useState(localStorage.getItem('animatedCounters') !== 'false');
+  const [defaultView, setDefaultView] = useState((typeof window !== 'undefined' ? localStorage.getItem('defaultView') : null) || 'exec');
+  const [showProgress, setShowProgress] = useState((typeof window !== 'undefined' ? localStorage.getItem('showProgress') : null) !== 'false');
+  const [animatedCounters, setAnimatedCounters] = useState((typeof window !== 'undefined' ? localStorage.getItem('animatedCounters') : null) !== 'false');
 
   // Apply visual changes instantly
   useEffect(() => {

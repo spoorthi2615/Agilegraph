@@ -33,6 +33,12 @@ class GraphRehydrationService:
                 if not node_id_str:
                     continue
                     
+                # Safely parse UUID to prevent 500 errors if data is corrupted
+                try:
+                    node_id_obj = UUID(str(node_id_str))
+                except ValueError:
+                    continue
+                    
                 node_type = props.pop("node_type", "UNKNOWN")
                 label = props.pop("label", "Unknown")
                 
@@ -48,7 +54,7 @@ class GraphRehydrationService:
                     metadata["severity"] = props["severity"]
                     
                 node = GraphNode(
-                    node_id=UUID(node_id_str),
+                    node_id=node_id_obj,
                     node_type=node_type,
                     label=label,
                     metadata=metadata
@@ -63,12 +69,18 @@ class GraphRehydrationService:
                 edge_type = record["type"]
                 
                 if source and target:
-                    edge = GraphEdge(
-                        source_node=UUID(source),
-                        target_node=UUID(target),
-                        edge_type=edge_type,
-                        metadata={}
-                    )
-                    graph.add_edge(edge)
+                    try:
+                        source_id = UUID(str(source))
+                        target_id = UUID(str(target))
+                        
+                        edge = GraphEdge(
+                            source_node=source_id,
+                            target_node=target_id,
+                            edge_type=edge_type,
+                            metadata={}
+                        )
+                        graph.add_edge(edge)
+                    except ValueError:
+                        continue
                     
         return graph

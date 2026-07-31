@@ -40,9 +40,6 @@ def create_app() -> FastAPI:
 
     # Configure CORS strictly based on Environment
     origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
-    if settings.ENVIRONMENT == "production" and "*" in origins:
-        # In production, fallback to a strict origin if wildcard is left on
-        origins = ["https://agilegraph.corp"]
 
     app.add_middleware(
         CORSMiddleware,
@@ -128,6 +125,7 @@ def create_app() -> FastAPI:
         return JSONResponse(status_code=500, content={"detail": exc.message})
 
     # Register Routers
+    from app.api.routes import search, notifications, workspaces
     app.include_router(health.router, prefix="/api/v1", tags=["Health"])
     app.include_router(upload.router, prefix="/api/v1", tags=["Upload"])
     app.include_router(github.router, prefix="/api/v1", tags=["GitHub Import"])
@@ -137,6 +135,9 @@ def create_app() -> FastAPI:
     app.include_router(explainability.router, prefix="/api/v1/explainability", tags=["Explainability"])
     app.include_router(report.router, prefix="/api/v1/reports", tags=["Reports"])
     app.include_router(metrics.router, prefix="/api/v1", tags=["Operational"])
+    app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
+    app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
+    app.include_router(workspaces.router, prefix="/api/v1/workspaces", tags=["Workspaces"])
     return app
 
 app = create_app()

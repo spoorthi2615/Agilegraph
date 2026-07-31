@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Path as PathParam
 from fastapi.responses import StreamingResponse
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 import io
 from reportlab.pdfgen import canvas
@@ -76,9 +76,15 @@ def get_report_detail(
     )
 
 
+from app.models.dashboard import ReportRecord
+import uuid
+
+GENERATED_REPORTS: List[ReportRecord] = []
+
 @router.get("/{report_id}/download")
 def download_report(
     report_id: str = PathParam(...),
+    type: str = Query("Executive Report"),
     format: ExportFormat = Query(ExportFormat.MARKDOWN),
     report: SecurityReport = Depends(provide_security_report)
 ):
@@ -95,10 +101,20 @@ def download_report(
         media_type = "text/csv"
         filename = f"report_{report_id}.csv"
         
-        # Simple CSV serialization of recommendations
-        csv_lines = ["Asset ID,Target Algorithm,Estimated Days,Risk Reduction"]
-        for rec in report.recommendations:
-            csv_lines.append(f"{rec.asset_id},{rec.target_algorithm},{rec.estimated_days},{rec.risk_reduction}")
+        if "Migration" in type:
+            csv_lines = ["Asset ID,Target Algorithm,Estimated Days,Risk Reduction"]
+            for rec in report.recommendations:
+                csv_lines.append(f"{rec.asset_id},{rec.target_algorithm},{rec.estimated_days},{rec.risk_reduction}")
+        elif "Executive" in type:
+            csv_lines = ["Metric,Value"]
+            csv_lines.append(f"Total Assets,{report.total_assets}")
+            csv_lines.append(f"High Risk Assets,{report.total_high_risk_assets}")
+            csv_lines.append(f"PQC Readiness Score,{report.pqc_readiness_score}%")
+            csv_lines.append(f"Readiness Level,{report.pqc_readiness_level.value}")
+        else:
+            csv_lines = ["Category,Metric"]
+            csv_lines.append(f"Assets,{report.total_assets}")
+            csv_lines.append(f"High Risk,{report.total_high_risk_assets}")
         content = "\n".join(csv_lines).encode('utf-8')
         
     elif format == ExportFormat.PDF:
@@ -108,7 +124,7 @@ def download_report(
         buffer = io.BytesIO()
         c = canvas.Canvas(buffer, pagesize=letter)
         c.setFont("Helvetica-Bold", 16)
-        c.drawString(50, 750, f"AgileGraph Security Report: {report.project_id}")
+        c.drawString(50, 750, f"AgileGraph {type}")
         
         c.setFont("Helvetica-Bold", 12)
         c.drawString(50, 710, "Executive Summary")
@@ -144,7 +160,7 @@ def download_report(
         filename = f"report_{report_id}.md"
         
         md_lines = [
-            f"# AgileGraph Security Report: {report.project_id}",
+            f"# AgileGraph {type}: {report.project_id}",
             f"\n## Executive Summary\n{report.executive_summary}",
             "\n## Key Metrics",
             f"- Total Assets: {report.total_assets}",
@@ -154,6 +170,17 @@ def download_report(
             f"{report.roadmap_summary}"
         ]
         content = "\n".join(md_lines).encode('utf-8')
+
+    # Record the generated report
+    generated_report = ReportRecord(
+        id=f"rep-{str(uuid.uuid4())[:8]}",
+        title=f"{type} - {report.project_id}",
+        type=type,
+        created_at=datetime.utcnow().strftime("%b %d, %Y"),
+        size=f"{max(1, len(content) // 1024)} KB",
+        author="Admin"
+    )
+    GENERATED_REPORTS.insert(0, generated_report)
 
     def iterfile():
         yield content

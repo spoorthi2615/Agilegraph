@@ -47,11 +47,14 @@ function MarketingNav() {
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</a>
           <a href="#how" className="text-sm text-muted-foreground hover:text-foreground">How it works</a>
           <a href="#benefits" className="text-sm text-muted-foreground hover:text-foreground">Benefits</a>
-          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">Product</Link>
+          <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">Product</Link>
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Link to="/admin-login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            Admin Login
+          </Link>
           <Button asChild size="sm" className="shadow-[var(--shadow-glow)]">
-            <Link to="/scan">Start Scan <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link to="/login">Sign In <ArrowRight className="h-3.5 w-3.5" /></Link>
           </Button>
         </div>
       </div>
@@ -84,7 +87,7 @@ function Hero() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="h-11 shadow-[var(--shadow-glow)]">
-                <Link to="/scan">Start Scan <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/login">Get Started <ArrowRight className="h-4 w-4" /></Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-11">
                 <a href="#how">Learn More</a>
@@ -332,10 +335,10 @@ function CTA() {
           </div>
           <div className="flex gap-3">
             <Button asChild size="lg" variant="secondary" className="h-11">
-              <Link to="/scan">Start Scan <ArrowRight className="h-4 w-4" /></Link>
+              <Link to="/login">Get Started <ArrowRight className="h-4 w-4" /></Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-11 border-white/30 bg-white/10 text-white hover:bg-white/20">
-              <Link to="/dashboard">View Demo</Link>
+              <Link to="/login">View Demo</Link>
             </Button>
           </div>
         </div>
@@ -360,23 +363,43 @@ function Footer() {
           </p>
         </div>
         {[
-          { h: "Product", l: ["Dashboard", "Scan", "Graph View", "Reports"] },
-          { h: "Resources", l: ["NIST PQC Guide", "Mosca Framework", "Documentation", "Changelog"] },
-          { h: "Company", l: ["About", "Security", "Privacy", "Contact"] },
+          { h: "Product", l: [
+            { name: "Dashboard", href: "/dashboard" },
+            { name: "Scan", href: "/scan" },
+            { name: "Graph View", href: "/graph" },
+            { name: "Reports", href: "/reports" }
+          ]},
+          { h: "Resources", l: [
+            { name: "NIST PQC Guide", href: "https://csrc.nist.gov/projects/post-quantum-cryptography", external: true },
+            { name: "Documentation", href: "https://github.com/spoorthi2615/Agilegraph", external: true }
+          ]},
+          { h: "Company", l: [
+            { name: "Terms of Service", href: "/terms" },
+            { name: "Privacy Policy", href: "/privacy" },
+            { name: "Contact", href: "mailto:support@agilegraph.io", external: true }
+          ]},
         ].map((c) => (
           <div key={c.h}>
             <div className="text-sm font-semibold">{c.h}</div>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              {c.l.map((i) => <li key={i}><a href="#" className="hover:text-foreground">{i}</a></li>)}
+              {c.l.map((i) => (
+                <li key={i.name}>
+                  {i.external ? (
+                    <a href={i.href} target={i.href.startsWith('http') ? "_blank" : undefined} rel="noreferrer" className="hover:text-foreground">{i.name}</a>
+                  ) : (
+                    <Link to={i.href} className="hover:text-foreground">{i.name}</Link>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
         ))}
       </div>
       <div className="border-t">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-muted-foreground md:flex-row">
-          <span>© 2026 AgileGraph. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} AgileGraph. All rights reserved.</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-foreground inline-flex items-center gap-1"><Github className="h-3.5 w-3.5" /> GitHub</a>
+            <a href="https://github.com/spoorthi2615/Agilegraph" target="_blank" rel="noreferrer" className="hover:text-foreground inline-flex items-center gap-1"><Github className="h-3.5 w-3.5" /> GitHub</a>
             <span>SOC 2 · ISO 27001</span>
           </div>
         </div>

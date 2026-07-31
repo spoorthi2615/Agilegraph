@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Path as PathParam
 from typing import Optional
+import networkx as nx
 
 from app.config.settings import settings
 from app.services.graph_query_service import GraphQueryService
@@ -68,7 +69,7 @@ def get_graph(
         nodes.append(GraphNode(
             id=asset_id,
             label=raw.get("label", "Unknown Asset"),
-            type=raw.get("node_type", "service"),
+            type=str(raw.get("node_type", "service")).lower(),
             risk=str(raw.get("severity", "medium")).lower(),
             x=0.0,
             y=0.0
@@ -79,6 +80,23 @@ def get_graph(
             source=str(edge.get("source")),
             target=str(edge.get("target"))
         ))
+        
+    # Apply layout so nodes don't stack at (0,0)
+    if nodes:
+        nx_graph = nx.Graph()
+        for n in nodes:
+            nx_graph.add_node(n.id)
+        for e in edges:
+            nx_graph.add_edge(e.source, e.target)
+            
+        try:
+            pos = nx.spring_layout(nx_graph, k=0.15, iterations=50, scale=450, center=(500, 320))
+            for n in nodes:
+                if n.id in pos:
+                    n.x = float(pos[n.id][0])
+                    n.y = float(pos[n.id][1])
+        except Exception:
+            pass
             
     stats = GraphStatistics(
         total_nodes=len(nodes),

@@ -11,6 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppExplainabilityRouteImport } from './routes/_app.explainability'
 import { Route as AppGraphRouteImport } from './routes/_app.graph'
@@ -19,6 +23,11 @@ import { Route as AppRankingsRouteImport } from './routes/_app.rankings'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppScanRouteImport } from './routes/_app.scan'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AuthAdminLoginRouteImport } from './routes/_auth.admin-login'
+import { Route as AuthForgotPasswordRouteImport } from './routes/_auth.forgot-password'
+import { Route as AuthLoginRouteImport } from './routes/_auth.login'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth.reset-password'
+import { Route as AuthSignupRouteImport } from './routes/_auth.signup'
 import { Route as AppAssetsIdRouteImport } from './routes/_app.assets.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +38,25 @@ const IndexRoute = IndexRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
@@ -70,6 +98,31 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AuthAdminLoginRoute = AuthAdminLoginRouteImport.update({
+  id: '/admin-login',
+  path: '/admin-login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AppAssetsIdRoute = AppAssetsIdRouteImport.update({
   id: '/assets/$id',
   path: '/assets/$id',
@@ -78,6 +131,9 @@ const AppAssetsIdRoute = AppAssetsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/explainability': typeof AppExplainabilityRoute
   '/graph': typeof AppGraphRoute
@@ -86,10 +142,18 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AppReportsRoute
   '/scan': typeof AppScanRoute
   '/settings': typeof AppSettingsRoute
+  '/admin-login': typeof AuthAdminLoginRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/login': typeof AuthLoginRoute
+  '/reset-password': typeof AuthResetPasswordRoute
+  '/signup': typeof AuthSignupRoute
   '/assets/$id': typeof AppAssetsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/explainability': typeof AppExplainabilityRoute
   '/graph': typeof AppGraphRoute
@@ -98,12 +162,21 @@ export interface FileRoutesByTo {
   '/reports': typeof AppReportsRoute
   '/scan': typeof AppScanRoute
   '/settings': typeof AppSettingsRoute
+  '/admin-login': typeof AuthAdminLoginRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/login': typeof AuthLoginRoute
+  '/reset-password': typeof AuthResetPasswordRoute
+  '/signup': typeof AuthSignupRoute
   '/assets/$id': typeof AppAssetsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/_auth': typeof AuthRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/_app/admin': typeof AppAdminRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/explainability': typeof AppExplainabilityRoute
   '/_app/graph': typeof AppGraphRoute
@@ -112,12 +185,20 @@ export interface FileRoutesById {
   '/_app/reports': typeof AppReportsRoute
   '/_app/scan': typeof AppScanRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_auth/admin-login': typeof AuthAdminLoginRoute
+  '/_auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/_auth/login': typeof AuthLoginRoute
+  '/_auth/reset-password': typeof AuthResetPasswordRoute
+  '/_auth/signup': typeof AuthSignupRoute
   '/_app/assets/$id': typeof AppAssetsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/privacy'
+    | '/terms'
+    | '/admin'
     | '/dashboard'
     | '/explainability'
     | '/graph'
@@ -126,10 +207,18 @@ export interface FileRouteTypes {
     | '/reports'
     | '/scan'
     | '/settings'
+    | '/admin-login'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
     | '/assets/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
+    | '/terms'
+    | '/admin'
     | '/dashboard'
     | '/explainability'
     | '/graph'
@@ -138,11 +227,20 @@ export interface FileRouteTypes {
     | '/reports'
     | '/scan'
     | '/settings'
+    | '/admin-login'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
     | '/assets/$id'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/_auth'
+    | '/privacy'
+    | '/terms'
+    | '/_app/admin'
     | '/_app/dashboard'
     | '/_app/explainability'
     | '/_app/graph'
@@ -151,12 +249,20 @@ export interface FileRouteTypes {
     | '/_app/reports'
     | '/_app/scan'
     | '/_app/settings'
+    | '/_auth/admin-login'
+    | '/_auth/forgot-password'
+    | '/_auth/login'
+    | '/_auth/reset-password'
+    | '/_auth/signup'
     | '/_app/assets/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -174,6 +280,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
       id: '/_app/dashboard'
@@ -231,6 +365,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_auth/admin-login': {
+      id: '/_auth/admin-login'
+      path: '/admin-login'
+      fullPath: '/admin-login'
+      preLoaderRoute: typeof AuthAdminLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/forgot-password': {
+      id: '/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/signup': {
+      id: '/_auth/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_app/assets/$id': {
       id: '/_app/assets/$id'
       path: '/assets/$id'
@@ -242,6 +411,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppExplainabilityRoute: typeof AppExplainabilityRoute
   AppGraphRoute: typeof AppGraphRoute
@@ -254,6 +424,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppExplainabilityRoute: AppExplainabilityRoute,
   AppGraphRoute: AppGraphRoute,
@@ -267,9 +438,30 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface AuthRouteChildren {
+  AuthAdminLoginRoute: typeof AuthAdminLoginRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthSignupRoute: typeof AuthSignupRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthAdminLoginRoute: AuthAdminLoginRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthSignupRoute: AuthSignupRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

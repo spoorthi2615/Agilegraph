@@ -33,10 +33,23 @@ export const api = {
   },
 
   getRiskReports: async (): Promise<ReportRecord[]> => {
-    return apiClient.get<any>("/reports").then(res => res.items || []);
+    return apiClient.get<ReportRecord[]>("/dashboard/reports");
   },
 
   getExplainability: async (id: string): Promise<any> => {
     return apiClient.get<any>(`/explainability/${id}`);
+  },
+
+  search: async (query: string): Promise<any[]> => {
+    if (!query || query.length < 2) return [];
+    return apiClient.get<any[]>(`/search/all?q=${encodeURIComponent(query)}`);
+  },
+
+  getNotifications: async (): Promise<any[]> => {
+    return apiClient.get<any[]>("/notifications/all");
+  },
+
+  getWorkspaces: async (): Promise<any[]> => {
+    return apiClient.get<any[]>("/workspaces/all");
   }
 };

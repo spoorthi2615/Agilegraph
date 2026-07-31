@@ -66,3 +66,28 @@ export function useExplainability(id: string) {
     enabled: !!id
   });
 }
+
+export function useSearch(query: string) {
+  return useQuery({
+    queryKey: ["search", query],
+    queryFn: () => api.search(query),
+    enabled: query.length >= 2,
+    staleTime: 1000 * 30, // 30 seconds
+  });
+}
+
+export function useNotifications() {
+  return useQuery({
+    queryKey: ["notifications"],
+    queryFn: api.getNotifications,
+    staleTime: 1000 * 60, // 1 minute
+  });
+}
+
+export function useWorkspaces() {
+  return useQuery({
+    queryKey: ["workspaces"],
+    queryFn: api.getWorkspaces,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+}

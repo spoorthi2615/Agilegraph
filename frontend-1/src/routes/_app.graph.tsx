@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
 import { useMemo, useState } from "react";
-import { useCryptoGraph, useAssets } from "@/hooks/use-agilegraph";
+import { useCryptoGraph, useAsset, useExplainability } from "@/hooks/use-agilegraph";
 import { riskColor, type RiskLevel } from "@/lib/types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_app/graph")({
   }),
 });
 
-const TYPES = ["service", "certificate", "library", "code", "data", "application", "server"];
+const TYPES = ["file", "dependency", "key", "certificate", "hash", "symmetric_key", "asymmetric_key", "jwt", "unknown", "service", "library", "code", "data", "application", "server"];
 
 function GraphView() {
   const [selected, setSelected] = useState<string | null>(null);
@@ -30,7 +30,8 @@ function GraphView() {
   const [q, setQ] = useState("");
 
   const { data: graphData } = useCryptoGraph();
-  const { data: assets = [] } = useAssets();
+  const { data: selectedAsset, isPending, isError } = useAsset(selected || "");
+  const { data: explainData, isPending: isExplainPending } = useExplainability(selected || "");
   
   const graphNodes = graphData?.nodes || [];
   const graphEdges = graphData?.edges || [];
@@ -41,7 +42,6 @@ function GraphView() {
     const e = graphEdges.filter((edge) => ids.has(edge.source) && ids.has(edge.target));
     return { visible: v, edges: e };
   }, [graphNodes, graphEdges, types, q]);
-  const selectedAsset = selected ? assets.find((a) => a.id === selected) : null;
 
   const toggle = (t: string) => setTypes((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
 
@@ -94,19 +94,22 @@ function GraphView() {
               <span className="font-medium">{visible.length}</span> nodes · <span className="font-medium">{edges.length}</span> edges
             </div>
 
-            <CryptoGraphCanvas nodes={visible} edges={edges} zoom={zoom} selected={selected} onSelect={setSelected} />
+            <CryptoGraphCanvas nodes={visible} edges={edges} zoom={zoom} setZoom={setZoom} selected={selected} onSelect={setSelected} />
           </div>
         </div>
       </main>
 
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {isPending && selected && <div className="mt-12 p-8 text-center text-sm text-muted-foreground">Loading asset details from graph...</div>}
+          {isError && <div className="mt-12 p-8 text-center text-sm text-destructive">Failed to load asset details. The node may no longer exist.</div>}
+          {!isPending && !isError && !selectedAsset && selected && <div className="mt-12 p-8 text-center text-sm text-muted-foreground">Asset data could not be parsed.</div>}
           {selectedAsset && (
             <>
               <SheetHeader>
                 <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-lg" style={{ background: `color-mix(in oklab, ${riskColor[selectedAsset.risk]} 15%, transparent)`, color: riskColor[selectedAsset.risk] }}>
-                    <span className="text-sm font-bold">{selectedAsset.type[0].toUpperCase()}</span>
+                  <div className="grid h-10 w-10 place-items-center rounded-lg" style={{ background: `color-mix(in oklab, ${riskColor[selectedAsset.risk] || riskColor.medium} 15%, transparent)`, color: riskColor[selectedAsset.risk] || riskColor.medium }}>
+                    <span className="text-sm font-bold">{selectedAsset.type?.[0]?.toUpperCase() || "?"}</span>
                   </div>
                   <div className="min-w-0 flex-1">
                     <SheetTitle className="truncate text-left">{selectedAsset.name}</SheetTitle>
@@ -137,13 +140,20 @@ function GraphView() {
                     ))}
                   </div>
                 } />
-                <Row label="Estimated Effort" value={<span>{selectedAsset.migrationDays} days</span>} />
+                <Row label="Estimated Effort" value={<span>{selectedAsset.migrationDays || 0} days</span>} />
+
+                {(explainData?.naturalLanguageSummary || selectedAsset.description) && (
+                  <div className="rounded-lg border bg-muted/30 p-4 text-sm">
+                    <div className="font-semibold mb-2">Explanation {isExplainPending && <span className="text-xs text-muted-foreground font-normal">(Loading...)</span>}</div>
+                    <p className="text-muted-foreground leading-relaxed">{explainData?.naturalLanguageSummary || selectedAsset.description}</p>
+                  </div>
+                )}
 
                 <div>
-                  <div className="mb-2 text-xs text-muted-foreground">Connected Assets ({selectedAsset.connections.length})</div>
+                  <div className="mb-2 text-xs text-muted-foreground">Connected Assets ({selectedAsset.connections?.length || 0})</div>
                   <ul className="space-y-1.5">
-                    {selectedAsset.connections.map((c) => {
-                      const asset = assets.find((a) => a.id === c);
+                    {(selectedAsset.connections || []).map((c) => {
+                      const asset = graphNodes.find((a) => a.id === c);
                       if (!asset) return null;
                       return (
                         <li key={c}>

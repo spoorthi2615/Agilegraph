@@ -3,6 +3,7 @@ import { AppTopbar } from "@/components/app-topbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRiskReports } from "@/hooks/use-agilegraph";
+import { API_BASE_URL } from "@/services/api-client";
 import { toast } from "sonner";
 import { FileText, FileBarChart, Route as RouteIcon, ShieldAlert, Download, Printer, Table2 } from "lucide-react";
 
@@ -24,7 +25,25 @@ const generators = [
 ];
 
 function Reports() {
-  const { data: reports = [] } = useRiskReports();
+  const { data: reports = [], refetch } = useRiskReports();
+
+  const handleDownload = (type: string, format: string) => {
+    // Connect directly to the backend's report generator (which uses reportlab for PDFs)
+    const url = `${API_BASE_URL}/reports/latest/download?format=${format}&type=${encodeURIComponent(type)}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `AgileGraph_${type.replace(/\s+/g, '_')}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success(`${type} — ${format.toUpperCase()} downloading`);
+    
+    // Give backend time to record the generation, then refresh table
+    setTimeout(() => {
+      refetch();
+    }, 1000);
+  };
+
   return (
     <>
       <AppTopbar title="Reports" subtitle="Generate and share compliance-ready reports" />
@@ -38,9 +57,9 @@ function Reports() {
               <h3 className="mt-4 text-base font-semibold">{g.title}</h3>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{g.body}</p>
               <div className="mt-4 flex flex-wrap gap-1.5">
-                <Button size="sm" variant="outline" onClick={() => toast.success(`${g.title} — PDF exported`)}><Download className="h-3.5 w-3.5" />PDF</Button>
-                <Button size="sm" variant="outline" onClick={() => toast.success(`${g.title} — CSV exported`)}><Table2 className="h-3.5 w-3.5" />CSV</Button>
-                <Button size="sm" variant="ghost" onClick={() => toast.success(`Printing ${g.title}`)}><Printer className="h-3.5 w-3.5" />Print</Button>
+                <Button size="sm" variant="outline" onClick={() => handleDownload(g.title, "pdf")}><Download className="h-3.5 w-3.5" />PDF</Button>
+                <Button size="sm" variant="outline" onClick={() => handleDownload(g.title, "csv")}><Table2 className="h-3.5 w-3.5" />CSV</Button>
+                <Button size="sm" variant="ghost" onClick={() => { window.print(); toast.success(`Printing ${g.title}`); }}><Printer className="h-3.5 w-3.5" />Print</Button>
               </div>
             </div>
           ))}
@@ -70,7 +89,7 @@ function Reports() {
                     <td className="px-5 py-3 text-muted-foreground">{r.size}</td>
                     <td className="px-5 py-3">{r.author}</td>
                     <td className="px-5 py-3 text-right">
-                      <Button size="sm" variant="ghost" onClick={() => toast.success(`Downloading ${r.title}`)}><Download className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDownload(r.title, "pdf")}><Download className="h-4 w-4" /></Button>
                     </td>
                   </tr>
                 ))}

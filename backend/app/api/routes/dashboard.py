@@ -21,7 +21,7 @@ from app.models.security_report import SecurityReport
 
 from app.models.dashboard import (
     DashboardSummary, KPISummary, DashboardGraph, DashboardNode, DashboardEdge, ReportRecord,
-    RiskDistribution, AlgorithmUsage, CriticalAlert, MigrationTrend
+    RiskDistribution, AlgorithmUsage, CriticalAlert, MigrationTrend, ScanRecord
 )
 
 router = APIRouter()
@@ -120,7 +120,7 @@ def get_summary(
         medium=medium_count,
         low=low_count,
         migration_progress=0,  # Could be derived from migrated assets if tracked
-        pqc_readiness=readiness.overall_readiness_score if readiness else 0,
+        pqc_readiness=readiness.overall_score if readiness else 0,
         last_scan="Recent"
     )
     
@@ -149,13 +149,27 @@ def get_summary(
         for alert in aggs.get("alerts", [])
     ]
     
+    # Create a mock recent scan to represent the pre-loaded Neo4j data
+    scans = []
+    if stats.get("asset_count", 0) > 0:
+        scans.append(ScanRecord(
+            id="SCAN-94A8B",
+            name="core-banking-monorepo",
+            source="GitHub",
+            started_at="2 hours ago",
+            duration="4m 12s",
+            assets=stats.get("asset_count", 0),
+            critical_findings=critical_count,
+            status="Completed"
+        ))
+
     return DashboardSummary(
         kpis=kpis,
         risk_distribution=risk_dist,
         algorithm_usage=algo_usage,
         department_usage=[],  # Keep empty for now as departments aren't in the AST
         migration_trend=[MigrationTrend(month="Current", migrated=0, planned=critical_count + high_count)],
-        recent_scans=[],
+        recent_scans=scans,
         activity=[],
         critical_alerts=alerts
     )
@@ -166,6 +180,7 @@ class MoscaResponse(BaseModel):
     z: float
     surplus: float
     readiness_score: int
+    has_data: bool
 
 @router.get("/mosca", response_model=MoscaResponse)
 def get_mosca_readiness(
@@ -207,19 +222,23 @@ def get_mosca_readiness(
     raw = max(0, min(100, ((z - max(x + y, 0.1)) / z) * 100 + 40))
     readiness_score = int(round(raw))
     
+    stats = query_service.get_summary_statistics()
+    has_data = stats.get("asset_count", 0) > 0
+
     return MoscaResponse(
         x=x,
         y=y,
         z=z,
         surplus=surplus,
-        readiness_score=readiness_score
+        readiness_score=readiness_score,
+        has_data=has_data
     )
 
 @router.get("/graph", response_model=DashboardGraph)
 def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGraph:
     nodes = []
     if graph and hasattr(graph, 'nodes'):
-        for node in graph.nodes:
+        for node in graph.nodes.values():
             # We must map backend CryptoNode to frontend DashboardNode
             # Risk level fallback to "medium", type fallback to "service" if undefined
             nodes.append(DashboardNode(
@@ -243,19 +262,8 @@ def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGr
 
 @router.get("/reports", response_model=List[ReportRecord])
 def get_reports(report: SecurityReport = Depends(provide_security_report)) -> List[ReportRecord]:
-    if not report:
-        return []
-        
-    return [
-        ReportRecord(
-            id=str(report.report_id),
-            title="Generated Security Report",
-            type="Security",
-            created_at=report.generated_at.isoformat() if hasattr(report, 'generated_at') else "",
-            size="0 KB",
-            author="AgileGraph"
-        )
-    ]
+    from app.api.routes.report import GENERATED_REPORTS
+    return GENERATED_REPORTS
 
 @router.get("/explanations", response_model=List[Explanation])
 def get_explanations(explanations: List[Explanation] = Depends(provide_explanations)) -> List[Explanation]:

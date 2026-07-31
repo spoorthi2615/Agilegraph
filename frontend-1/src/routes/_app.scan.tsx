@@ -34,6 +34,9 @@ function ScanPage() {
   const importGitHub = useGitHubImport();
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [historyFilter, setHistoryFilter] = useState("all");
+
+  const filteredScans = recentScans.filter((s: any) => historyFilter === "all" || s.source.toLowerCase().includes(historyFilter));
 
   // Poll the backend for real status
   useQuery({
@@ -86,8 +89,15 @@ function ScanPage() {
   return (
     <>
       <AppTopbar title="Scan Project" subtitle="Discover cryptographic assets across your stack" />
-      <main className="p-4 md:p-6 space-y-6">
-        <div className="grid gap-6 lg:grid-cols-3">
+      <main className="p-4 md:p-6">
+        <Tabs defaultValue="new">
+          <TabsList className="w-full max-w-[400px] grid grid-cols-2 mb-6">
+            <TabsTrigger value="new">New Scan</TabsTrigger>
+            <TabsTrigger value="history">Recent Scans</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="new" className="space-y-6 mt-0">
+            <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-xl border bg-card p-6">
             <Tabs defaultValue="zip">
               <TabsList className="grid w-full grid-cols-4">
@@ -100,7 +110,16 @@ function ScanPage() {
               <TabsContent value="zip" className="mt-6">
                 <Dropzone onFileDrop={(file) => {
                   uploadProject.mutate(file, {
-                    onSuccess: (data) => start(data.project_id)
+                    onSuccess: (data) => {
+                      if (data && data.project_id) {
+                        start(data.project_id);
+                      } else {
+                        toast.error("Upload failed", { description: "No project ID returned" });
+                      }
+                    },
+                    onError: (err: any) => {
+                      toast.error("Upload failed", { description: err?.message || String(err) });
+                    }
                   });
                 }} />
               </TabsContent>
@@ -139,8 +158,8 @@ function ScanPage() {
 
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => { setRunning(false); setProgress(0); setPhase("Idle"); }}><X className="h-4 w-4" />Cancel</Button>
-              <Button onClick={() => {}} disabled={running} className="shadow-[var(--shadow-glow)]">
-                {running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />Waiting for Upload</>}
+              <Button onClick={() => {}} disabled={running || uploadProject.isPending} className="shadow-[var(--shadow-glow)]">
+                {uploadProject.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />Uploading…</> : running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />Waiting for Upload</>}
               </Button>
             </div>
           </div>
@@ -171,17 +190,27 @@ function ScanPage() {
               <div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Critical</div><div className="text-lg font-semibold text-critical">{Math.floor(progress / 15)}</div></div>
             </div>
           </div>
-        </div>
-
-        <div className="rounded-xl border bg-card">
-          <div className="flex items-center justify-between border-b p-5">
-            <div>
-              <h3 className="text-sm font-semibold">Recent Scan History</h3>
-              <p className="text-xs text-muted-foreground">Last 5 scans across your workspace</p>
             </div>
-            <Button variant="outline" size="sm">View all <ArrowRight className="h-3.5 w-3.5" /></Button>
-          </div>
-          <div className="overflow-x-auto">
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-0">
+            <div className="rounded-xl border bg-card">
+            <div className="flex items-center justify-between border-b p-5">
+              <div>
+                <h3 className="text-sm font-semibold">Recent Scan History</h3>
+                <p className="text-xs text-muted-foreground">Recent scans across your workspace</p>
+              </div>
+              <Tabs value={historyFilter} onValueChange={setHistoryFilter}>
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="upload">Upload</TabsTrigger>
+                  <TabsTrigger value="github">GitHub</TabsTrigger>
+                  <TabsTrigger value="domain">Domain</TabsTrigger>
+                  <TabsTrigger value="certificate">Cert</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/30 text-xs text-muted-foreground">
                 <tr>
@@ -191,21 +220,31 @@ function ScanPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {recentScans.map((s) => (
-                  <tr key={s.id} className="hover:bg-muted/20">
-                    <td className="px-5 py-3"><div className="font-medium">{s.name}</div><div className="text-xs text-muted-foreground">{s.id}</div></td>
-                    <td className="px-5 py-3"><Badge variant="secondary">{s.source}</Badge></td>
-                    <td className="px-5 py-3 text-muted-foreground">{s.startedAt}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{s.duration}</td>
-                    <td className="px-5 py-3 font-medium">{s.assets}</td>
-                    <td className="px-5 py-3"><span className="text-critical font-medium">{s.criticalFindings}</span></td>
-                    <td className="px-5 py-3"><Badge className="bg-success/15 text-success hover:bg-success/15">Completed</Badge></td>
+                {filteredScans.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
+                      No recent scans found for this filter.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredScans.map((s: any) => (
+                    <tr key={s.id} className="hover:bg-muted/20">
+                      <td className="px-5 py-3"><div className="font-medium">{s.name}</div><div className="text-xs text-muted-foreground">{s.id}</div></td>
+                      <td className="px-5 py-3"><Badge variant="secondary">{s.source}</Badge></td>
+                      <td className="px-5 py-3 text-muted-foreground">{s.startedAt}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{s.duration}</td>
+                      <td className="px-5 py-3 font-medium">{s.assets}</td>
+                      <td className="px-5 py-3"><span className="text-critical font-medium">{s.criticalFindings}</span></td>
+                      <td className="px-5 py-3"><Badge className="bg-success/15 text-success hover:bg-success/15">Completed</Badge></td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </>
   );

@@ -18,3 +18,8 @@ dist/
 *.pt
 *.pth
 *.onnx
+
+# Local reports & logs
+*.pdf
+training_log*.txt
+scratch_*.py

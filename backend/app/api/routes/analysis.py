@@ -49,7 +49,7 @@ def get_assets(
     Retrieves a paginated list of cryptographic assets with filtering and sorting support.
     """
     try:
-        raw_assets = query_service.get_high_risk_assets()
+        raw_assets = query_service.get_all_assets()
     except Exception:
         raw_assets = []
         
@@ -106,16 +106,16 @@ def get_asset_detail(
         type=node_data.get("node_type", "service"),
         department="Engineering",
         algorithm=node_data.get("algorithm", "Unknown"),
-        key_size=str(node_data.get("key_size", "256")),
-        risk_score=node_data.get("risk_score", 0),
-        risk=str(node_data.get("severity", "medium")).lower(),
+        key_size=str(node_data.get("key_size") or "256"),
+        risk_score=node_data.get("risk_score") or 0,
+        risk=str(node_data.get("severity") or "medium").lower(),
         recommended="PQC-Safe Standard",
         migration_days=0,
-        risk_reduction=node_data.get("risk_score", 0),
+        risk_reduction=node_data.get("risk_score") or 0,
         status="not-started",
-        priority=node_data.get("risk_score", 0),
+        priority=node_data.get("risk_score") or 0,
         discovered_at="2026-07-27T00:00:00Z",
-        location=node_data.get("file_path", "unknown"),
+        location=node_data.get("file_path") or "unknown",
         connections=[],
         description="Detailed asset information retrieved from graph.",
         heuristic_breakdown=[],

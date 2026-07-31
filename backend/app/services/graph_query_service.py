@@ -24,6 +24,18 @@ class GraphQueryService:
         with self.driver.session() as session:
             return session.execute_read(self._execute_and_fetch, query)
 
+    def get_all_assets(self) -> List[Dict[str, Any]]:
+        """
+        Returns all cryptographic assets in the graph.
+        """
+        query = """
+        MATCH (n)
+        WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE
+        RETURN n
+        """
+        with self.driver.session() as session:
+            return session.execute_read(self._execute_and_fetch, query)
+
     def get_files_using_dependency(self, package_name: str) -> List[Dict[str, Any]]:
         """
         Traverses the graph to find all Python files that IMPORT a specific vulnerable dependency.
@@ -93,7 +105,8 @@ class GraphQueryService:
             # Severity counts
             severity_query = """
             MATCH (n) 
-            WHERE n.severity IS NOT NULL
+            WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
+              AND n.severity IS NOT NULL
             RETURN n.severity AS severity, count(n) AS count
             """
             severities = tx.run(severity_query).data()
@@ -101,7 +114,8 @@ class GraphQueryService:
             # Algorithm counts
             algo_query = """
             MATCH (n)
-            WHERE n.algorithm IS NOT NULL
+            WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
+              AND n.algorithm IS NOT NULL
             RETURN n.algorithm AS algorithm, count(n) AS count
             ORDER BY count DESC
             LIMIT 7
@@ -111,7 +125,8 @@ class GraphQueryService:
             # Top critical alerts
             alerts_query = """
             MATCH (n)
-            WHERE toUpper(n.severity) = 'CRITICAL'
+            WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
+              AND toUpper(n.severity) = 'CRITICAL'
             RETURN n.node_id AS id, n.label AS title, 'Critical cryptographic risk detected' AS reason, n.risk_score AS score
             ORDER BY n.risk_score DESC
             LIMIT 5

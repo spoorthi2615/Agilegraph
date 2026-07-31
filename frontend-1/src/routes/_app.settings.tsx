@@ -21,6 +21,8 @@ export const Route = createFileRoute("/_app/settings")({
 });
 
 function Settings() {
+  const [activeTab, setActiveTab] = useState("theme");
+
   // Theme state
   const [colorMode, setColorMode] = useState(localStorage.getItem('theme') || 'light');
   const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue');
@@ -116,7 +118,7 @@ function Settings() {
     <>
       <AppTopbar title="Settings" subtitle="Manage your workspace preferences" />
       <main className="p-4 md:p-6 animate-in fade-in slide-in-from-bottom-4">
-        <Tabs defaultValue="theme" orientation="vertical" className="grid gap-6 lg:grid-cols-[220px_1fr]">
+        <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="grid gap-6 lg:grid-cols-[220px_1fr]">
           <TabsList className="flex h-auto flex-col items-stretch justify-start bg-transparent p-0">
             {[
               ["theme", "Theme"],
@@ -179,10 +181,12 @@ function Settings() {
           </div>
         </Tabs>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="outline" onClick={handleReset}>Reset</Button>
-          <Button onClick={handleSave}>Save changes</Button>
-        </div>
+        {activeTab !== 'about' && (
+          <div className="mt-6 flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2">
+            <Button variant="outline" onClick={handleReset}>Reset</Button>
+            <Button onClick={handleSave}>Save changes</Button>
+          </div>
+        )}
       </main>
     </>
   );

@@ -7,6 +7,10 @@ class GraphQueryService:
     acting as the data access layer for future dashboards and analytics.
     """
     def __init__(self, uri: str, user: str, password: str) -> None:
+        if not uri:
+            self.driver = None
+            return
+        
         self.driver = GraphDatabase.driver(
             uri,
             auth=(user, password),

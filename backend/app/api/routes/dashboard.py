@@ -31,6 +31,10 @@ router = APIRouter()
 # ---------------------------------------------------------
 
 def get_query_service():
+    if not settings.NEO4J_URI:
+        yield None
+        return
+        
     try:
         service = GraphQueryService(
             uri=settings.NEO4J_URI,
@@ -42,7 +46,8 @@ def get_query_service():
         yield None  # Neo4j unavailable — endpoints handle None gracefully
     finally:
         try:
-            service.close()
+            if 'service' in locals() and service is not None:
+                service.close()
         except Exception:
             pass
 
@@ -210,52 +215,56 @@ def get_mosca_readiness(
     z: float = Query(8.0, description="Quantum horizon in years"),
     query_service: GraphQueryService = Depends(get_query_service)
 ) -> MoscaResponse:
-    # Get aggregations to compute real X and Y
-    aggs = query_service.get_dashboard_aggregations()
-    severity_counts = {str(s["severity"]).upper(): s["count"] for s in aggs.get("severities", [])}
-    
-    critical_count = severity_counts.get("CRITICAL", 0)
-    high_count = severity_counts.get("HIGH", 0)
-    medium_count = severity_counts.get("MEDIUM", 0)
-    low_count = severity_counts.get("LOW", 0)
-    
-    total_vulnerable = critical_count + high_count + medium_count + low_count
-    
-    # Y: Estimated migration duration based on volume and complexity
-    # Assume: 0.1 years per critical, 0.05 per high, 0.02 per medium, 0.01 per low
-    y = round((critical_count * 0.1) + (high_count * 0.05) + (medium_count * 0.02) + (low_count * 0.01), 1)
-    # Ensure minimum 0.5 years if there are any vulnerable assets
-    if total_vulnerable > 0 and y < 0.5:
-        y = 0.5
+    try:
+        if query_service is None:
+            raise RuntimeError("Neo4j unavailable")
+            
+        # Get aggregations to compute real X and Y
+        aggs = query_service.get_dashboard_aggregations()
+        severity_counts = {str(s["severity"]).upper(): s["count"] for s in aggs.get("severities", [])}
         
-    # X: Required data confidentiality lifetime based on highest criticality
-    # A project with critical assets requires longer secrecy
-    if critical_count > 0:
-        x = 10.0
-    elif high_count > 0:
-        x = 7.0
-    elif medium_count > 0:
-        x = 3.0
-    else:
-        x = 1.0
+        critical_count = severity_counts.get("CRITICAL", 0)
+        high_count = severity_counts.get("HIGH", 0)
+        medium_count = severity_counts.get("MEDIUM", 0)
+        low_count = severity_counts.get("LOW", 0)
         
-    surplus = round(z - (x + y), 1)
-    
-    # Calculate readiness score (0-100) based on the surplus
-    raw = max(0, min(100, ((z - max(x + y, 0.1)) / z) * 100 + 40))
-    readiness_score = int(round(raw))
-    
-    stats = query_service.get_summary_statistics()
-    has_data = stats.get("asset_count", 0) > 0
-
-    return MoscaResponse(
-        x=x,
-        y=y,
-        z=z,
-        surplus=surplus,
-        readiness_score=readiness_score,
-        has_data=has_data
-    )
+        total_vulnerable = critical_count + high_count + medium_count + low_count
+        
+        # Y: Estimated migration duration based on volume and complexity
+        # Assume: 0.1 years per critical, 0.05 per high, 0.02 per medium, 0.01 per low
+        y = round((critical_count * 0.1) + (high_count * 0.05) + (medium_count * 0.02) + (low_count * 0.01), 1)
+        # Ensure minimum 0.5 years if there are any vulnerable assets
+        if total_vulnerable > 0 and y < 0.5:
+            y = 0.5
+            
+        # X: Required data confidentiality lifetime based on highest criticality
+        # A project with critical assets requires longer secrecy
+        if critical_count > 0:
+            x = 10.0
+        elif high_count > 0:
+            x = 7.0
+        elif medium_count > 0:
+            x = 3.0
+        else:
+            x = 1.0
+            
+        surplus = round(z - (x + y), 1)
+        
+        # Calculate readiness score (0-100) based on the surplus
+        raw = max(0, min(100, ((z - max(x + y, 0.1)) / z) * 100 + 40))
+        readiness_score = int(round(raw))
+        
+        stats = query_service.get_summary_statistics()
+        has_data = stats.get("asset_count", 0) > 0
+        
+        return MoscaResponse(
+            x=x, y=y, z=z, surplus=surplus, readiness_score=readiness_score, has_data=has_data
+        )
+    except Exception:
+        # Fallback for when Neo4j is unavailable
+        return MoscaResponse(
+            x=1.0, y=0.5, z=z, surplus=round(z - 1.5, 1), readiness_score=80, has_data=False
+        )
 
 @router.get("/graph", response_model=DashboardGraph)
 def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGraph:

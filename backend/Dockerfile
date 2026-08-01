@@ -7,16 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CPU-only torch (separate from PyPI packages — uses PyTorch wheel server)
-RUN pip install --no-cache-dir torch==2.1.0+cpu --index-url https://download.pytorch.org/whl/cpu
-
-# Install torch_geometric from PyPI (requires torch to be installed first)
-RUN pip install --no-cache-dir torch_geometric
-
-# Install transformers for CodeBERT (local cache only at runtime)
-RUN pip install --no-cache-dir "transformers>=4.30.0"
-
-# Install remaining production dependencies
+# Install production Python dependencies (ML dependencies are excluded for Railway deployment)
 COPY requirements-prod.txt .
 RUN pip install --no-cache-dir -r requirements-prod.txt
 

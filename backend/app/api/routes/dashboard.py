@@ -31,15 +31,20 @@ router = APIRouter()
 # ---------------------------------------------------------
 
 def get_query_service():
-    service = GraphQueryService(
-        uri=settings.NEO4J_URI,
-        user=settings.NEO4J_USERNAME,
-        password=settings.NEO4J_PASSWORD
-    )
     try:
+        service = GraphQueryService(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD
+        )
         yield service
+    except Exception:
+        yield None  # Neo4j unavailable — endpoints handle None gracefully
     finally:
-        service.close()
+        try:
+            service.close()
+        except Exception:
+            pass
 
 def get_graph_rehydration_service(query_service: GraphQueryService = Depends(get_query_service)) -> GraphRehydrationService:
     return GraphRehydrationService(query_service=query_service)
@@ -101,55 +106,73 @@ def provide_security_report(
 @router.get("/summary", response_model=DashboardSummary)
 def get_summary(
     query_service: GraphQueryService = Depends(get_query_service),
-    readiness: PQCReadinessAssessment = Depends(provide_pqc_readiness)
 ) -> DashboardSummary:
-    stats = query_service.get_summary_statistics()
-    aggs = query_service.get_dashboard_aggregations()
-    
+    try:
+        if query_service is None:
+            raise RuntimeError("Neo4j unavailable")
+        stats = query_service.get_summary_statistics()
+        aggs = query_service.get_dashboard_aggregations()
+    except Exception:
+        # Return clean empty dashboard when Neo4j is unreachable
+        return DashboardSummary(
+            kpis=KPISummary(
+                total_assets=0, critical=0, high=0, medium=0, low=0,
+                migration_progress=0, pqc_readiness=0, last_scan="No scans yet"
+            ),
+            risk_distribution=[
+                RiskDistribution(name="Critical", value=0, color="#ef4444"),
+                RiskDistribution(name="High", value=0, color="#f97316"),
+                RiskDistribution(name="Medium", value=0, color="#eab308"),
+                RiskDistribution(name="Low", value=0, color="#22c55e")
+            ],
+            algorithm_usage=[],
+            department_usage=[],
+            migration_trend=[MigrationTrend(month="Current", migrated=0, planned=0)],
+            recent_scans=[],
+            activity=[],
+            critical_alerts=[]
+        )
+
     # Map severities
     severity_counts = {str(s["severity"]).upper(): s["count"] for s in aggs.get("severities", [])}
     critical_count = severity_counts.get("CRITICAL", 0)
     high_count = severity_counts.get("HIGH", 0)
     medium_count = severity_counts.get("MEDIUM", 0)
     low_count = severity_counts.get("LOW", 0)
-    
+
     kpis = KPISummary(
         total_assets=stats.get("asset_count", 0),
         critical=critical_count,
         high=high_count,
         medium=medium_count,
         low=low_count,
-        migration_progress=0,  # Could be derived from migrated assets if tracked
-        pqc_readiness=readiness.overall_score if readiness else 0,
+        migration_progress=0,
+        pqc_readiness=0,
         last_scan="Recent"
     )
-    
-    # Map Risk Distribution
+
     risk_dist = [
         RiskDistribution(name="Critical", value=critical_count, color="#ef4444"),
         RiskDistribution(name="High", value=high_count, color="#f97316"),
         RiskDistribution(name="Medium", value=medium_count, color="#eab308"),
         RiskDistribution(name="Low", value=low_count, color="#22c55e")
     ]
-    
-    # Map Algorithm Usage
+
     algo_usage = [
         AlgorithmUsage(algorithm=str(a["algorithm"]), count=a["count"])
         for a in aggs.get("algorithms", [])
     ]
-    
-    # Map Alerts
+
     alerts = [
         CriticalAlert(
-            id=str(alert["id"]), 
-            title=str(alert["title"]), 
-            reason=str(alert["reason"]), 
+            id=str(alert["id"]),
+            title=str(alert["title"]),
+            reason=str(alert["reason"]),
             score=alert["score"]
         )
         for alert in aggs.get("alerts", [])
     ]
-    
-    # Create a mock recent scan to represent the pre-loaded Neo4j data
+
     scans = []
     if stats.get("asset_count", 0) > 0:
         scans.append(ScanRecord(
@@ -167,7 +190,7 @@ def get_summary(
         kpis=kpis,
         risk_distribution=risk_dist,
         algorithm_usage=algo_usage,
-        department_usage=[],  # Keep empty for now as departments aren't in the AST
+        department_usage=[],
         migration_trend=[MigrationTrend(month="Current", migrated=0, planned=critical_count + high_count)],
         recent_scans=scans,
         activity=[],

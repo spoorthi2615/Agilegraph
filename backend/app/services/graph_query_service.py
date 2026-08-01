@@ -7,7 +7,12 @@ class GraphQueryService:
     acting as the data access layer for future dashboards and analytics.
     """
     def __init__(self, uri: str, user: str, password: str) -> None:
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+        self.driver = GraphDatabase.driver(
+            uri,
+            auth=(user, password),
+            connection_timeout=3,           # Fail fast if Neo4j unreachable
+            max_connection_lifetime=300
+        )
 
     def close(self) -> None:
         self.driver.close()

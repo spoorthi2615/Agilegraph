@@ -1,6 +1,5 @@
-# Production requirements — excludes heavy ML packages (torch, transformers)
-# ML inference falls back to heuristic scoring when CodeBERT is not cached.
-# Use requirements.txt for full local development with ML support.
+# Production requirements — uses CPU-only torch (no CUDA, ~250MB vs 2GB)
+# Use requirements.txt for full local development with GPU support.
 
 fastapi>=0.109.2
 uvicorn>=0.27.1

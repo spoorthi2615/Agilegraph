@@ -7,18 +7,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CPU-only torch first (avoids downloading 2GB CUDA version)
-RUN pip install --no-cache-dir \
-    torch==2.1.0+cpu \
-    torch_geometric==2.4.0 \
-    --index-url https://download.pytorch.org/whl/cpu
+# Install CPU-only torch (separate from PyPI packages — uses PyTorch wheel server)
+RUN pip install --no-cache-dir torch==2.1.0+cpu --index-url https://download.pytorch.org/whl/cpu
+
+# Install torch_geometric from PyPI (requires torch to be installed first)
+RUN pip install --no-cache-dir torch_geometric
+
+# Install transformers for CodeBERT (local cache only at runtime)
+RUN pip install --no-cache-dir "transformers>=4.30.0"
 
 # Install remaining production dependencies
 COPY requirements-prod.txt .
 RUN pip install --no-cache-dir -r requirements-prod.txt
-
-# Install transformers (CodeBERT) - will use local cache only at runtime
-RUN pip install --no-cache-dir transformers>=4.30.0
 
 # Copy application source code
 COPY . .

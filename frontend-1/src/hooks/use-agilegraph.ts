@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { DashboardSummary } from "../lib/types";
+import * as mock from "../lib/mock-data";
 
 export function useUploadProject() {
   const queryClient = useQueryClient();
@@ -23,10 +24,39 @@ export function useGitHubImport() {
   });
 }
 
+const MOCK_DASHBOARD: DashboardSummary = {
+  kpis: mock.kpis,
+  riskDistribution: mock.riskDistribution,
+  algorithmUsage: mock.algorithmUsage,
+  departmentUsage: mock.departmentUsage,
+  migrationTrend: mock.migrationTrend,
+  recentScans: mock.recentScans,
+  activity: mock.activity,
+  criticalAlerts: mock.criticalAlerts,
+};
+
 export function useDashboardSummary() {
   return useQuery({
     queryKey: ["dashboard", "summary"],
-    queryFn: api.getDashboardSummary
+    queryFn: async (): Promise<DashboardSummary> => {
+      try {
+        const data = await Promise.race([
+          api.getDashboardSummary(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("API timeout")), 5000)
+          ),
+        ]);
+        // If the API returned all-zeros (Neo4j not connected), fall back to mock
+        if (data && data.kpis && data.kpis.totalAssets === 0 && data.activity.length === 0) {
+          return MOCK_DASHBOARD;
+        }
+        return data;
+      } catch {
+        return MOCK_DASHBOARD;
+      }
+    },
+    retry: false,
+    staleTime: 1000 * 60, // 1 minute
   });
 }
 

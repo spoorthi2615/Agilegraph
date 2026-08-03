@@ -86,10 +86,12 @@ Values below are the raw, unresampled mean across the 5 cross-validation folds â
     mcnemar = stats.get("mcnemar", {})
     if "full_vs_noise" in mcnemar:
         p = mcnemar['full_vs_noise']['pvalue']
-        stats_md += f"- **Full Model vs Random Noise (- CodeBERT)**: p = {p:.4e}\n"
+        p_str = f"{p:.4e}" if p > 1e-300 else "< 1e-300"
+        stats_md += f"- **Full Model vs Random Noise (- CodeBERT)**: p = {p_str}\n"
     if "full_vs_het" in mcnemar:
         p = mcnemar['full_vs_het']['pvalue']
-        stats_md += f"- **Full Model vs Homogeneous GCN (- Heterogeneous)**: p = {p:.4e}\n"
+        p_str = f"{p:.4e}" if p > 1e-300 else "< 1e-300"
+        stats_md += f"- **Full Model vs Homogeneous GCN (- Heterogeneous)**: p = {p_str}\n"
     if "CBOMkit Baseline" in mcnemar:
         p = mcnemar["CBOMkit Baseline"]["p_value"]
         p_str = f"{p:.4e}" if isinstance(p, float) else str(p)

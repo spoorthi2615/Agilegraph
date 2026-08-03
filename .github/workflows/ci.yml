@@ -34,7 +34,6 @@ jobs:
 
       - name: Code Formatting Check
         working-directory: ./backend
-        continue-on-error: true
         run: |
           black --check .
           ruff check .
@@ -51,7 +50,6 @@ jobs:
 
       - name: Run Tests
         working-directory: ./backend
-        continue-on-error: true
         run: pytest --cov=app --cov-report=xml
 
       - name: Upload Coverage Report
@@ -86,7 +84,6 @@ jobs:
 
       - name: Security Scan
         working-directory: ./frontend-1
-        continue-on-error: true
         run: npm audit --omit=dev --audit-level=high
 
       - name: TypeScript Compile & Build

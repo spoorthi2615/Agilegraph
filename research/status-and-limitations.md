@@ -18,7 +18,11 @@ This addendum serves to clarify the discrepancies between the early exploratory 
 **Initial Synopsis Claim:** An "expert panel pairwise weighting mechanism" was referenced but unimplemented in the early codebase.
 **Final Reality:** To close this gap identified during review, the mathematical backend for the AHP-lite module was fully implemented (`ahp_lite_service.py`). It mathematically derives objective weights from expert pairwise comparisons by calculating the Principal Eigenvector via eigenvalue decomposition, and mathematically verifies the experts' logic by calculating the standard Consistency Ratio (CR).
 
-## 5. Changelog of Fixed Issues (for transparency)
+## 5. Expert Validation (AHP-Lite vs Ground Truth)
+**Initial Synopsis Claim:** Section 5.2 promised a validation round with 150–200 held-out assets scored by ≥4 independent human security experts to establish a Fleiss' Kappa ceiling for the GNN's performance.
+**Final Reality:** The AHP-lite consensus mechanism is fully implemented (see `ahp_lite_service.py`) and functionally verified. Currently, the ground truth used to calculate the baseline 0.913 F1 score is derived deterministically from AST pattern matching to establish the model's structural competence. **The final large-scale human annotation exercise with 4+ real cryptographers is scheduled as the final concluding phase of the project.** Once complete, the expert-annotated labels will be used to compute the final Fleiss' Kappa ceiling and human-vs-machine agreement scores.
+
+## 6. Changelog of Fixed Issues (for transparency)
 - **CBOMkit circularity bug**: an earlier version of the CBOMkit baseline re-derived its "output" from the same regex ground-truth labeler used to generate training labels, rather than from CBOMkit's actual Docker output. Fixed in `scripts/run_cbomkit.py` — it now shells out to the real `cbomkit-theia` container.
 - **Train/validation leakage**: an earlier training loop did not guarantee validation repos were disjoint from training repos within a fold. Fixed with explicit repo-set assertions in `scripts/run_experiments.py`.
 - **Cross-document metric drift**: multiple research documents reported different Full-Model F1 values (0.859 raw vs 0.913 bootstrapped) without labeling which was which; one document even contradicted itself between its own table and prose. Fixed by standardizing all generator scripts on `report_helpers.get_f1_for_model()` and adding an automated cross-document consistency check (see `research/METRIC_CONVENTIONS.md`).

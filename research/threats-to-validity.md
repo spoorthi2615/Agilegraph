@@ -32,7 +32,7 @@ External validity defines the boundaries of the research's applicability to the 
 An independent researcher can fundamentally reconstruct this study using the following fixed artifacts:
 - **Environment**: Docker v24.0, Python 3.11.7, PyTorch 2.1.0+cu118.
 - **Datasets**: `AgileGraph-Code-Corpus v1.0.0` and `AgileGraph-GNN-Tensors v2.0.0`.
-- **Scripts**: `/scripts/run_benchmarks.py` and `/scripts/generate_ablation_figures.py`.
+- **Scripts**: `/scripts/run_experiments.py` and `/scripts/generate_ablation_figures.py`.
 - **Replicability**: High on standard hardware. Replicating the exact latency metrics (~30-40ms inference) requires similar modern multi-core CPU architecture. Running on significantly older consumer hardware or massive distributed clusters will yield different timing topologies.
 
 ## 7. Future Threats to Validity

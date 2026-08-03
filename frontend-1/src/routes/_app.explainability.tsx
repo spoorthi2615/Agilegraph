@@ -22,13 +22,7 @@ function Explainability() {
   const asset = assets.filter((a) => a.risk === "critical")[0] ?? assets[0];
   const { data: explainData, isLoading, error } = useExplainability(asset?.id || "");
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading explainability data...</div>;
-  if (error || !explainData) return (
-    <div className="flex h-64 flex-col items-center justify-center p-8 text-center text-muted-foreground">
-      <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground opacity-50" />
-      <div>No explainability data available.</div>
-    </div>
-  );
+  if (isLoading || !assets.length || !explainData) return <div className="p-8 text-center text-muted-foreground">Loading explainability data...</div>;
 
   const { assetInformation: info, gnnExplanation: gnn, heuristicExplanation: heur, migrationRecommendation: mig, naturalLanguageSummary } = explainData;
   const factors = gnn?.featureImportance?.map((f: any) => ({

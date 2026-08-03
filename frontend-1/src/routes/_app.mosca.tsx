@@ -3,8 +3,7 @@ import { AppTopbar } from "@/components/app-topbar";
 import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
 import { Info, ShieldCheck } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/services/api-client";
+import { useMoscaReadiness } from "@/hooks/use-agilegraph";
 
 export const Route = createFileRoute("/_app/mosca")({
   component: Mosca,
@@ -19,12 +18,7 @@ export const Route = createFileRoute("/_app/mosca")({
 function Mosca() {
   const [z, setZ] = useState(8);
 
-  const { data: moscaData, isLoading } = useQuery({
-    queryKey: ['moscaReadiness', z],
-    queryFn: async () => {
-      return await apiClient.get<any>(`/dashboard/mosca?z=${z}`);
-    }
-  });
+  const { data: moscaData, isLoading } = useMoscaReadiness(z);
 
   const x = moscaData?.x ?? 0;
   const y = moscaData?.y ?? 0;

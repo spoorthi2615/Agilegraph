@@ -21,7 +21,7 @@ def main():
         f"- **Mathematically Verified:** Over 40 diverse repositories, AgileGraph achieves a statistically significant "
         f"Macro-F1 of **{best_f1:.3f}** via its {best_model} formulation, definitively defeating random noise baselines "
         f"($p < 10^{{-22}}$ via McNemar's Test).\n"
-        f"- **Industry Baselines:** We actively benchmark AgileGraph against industry tools like IBM's CBOMkit. "
+        f"- **Industry Baselines:** We evaluated AgileGraph against industry tools like IBM's CBOMkit. "
         f"However, because `cbomkit-theia` evaluates filesystems rather than deep source-code heuristics, its output is currently scoped as N/A for this pure-source corpus to avoid deceptive baseline numbers (See `research/benchmark-study.md` for our transparent findings)."
     )
 

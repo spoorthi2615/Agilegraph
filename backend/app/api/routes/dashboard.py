@@ -23,7 +23,8 @@ from app.models.security_report import SecurityReport
 
 from app.models.dashboard import (
     DashboardSummary, KPISummary, DashboardGraph, DashboardNode, DashboardEdge, ReportRecord,
-    RiskDistribution, AlgorithmUsage, CriticalAlert, MigrationTrend, ScanRecord
+    RiskDistribution, AlgorithmUsage, CriticalAlert, MigrationTrend, ScanRecord,
+    ActivityItem, DepartmentUsage
 )
 
 router = APIRouter()

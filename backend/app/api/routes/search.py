@@ -44,30 +44,36 @@ def search_graph(
             
             # Map node to SearchResult based on label
             if label == "PROJECT":
-                results.append(SearchResult(
-                    id=str(node.get("node_id", "unknown")),
-                    title=node.get("label", "Unknown Project"),
-                    type="scan",
-                    subtitle="Project Repository",
-                    url=f"/scan"
-                ))
+                results.append(
+                    SearchResult(
+                        id=str(node.get("node_id", "unknown")),
+                        title=node.get("label", "Unknown Project"),
+                        type="scan",
+                        subtitle="Project Repository",
+                        url=f"/scan",
+                    )
+                )
             elif label == "FILE":
-                results.append(SearchResult(
-                    id=str(node.get("node_id", "unknown")),
-                    title=node.get("label", "Unknown File"),
-                    type="asset",
-                    subtitle=node.get("path", "File"),
-                    url=f"/assets/{node.get('node_id', '')}"
-                ))
+                results.append(
+                    SearchResult(
+                        id=str(node.get("node_id", "unknown")),
+                        title=node.get("label", "Unknown File"),
+                        type="asset",
+                        subtitle=node.get("path", "File"),
+                        url=f"/assets/{node.get('node_id', '')}",
+                    )
+                )
             else:
                 # E.g. KEY, CERTIFICATE, ALGORITHM usage
                 algo = node.get("algorithm", "")
-                results.append(SearchResult(
-                    id=str(node.get("node_id", "unknown")),
-                    title=node.get("label", "Unknown Asset"),
-                    type="asset",
-                    subtitle=f"{label} • {algo}" if algo else label,
-                    url=f"/assets/{node.get('node_id', '')}"
-                ))
+                results.append(
+                    SearchResult(
+                        id=str(node.get("node_id", "unknown")),
+                        title=node.get("label", "Unknown Asset"),
+                        type="asset",
+                        subtitle=f"{label} • {algo}" if algo else label,
+                        url=f"/assets/{node.get('node_id', '')}",
+                    )
+                )
                 
         return results

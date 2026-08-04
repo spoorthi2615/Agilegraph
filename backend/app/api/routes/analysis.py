@@ -76,7 +76,7 @@ def get_assets(
             discovered_at="2026-07-27T00:00:00Z",
             location=raw.get("location", "unknown"),
             connections=[],
-            description=raw.get("description", "Cryptographic asset requiring review.")
+            description=raw.get("description", "Cryptographic asset requiring review."),
         ))
         
     total_items = len(items)
@@ -86,7 +86,7 @@ def get_assets(
         total=total_items,
         page=page,
         size=size,
-        total_pages=math.ceil(total_items / size) if size > 0 else 1
+        total_pages=math.ceil(total_items / size) if size > 0 else 1,
     )
 
 
@@ -136,8 +136,8 @@ def get_asset_detail(
             feature_importance=[],
             important_edges=[],
             confidence=0.9,
-            natural_language_explanation="Detailed explainability awaits Phase 6."
-        )
+            natural_language_explanation="Detailed explainability awaits Phase 6.",
+        ),
     )
     
     return detail

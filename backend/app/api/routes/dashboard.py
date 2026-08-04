@@ -22,9 +22,19 @@ from app.models.explanation import Explanation
 from app.models.security_report import SecurityReport
 
 from app.models.dashboard import (
-    DashboardSummary, KPISummary, DashboardGraph, DashboardNode, DashboardEdge, ReportRecord,
-    RiskDistribution, AlgorithmUsage, CriticalAlert, MigrationTrend, ScanRecord,
-    ActivityItem, DepartmentUsage
+    DashboardSummary,
+    KPISummary,
+    DashboardGraph,
+    DashboardNode,
+    DashboardEdge,
+    ReportRecord,
+    RiskDistribution,
+    AlgorithmUsage,
+    CriticalAlert,
+    MigrationTrend,
+    ScanRecord,
+    ActivityItem,
+    DepartmentUsage,
 )
 
 router = APIRouter()
@@ -235,10 +245,14 @@ def get_summary(
         risk_distribution=risk_dist,
         algorithm_usage=algo_usage,
         department_usage=dept_usage,
-        migration_trend=[MigrationTrend(month="Current", migrated=0, planned=critical_count + high_count)],
+        migration_trend=[
+            MigrationTrend(
+                month="Current", migrated=0, planned=critical_count + high_count
+            )
+        ],
         recent_scans=scans,
         activity=activities,
-        critical_alerts=alerts
+        critical_alerts=alerts,
     )
 
 class MoscaResponse(BaseModel):

@@ -23,7 +23,8 @@ class GraphRehydrationService:
         # Using the existing query_service driver connection
         with self.query_service.driver.session() as session:
             # Step 1: Rehydrate Nodes
-            node_result = session.run("MATCH (n) RETURN n")
+            nodes_query = "MATCH (n) WHERE ($is_admin = true OR n.owner_id = $owner_id) RETURN n"
+            node_result = session.run(nodes_query, is_admin=self.query_service.is_admin, owner_id=self.query_service.user_id)
             for record in node_result:
                 n = record["n"]
                 props = dict(n)
@@ -62,7 +63,8 @@ class GraphRehydrationService:
                 graph.add_node(node)
                 
             # Step 2: Rehydrate Relationships (Edges)
-            edge_result = session.run("MATCH (a)-[r]->(b) RETURN a.node_id AS source, type(r) AS type, b.node_id AS target")
+            edges_query = "MATCH (a)-[r]->(b) WHERE ($is_admin = true OR a.owner_id = $owner_id) RETURN a.node_id AS source, type(r) AS type, b.node_id AS target"
+            edge_result = session.run(edges_query, is_admin=self.query_service.is_admin, owner_id=self.query_service.user_id)
             for record in edge_result:
                 source = record["source"]
                 target = record["target"]

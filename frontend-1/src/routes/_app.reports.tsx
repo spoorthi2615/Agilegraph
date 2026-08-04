@@ -3,7 +3,7 @@ import { AppTopbar } from "@/components/app-topbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRiskReports } from "@/hooks/use-agilegraph";
-import { API_BASE_URL } from "@/services/api-client";
+import { api } from "@/services/api";
 import { toast } from "sonner";
 import { FileText, FileBarChart, Route as RouteIcon, ShieldAlert, Download, Printer, Table2 } from "lucide-react";
 
@@ -27,21 +27,33 @@ const generators = [
 function Reports() {
   const { data: reports = [], refetch } = useRiskReports();
 
-  const handleDownload = (type: string, format: string) => {
-    // Connect directly to the backend's report generator (which uses reportlab for PDFs)
-    const url = `${API_BASE_URL}/reports/latest/download?format=${format}&type=${encodeURIComponent(type)}`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `AgileGraph_${type.replace(/\s+/g, '_')}.${format}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    toast.success(`${type} — ${format.toUpperCase()} downloading`);
-    
-    // Give backend time to record the generation, then refresh table
-    setTimeout(() => {
-      refetch();
-    }, 1000);
+  const handleDownload = async (type: string, format: string) => {
+    toast.info(`Generating ${format.toUpperCase()} report...`);
+    try {
+      // Connect to the backend using api client to ensure JWT Authorization headers are sent
+      const response = await api.client.get(`/reports/latest/download?format=${format}&type=${encodeURIComponent(type)}`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `AgileGraph_${type.replace(/\s+/g, '_')}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${type} downloaded successfully`);
+      
+      // Give backend time to record the generation, then refresh table
+      setTimeout(() => {
+        refetch();
+      }, 1000);
+    } catch (error) {
+      toast.error(`Failed to download ${type}`);
+    }
   };
 
   return (

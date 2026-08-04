@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from app.config.settings import settings
@@ -10,6 +10,8 @@ from app.services.pqc_readiness_service import PQCReadinessService
 from app.services.migration_roadmap_service import MigrationRoadmapService
 from app.services.security_report_service import SecurityReportService
 from app.services.explainability_service import ExplainabilityService
+
+from app.core.security import get_current_user_strict, User
 
 from app.models.project_analysis import ProjectAnalysisResult
 from app.models.crypto_graph import CryptoGraph
@@ -30,7 +32,7 @@ router = APIRouter()
 # Core Service Providers
 # ---------------------------------------------------------
 
-def get_query_service():
+def get_query_service(user: User = Depends(get_current_user_strict)):
     if not settings.NEO4J_URI:
         yield None
         return
@@ -39,7 +41,9 @@ def get_query_service():
         service = GraphQueryService(
             uri=settings.NEO4J_URI,
             user=settings.NEO4J_USERNAME,
-            password=settings.NEO4J_PASSWORD
+            password=settings.NEO4J_PASSWORD,
+            user_id=user.id,
+            is_admin=user.is_admin
         )
         yield service
     except Exception:
@@ -180,6 +184,8 @@ def get_summary(
 
     scans = []
     if stats.get("asset_count", 0) > 0:
+        # Check if the user is an admin or not for dashboard view 
+        # Note: In real life this would query 'recent scans' from Neo4j, but here we just mock the display
         scans.append(ScanRecord(
             id="SCAN-94A8B",
             name="core-banking-monorepo",

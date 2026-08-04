@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class GitHubImportService:
     @staticmethod
-    async def process_import(request: GithubImportRequest) -> GithubImportResponse:
+    async def process_import(request: GithubImportRequest, user_id: str = None, owner_email: str = None) -> GithubImportResponse:
         url = request.repository_url.strip()
         
         # Regex to validate the URL format strictly matches a GitHub repository
@@ -76,7 +76,7 @@ class GitHubImportService:
             export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
             
             workflow = AnalysisWorkflowService(analysis_service, export_service)
-            workflow.execute_pipeline(project_id, Path(clone_dir))
+            workflow.execute_pipeline(project_id, Path(clone_dir), user_id=user_id, owner_email=owner_email)
             
             return GithubImportResponse(
                 project_id=project_id,

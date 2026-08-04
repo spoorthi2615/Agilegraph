@@ -6,7 +6,9 @@ class GraphQueryService:
     Provides secure, read-only querying capabilities against the Neo4j database,
     acting as the data access layer for future dashboards and analytics.
     """
-    def __init__(self, uri: str, user: str, password: str) -> None:
+    def __init__(self, uri: str, user: str, password: str, user_id: str = None, is_admin: bool = False) -> None:
+        self.user_id = user_id
+        self.is_admin = is_admin
         if not uri:
             self.driver = None
             return
@@ -19,7 +21,8 @@ class GraphQueryService:
         )
 
     def close(self) -> None:
-        self.driver.close()
+        if self.driver:
+            self.driver.close()
 
     def get_high_risk_assets(self) -> List[Dict[str, Any]]:
         """
@@ -27,11 +30,11 @@ class GraphQueryService:
         """
         query = """
         MATCH (n)
-        WHERE n.risk_score >= 75
+        WHERE n.risk_score >= 75 AND ($is_admin = true OR n.owner_id = $owner_id)
         RETURN n
         """
         with self.driver.session() as session:
-            return session.execute_read(self._execute_and_fetch, query)
+            return session.execute_read(self._execute_and_fetch, query, {"is_admin": self.is_admin, "owner_id": self.user_id})
 
     def get_all_assets(self) -> List[Dict[str, Any]]:
         """
@@ -40,10 +43,11 @@ class GraphQueryService:
         query = """
         MATCH (n)
         WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE
+          AND ($is_admin = true OR n.owner_id = $owner_id)
         RETURN n
         """
         with self.driver.session() as session:
-            return session.execute_read(self._execute_and_fetch, query)
+            return session.execute_read(self._execute_and_fetch, query, {"is_admin": self.is_admin, "owner_id": self.user_id})
 
     def get_files_using_dependency(self, package_name: str) -> List[Dict[str, Any]]:
         """
@@ -53,10 +57,11 @@ class GraphQueryService:
         query = """
         MATCH (f:FILE)-[:USES]->(d:DEPENDENCY)
         WHERE toLower(d.label) = toLower($package_name)
+          AND ($is_admin = true OR f.owner_id = $owner_id)
         RETURN f
         """
         with self.driver.session() as session:
-            return session.execute_read(self._execute_and_fetch, query, {"package_name": package_name})
+            return session.execute_read(self._execute_and_fetch, query, {"package_name": package_name, "is_admin": self.is_admin, "owner_id": self.user_id})
 
     def get_assets_in_file(self, file_path: str) -> List[Dict[str, Any]]:
         """
@@ -66,10 +71,11 @@ class GraphQueryService:
         query = """
         MATCH (f:FILE)-[:CONTAINS]->(a)
         WHERE f.file_path = $file_path
+          AND ($is_admin = true OR f.owner_id = $owner_id)
         RETURN a
         """
         with self.driver.session() as session:
-            return session.execute_read(self._execute_and_fetch, query, {"file_path": file_path})
+            return session.execute_read(self._execute_and_fetch, query, {"file_path": file_path, "is_admin": self.is_admin, "owner_id": self.user_id})
 
     def get_summary_statistics(self) -> Dict[str, int]:
         """
@@ -77,21 +83,22 @@ class GraphQueryService:
         a series of highly optimized count queries within a single read transaction.
         """
         def _get_stats(tx: Transaction) -> Dict[str, int]:
-            # Neo4j optimizes simple count() queries using the internal count store.
-            total_nodes = tx.run("MATCH (n) RETURN count(n) as count").single()["count"]
-            total_relationships = tx.run("MATCH ()-[r]->() RETURN count(r) as count").single()["count"]
+            # We filter everything by owner_id if not admin
+            base_match = "MATCH (n) WHERE ($is_admin = true OR n.owner_id = $owner_id)"
             
-            file_count = tx.run("MATCH (n:FILE) RETURN count(n) as count").single()["count"]
-            dependency_count = tx.run("MATCH (n:DEPENDENCY) RETURN count(n) as count").single()["count"]
-            certificate_count = tx.run("MATCH (n:CERTIFICATE) RETURN count(n) as count").single()["count"]
+            total_nodes = tx.run(f"{base_match} RETURN count(n) as count", is_admin=self.is_admin, owner_id=self.user_id).single()["count"]
+            total_relationships = tx.run(f"MATCH (n)-[r]->() WHERE ($is_admin = true OR n.owner_id = $owner_id) RETURN count(r) as count", is_admin=self.is_admin, owner_id=self.user_id).single()["count"]
             
-            # Asset count is calculated as anything that isn't a File, Dependency, or Certificate
-            asset_count_query = """
-            MATCH (n) 
-            WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
+            file_count = tx.run(f"{base_match} AND n:FILE RETURN count(n) as count", is_admin=self.is_admin, owner_id=self.user_id).single()["count"]
+            dependency_count = tx.run(f"{base_match} AND n:DEPENDENCY RETURN count(n) as count", is_admin=self.is_admin, owner_id=self.user_id).single()["count"]
+            certificate_count = tx.run(f"{base_match} AND n:CERTIFICATE RETURN count(n) as count", is_admin=self.is_admin, owner_id=self.user_id).single()["count"]
+            
+            asset_count_query = f"""
+            {base_match}
+            AND NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
             RETURN count(n) as count
             """
-            asset_count = tx.run(asset_count_query).single()["count"]
+            asset_count = tx.run(asset_count_query, is_admin=self.is_admin, owner_id=self.user_id).single()["count"]
             
             return {
                 "total_nodes": total_nodes,
@@ -116,31 +123,34 @@ class GraphQueryService:
             MATCH (n) 
             WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
               AND n.severity IS NOT NULL
+              AND ($is_admin = true OR n.owner_id = $owner_id)
             RETURN n.severity AS severity, count(n) AS count
             """
-            severities = tx.run(severity_query).data()
+            severities = tx.run(severity_query, is_admin=self.is_admin, owner_id=self.user_id).data()
             
             # Algorithm counts
             algo_query = """
             MATCH (n)
             WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
               AND n.algorithm IS NOT NULL
+              AND ($is_admin = true OR n.owner_id = $owner_id)
             RETURN n.algorithm AS algorithm, count(n) AS count
             ORDER BY count DESC
             LIMIT 7
             """
-            algorithms = tx.run(algo_query).data()
+            algorithms = tx.run(algo_query, is_admin=self.is_admin, owner_id=self.user_id).data()
             
             # Top critical alerts
             alerts_query = """
             MATCH (n)
             WHERE NOT n:FILE AND NOT n:DEPENDENCY AND NOT n:CERTIFICATE 
               AND toUpper(n.severity) = 'CRITICAL'
-            RETURN n.node_id AS id, n.label AS title, 'Critical cryptographic risk detected' AS reason, n.risk_score AS score
+              AND ($is_admin = true OR n.owner_id = $owner_id)
+            RETURN n.node_id AS id, n.label AS title, 'Critical cryptographic risk detected' AS reason, n.risk_score AS score, n.owner_id AS owner_id, n.owner_email AS owner_email
             ORDER BY n.risk_score DESC
             LIMIT 5
             """
-            alerts = tx.run(alerts_query).data()
+            alerts = tx.run(alerts_query, is_admin=self.is_admin, owner_id=self.user_id).data()
             
             return {
                 "severities": severities,
@@ -156,11 +166,11 @@ class GraphQueryService:
         Retrieves all nodes and edges from the graph.
         """
         def _get_graph(tx: Transaction) -> Dict[str, Any]:
-            nodes_query = "MATCH (n) RETURN n"
-            edges_query = "MATCH (n)-[r]->(m) RETURN n.node_id AS source, m.node_id AS target, type(r) AS type"
+            nodes_query = "MATCH (n) WHERE ($is_admin = true OR n.owner_id = $owner_id) RETURN n"
+            edges_query = "MATCH (n)-[r]->(m) WHERE ($is_admin = true OR n.owner_id = $owner_id) RETURN n.node_id AS source, m.node_id AS target, type(r) AS type"
             
-            nodes_result = tx.run(nodes_query)
-            edges_result = tx.run(edges_query)
+            nodes_result = tx.run(nodes_query, is_admin=self.is_admin, owner_id=self.user_id)
+            edges_result = tx.run(edges_query, is_admin=self.is_admin, owner_id=self.user_id)
             
             nodes = [dict(record["n"]) for record in nodes_result]
             edges = [dict(record) for record in edges_result]
@@ -174,9 +184,9 @@ class GraphQueryService:
         """
         Retrieves a single node by its node_id.
         """
-        query = "MATCH (n {node_id: $node_id}) RETURN n"
+        query = "MATCH (n {node_id: $node_id}) WHERE ($is_admin = true OR n.owner_id = $owner_id) RETURN n"
         with self.driver.session() as session:
-            result = session.execute_read(self._execute_and_fetch, query, {"node_id": node_id})
+            result = session.execute_read(self._execute_and_fetch, query, {"node_id": node_id, "is_admin": self.is_admin, "owner_id": self.user_id})
             if result:
                 return result[0]
             return {}

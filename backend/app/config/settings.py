@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     
     # Security / CORS
     CORS_ORIGINS: str = Field(default="*")
+    SUPABASE_JWT_SECRET: str = Field(default="", description="JWT secret from Supabase to verify tokens")
+    ADMIN_EMAILS: str = Field(default="spoorthipyadav@gmail.com", description="Comma separated list of admin emails")
 
     model_config = SettingsConfigDict(
         env_file=".env",

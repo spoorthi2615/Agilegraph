@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase';
+
 export class ApiError extends Error {
   status: number;
   code: string;
@@ -79,6 +81,12 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
   }
 
   const headers = new Headers(customHeaders as HeadersInit);
+  
+  // Attach Supabase Auth Token
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    headers.set('Authorization', `Bearer ${session.access_token}`);
+  }
   
   let fetchBody: BodyInit | null = null;
   

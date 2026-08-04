@@ -11,7 +11,7 @@ MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 MB
 
 class UploadService:
     @staticmethod
-    async def process_upload(file: UploadFile, background_tasks: BackgroundTasks) -> UploadResponse:
+    async def process_upload(file: UploadFile, background_tasks: BackgroundTasks, user_id: str = None, owner_email: str = None) -> UploadResponse:
         # Sanitize filename to prevent path traversal
         original_name = file.filename or ""
         # Handle both Windows and Unix path separators sent by clients
@@ -81,7 +81,7 @@ class UploadService:
         workflow = AnalysisWorkflowService(analysis_service, export_service)
         
         ScanStatusService.set_status(project_id, ScanStage.QUEUED)
-        background_tasks.add_task(workflow.execute_pipeline, project_id, Path(extracted_dir))
+        background_tasks.add_task(workflow.execute_pipeline, project_id, Path(extracted_dir), user_id, owner_email)
             
         return UploadResponse(
             project_id=project_id,

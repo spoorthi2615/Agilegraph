@@ -162,9 +162,16 @@ function Dashboard() {
                         <RiskBadge risk="critical" />
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground">{a.reason}</div>
-                      <Link to="/assets/$id" params={{ id: a.id }} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                        View asset <ArrowUpRight className="h-3 w-3" />
-                      </Link>
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <Link to="/assets/$id" params={{ id: a.id }} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                          View asset <ArrowUpRight className="h-3 w-3" />
+                        </Link>
+                        {a.ownerEmail && (
+                          <div className="text-[10px] text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded border">
+                            {a.ownerEmail}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </li>

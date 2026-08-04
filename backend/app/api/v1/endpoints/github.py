@@ -1,13 +1,14 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends
 from app.schemas.github_schema import GithubImportRequest, GithubImportResponse
 from app.services.github_import_service import GitHubImportService
+from app.core.security import get_current_user_strict, User
 
 router = APIRouter()
 
 @router.post("/github", response_model=GithubImportResponse, status_code=status.HTTP_201_CREATED)
-async def import_github_repository(request: GithubImportRequest):
+async def import_github_repository(request: GithubImportRequest, user: User = Depends(get_current_user_strict)):
     """
     Import a project via GitHub repository URL.
     Does not clone or download the repository yet.
     """
-    return await GitHubImportService.process_import(request)
+    return await GitHubImportService.process_import(request, user_id=user.id, owner_email=user.email)

@@ -38,22 +38,24 @@ def main():
         
     # Regenerate statistical-analysis.md
     
-    table_rows = []
-    
+    from report_helpers import load_and_validate_sources, get_f1_for_model
+
     for model, f1_data in results["ablation_f1"].items():
-        if isinstance(f1_data, dict):
-            mean_f1 = f1_data["mean"]
-            std_f1 = f1_data["std"]
-            f1_str = f"{mean_f1:.3f} \u00B1 {std_f1:.3f}"
+        mean_f1 = get_f1_for_model(model, results, stats)
+        
+        if model in stats and "ci_lower" in stats[model]:
+            lb = stats[model]["ci_lower"]
+            ub = stats[model]["ci_upper"]
+            f1_str = f"{mean_f1:.3f} (CI [{lb:.3f}, {ub:.3f}])"
         else:
-            f1_str = f"{f1_data:.3f}"
+            f1_str = f"{mean_f1:.3f}"
             
         # Helper to format kappa safely
         def format_kappa(k):
             return f"{k:.3f}" if isinstance(k, float) else str(k)
             
         kappa = kappas.get(model, 0.0)
-        table_rows.append(f"| {model} | {f1_str} (raw) | {format_kappa(kappa)} |")
+        table_rows.append(f"| {model} | {f1_str} | {format_kappa(kappa)} |")
         
     # Also include models that might only be in preds (like baselines)
     for model in preds.keys():
@@ -63,20 +65,22 @@ def main():
                 table_rows.append(f"| {model} | N/A (See Benchmark) | {format_kappa(kappa)} |")
             elif "Majority Class Baseline" in model:
                 kappa = kappas.get(model, 0.0)
-                # Compute majority class F1 dynamically
-                y_true = preds[model]["y_true"]
-                y_pred = preds[model]["y_pred"]
-                from sklearn.metrics import f1_score
-                f1 = f1_score(y_true, y_pred, average='macro', zero_division=0)
-                table_rows.append(f"| {model} | {f1:.3f} (raw) | {format_kappa(kappa)} |")
+                mean_f1 = get_f1_for_model(model, results, stats)
+                if model in stats and "ci_lower" in stats[model]:
+                    lb = stats[model]["ci_lower"]
+                    ub = stats[model]["ci_upper"]
+                    f1_str = f"{mean_f1:.3f} (CI [{lb:.3f}, {ub:.3f}])"
+                else:
+                    f1_str = f"{mean_f1:.3f}"
+                table_rows.append(f"| {model} | {f1_str} | {format_kappa(kappa)} |")
         
     stats_md = """# Statistical Analysis
 
-## Agreement & F1 Stability (5-Fold CV)
+## Agreement & F1 Stability
 
-Values below are the raw, unresampled mean across the 5 cross-validation folds — see `research/METRIC_CONVENTIONS.md` for why this differs from the bootstrapped headline figure used elsewhere.
+Values below represent the 1,000-iteration bootstrapped mean and 95% Confidence Interval for Macro-F1 across all folds, ensuring a consistent canonical F1 score is reported across all documents.
 
-| Model Variant | Macro-F1 (Raw 5-Fold Mean \u00B1 Std) | Cohen's Kappa |
+| Model Variant | Macro-F1 (Bootstrapped Mean & CI) | Cohen's Kappa |
 |---|---|---|
 """ + "\n".join(table_rows) + """
 

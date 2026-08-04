@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path as PathParam
 from typing import Optional
 import math
 
+from app.core.security import get_current_user_strict, User
+
 from app.config.settings import settings
 from app.services.graph_query_service import GraphQueryService
 from app.services.recommendation_workflow_service import RecommendationWorkflowService
@@ -16,11 +18,13 @@ router = APIRouter()
 # Dependency Injection Providers
 # ---------------------------------------------------------
 
-def get_graph_query_service() -> GraphQueryService:
+def get_graph_query_service(user: User = Depends(get_current_user_strict)) -> GraphQueryService:
     service = GraphQueryService(
         uri=settings.NEO4J_URI,
         user=settings.NEO4J_USERNAME,
-        password=settings.NEO4J_PASSWORD
+        password=settings.NEO4J_PASSWORD,
+        user_id=user.id,
+        is_admin=user.is_admin
     )
     try:
         yield service

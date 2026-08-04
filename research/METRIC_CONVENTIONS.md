@@ -1,16 +1,13 @@
 # Metric Reporting Conventions
 
-AgileGraph reports two related but distinct F1 numbers. Both are legitimate; they
-must never be swapped or presented as interchangeable without a label.
+AgileGraph standardizes its metric reporting on a single canonical F1 score to prevent metric drift and confusion across documents. 
 
-| Number | Source | Meaning | Where it appears |
+| Metric | Source | Meaning | Where it appears |
 |---|---|---|---|
-| **0.913** (bootstrapped mean, CI [0.908, 0.919]) | `research/statistical_results.json` | 1,000-iteration bootstrap resample of the Full Model's predictions | **Canonical headline number.** README, status-and-limitations.md, benchmark-study.md, ablation-study.md, any viva/defense materials |
-| 0.859 ± 0.049 (raw 5-fold mean) | `research/results.json` | Simple mean/std across the 5 CV folds, no resampling | Only in `statistical-analysis.md`'s per-fold variance table, explicitly labeled "raw per-fold mean" |
+| **Bootstrapped Mean & CI** (e.g., 0.913) | `research/statistical_results.json` | 1,000-iteration bootstrap resample of the model's predictions | **Canonical headline number.** Used universally in README, status-and-limitations.md, benchmark-study.md, ablation-study.md, statistical-analysis.md, and all viva/defense materials |
 
-Any script or document that reports a Full Model F1 number MUST call
-`report_helpers.get_f1_for_model()` (bootstrap-first) unless it is specifically
-presenting per-fold raw variance, in which case it must use the words
-"raw per-fold mean" adjacent to the number.
+Previously, a raw 5-fold mean (e.g., 0.859 ± 0.049) was reported in certain variance tables, leading to metric drift where readers copying "the F1 score" would get different numbers depending on the file. To eliminate this ambiguity, all generation scripts have been updated to report the Bootstrapped Mean & 95% Confidence Interval.
 
-Last reconciled: [Date inserted post-Task 3b.6]
+Any script or document that reports a Full Model F1 number MUST call `report_helpers.get_f1_for_model()` to guarantee the bootstrap-first canonical metric is used.
+
+Last reconciled: Auto-updated.

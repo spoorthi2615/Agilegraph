@@ -12,15 +12,15 @@ class Neo4jExportService:
     def close(self) -> None:
         self.driver.close()
 
-    def export_graph(self, graph: CryptoGraph) -> None:
+    def export_graph(self, graph: CryptoGraph, user_id: str = None, owner_email: str = None) -> None:
         """
         Executes the entire graph export within a managed Neo4j session.
         """
         with self.driver.session() as session:
-            session.execute_write(self._export_transaction, graph)
+            session.execute_write(self._export_transaction, graph, user_id, owner_email)
 
     @staticmethod
-    def _export_transaction(tx: Transaction, graph: CryptoGraph) -> None:
+    def _export_transaction(tx: Transaction, graph: CryptoGraph, user_id: str = None, owner_email: str = None) -> None:
         """
         Internal transaction function. Iterates through all nodes and edges
         and merges them into Neo4j to ensure idempotency.
@@ -41,6 +41,11 @@ class Neo4jExportService:
             # This automatically includes risk_score and severity from the RiskScoringService
             if node.metadata:
                 props.update(node.metadata)
+                
+            if user_id:
+                props["owner_id"] = user_id
+            if owner_email:
+                props["owner_email"] = owner_email
                 
             # MERGE creates the node if it doesn't exist, based solely on node_id.
             # SET += updates all other properties efficiently.

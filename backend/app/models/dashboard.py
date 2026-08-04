@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 
 def to_camel(string: str) -> str:
     parts = string.split("_")
@@ -49,6 +49,7 @@ class ScanRecord(DashboardBaseModel):
     assets: int
     critical_findings: int
     status: str
+    owner_email: Optional[str] = None
 
 class ActivityItem(DashboardBaseModel):
     id: str
@@ -63,6 +64,7 @@ class CriticalAlert(DashboardBaseModel):
     title: str
     reason: str
     score: int
+    owner_email: Optional[str] = None
 
 class DashboardSummary(DashboardBaseModel):
     kpis: KPISummary = Field(default_factory=KPISummary)

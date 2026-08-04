@@ -214,9 +214,10 @@ function ScanPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/30 text-xs text-muted-foreground">
                 <tr>
-                  {["Scan", "Source", "Started", "Duration", "Assets", "Critical", "Status"].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left font-medium">{h}</th>
-                  ))}
+                  {["Scan", "Source", "Started", "Duration", "Assets", "Critical", "Status", "Owner"].map((h) => {
+                    if (h === "Owner" && !filteredScans.some((s: any) => s.ownerEmail)) return null;
+                    return <th key={h} className="px-5 py-3 text-left font-medium">{h}</th>;
+                  })}
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -236,6 +237,9 @@ function ScanPage() {
                       <td className="px-5 py-3 font-medium">{s.assets}</td>
                       <td className="px-5 py-3"><span className="text-critical font-medium">{s.criticalFindings}</span></td>
                       <td className="px-5 py-3"><Badge className="bg-success/15 text-success hover:bg-success/15">Completed</Badge></td>
+                      {filteredScans.some((scan: any) => scan.ownerEmail) && (
+                        <td className="px-5 py-3 text-xs text-muted-foreground">{s.ownerEmail || "-"}</td>
+                      )}
                     </tr>
                   ))
                 )}

@@ -1,18 +1,18 @@
 # Statistical Analysis
 
-## Agreement & F1 Stability (5-Fold CV)
+## Agreement & F1 Stability
 
-Values below are the raw, unresampled mean across the 5 cross-validation folds — see `research/METRIC_CONVENTIONS.md` for why this differs from the bootstrapped headline figure used elsewhere.
+Values below represent the 1,000-iteration bootstrapped mean and 95% Confidence Interval for Macro-F1 across all folds, ensuring a consistent canonical F1 score is reported across all documents.
 
-| Model Variant | Macro-F1 (Raw 5-Fold Mean ± Std) | Cohen's Kappa |
+| Model Variant | Macro-F1 (Bootstrapped Mean & CI) | Cohen's Kappa |
 |---|---|---|
-| Full Model (w/ Heuristic) | 0.859 ± 0.049 (raw) | 0.827 |
-| - Heterogeneous | 0.792 ± 0.016 (raw) | 0.607 |
-| - GATv2 | 0.705 ± 0.038 (raw) | 0.396 |
-| - CodeBERT | 0.330 ± 0.022 (raw) | -0.023 |
-| - Heuristic Feature | 0.831 ± 0.050 (raw) | 0.753 |
-| Majority Class Baseline | 0.467 (raw) | 0.000 |
+| Full Model (w/ Heuristic) | 0.913 (CI [0.908, 0.919]) | 0.827 |
+| - Heterogeneous | 0.802 (CI [0.795, 0.809]) | 0.607 |
+| - GATv2 | 0.676 (CI [0.669, 0.683]) | 0.396 |
+| - CodeBERT | 0.321 (CI [0.315, 0.326]) | -0.023 |
+| - Heuristic Feature | 0.876 (CI [0.869, 0.882]) | 0.753 |
 | CBOMkit Baseline | N/A (See Benchmark) | 0.000 |
+| Majority Class Baseline | 0.467 (CI [0.466, 0.468]) | 0.000 |
 
 ## McNemar's Tests (Significance against Full Model)
 

@@ -22,7 +22,7 @@ class AnalysisWorkflowService:
         self.analysis_service = analysis_service
         self.export_service = export_service
 
-    def execute_pipeline(self, project_id: str, project_path: Path) -> Dict[str, Any]:
+    def execute_pipeline(self, project_id: str, project_path: Path, user_id: str = None, owner_email: str = None) -> Dict[str, Any]:
         """
         Sequentially executes the scan, score, graph build, and export workflow.
         Returns a simplified statistics summary object.
@@ -124,7 +124,7 @@ class AnalysisWorkflowService:
             # Step 4: Export to physical Neo4j cluster (best-effort — scan completes even if Neo4j is down)
             ScanStatusService.set_status(project_id, ScanStage.EXPORTING)
             try:
-                self.export_service.export_graph(graph)
+                self.export_service.export_graph(graph, user_id=user_id, owner_email=owner_email)
             except Exception as neo4j_err:
                 import logging
                 logging.warning(f"[{project_id}] Neo4j export failed (scan still marked complete): {neo4j_err}")

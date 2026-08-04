@@ -60,9 +60,9 @@ def get_assets(
     items = []
     for raw in raw_assets:
         items.append(AssetSummary(
-            id=str(raw.get("asset_id", "unknown")),
-            name=raw.get("name", "Unknown Asset"),
-            type=raw.get("asset_type", "service"),
+            id=str(raw.get("node_id", "unknown")),
+            name=raw.get("label", "Unknown Asset"),
+            type=str(raw.get("node_type", "service")).lower(),
             department=raw.get("department", "Engineering"),
             algorithm=raw.get("algorithm", "Unknown"),
             key_size=raw.get("key_size", "256"),
@@ -107,7 +107,7 @@ def get_asset_detail(
     detail = AssetDetail(
         id=asset_id,
         name=node_data.get("label", "Asset Details"),
-        type=node_data.get("node_type", "service"),
+        type=str(node_data.get("node_type", "service")).lower(),
         department="Engineering",
         algorithm=node_data.get("algorithm", "Unknown"),
         key_size=str(node_data.get("key_size") or "256"),

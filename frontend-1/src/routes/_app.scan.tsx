@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { UploadCloud, Github, Globe, FileKey2, Play, X, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
-import { useDashboardSummary, useUploadProject, useGitHubImport } from "@/hooks/use-agilegraph";
+import { useDashboardSummary, useUploadProject, useGitHubImport, useDomainScan, useCertificateScan } from "@/hooks/use-agilegraph";
 import { api } from "@/services/api";
 import { Dropzone } from "@/components/ui/dropzone";
 import { toast } from "sonner";
@@ -33,9 +33,18 @@ function ScanPage() {
   const recentScans = dashboardData?.recentScans || [];
   const uploadProject = useUploadProject();
   const importGitHub = useGitHubImport();
+  const scanDomain = useDomainScan();
+  const uploadCertificate = useCertificateScan();
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [historyFilter, setHistoryFilter] = useState("all");
+  
+  const [activeTab, setActiveTab] = useState("zip");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [githubBranch, setGithubBranch] = useState("main");
+  const [githubToken, setGithubToken] = useState("");
+  const [domainHost, setDomainHost] = useState("");
+  const [domainPorts, setDomainPorts] = useState("443");
 
   const filteredScans = recentScans.filter((s: any) => historyFilter === "all" || s.source.toLowerCase().includes(historyFilter));
 
@@ -99,7 +108,7 @@ function ScanPage() {
           <TabsContent value="new" className="space-y-6 mt-0">
             <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-xl border bg-card p-6">
-            <Tabs defaultValue="zip">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="zip"><UploadCloud className="mr-2 h-4 w-4" />Upload</TabsTrigger>
                 <TabsTrigger value="github"><Github className="mr-2 h-4 w-4" />GitHub</TabsTrigger>
@@ -124,17 +133,30 @@ function ScanPage() {
                 }} />
               </TabsContent>
               <TabsContent value="github" className="mt-6 space-y-4">
-                <div className="space-y-2"><Label>Repository URL</Label><Input placeholder="https://github.com/org/repo" /></div>
+                <div className="space-y-2"><Label>Repository URL</Label><Input placeholder="https://github.com/org/repo" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} /></div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2"><Label>Branch</Label><Input placeholder="main" defaultValue="main" /></div>
-                  <div className="space-y-2"><Label>Access Token (optional)</Label><Input placeholder="ghp_…" type="password" /></div>
+                  <div className="space-y-2"><Label>Branch</Label><Input placeholder="main" value={githubBranch} onChange={(e) => setGithubBranch(e.target.value)} /></div>
+                  <div className="space-y-2"><Label>Access Token (optional)</Label><Input placeholder="ghp_…" type="password" value={githubToken} onChange={(e) => setGithubToken(e.target.value)} /></div>
                 </div>
               </TabsContent>
               <TabsContent value="domain" className="mt-6 space-y-4">
-                <div className="space-y-2"><Label>Domain or Host</Label><Input placeholder="api.example.com" /></div>
-                <div className="space-y-2"><Label>Ports (comma separated)</Label><Input placeholder="443, 8443" defaultValue="443" /></div>
+                <div className="space-y-2"><Label>Domain or Host</Label><Input placeholder="api.example.com" value={domainHost} onChange={(e) => setDomainHost(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Ports (comma separated)</Label><Input placeholder="443, 8443" value={domainPorts} onChange={(e) => setDomainPorts(e.target.value)} /></div>
               </TabsContent>
-              <TabsContent value="cert" className="mt-6"><Dropzone hint="Drop .pem, .crt, .p12, or .jks files" /></TabsContent>
+              <TabsContent value="cert" className="mt-6"><Dropzone hint="Drop .pem, .crt, .p12, or .jks files" onFileDrop={(file) => {
+                  uploadCertificate.mutate(file, {
+                    onSuccess: (data) => {
+                      if (data && data.project_id) {
+                        start(data.project_id);
+                      } else {
+                        toast.error("Certificate upload failed", { description: "No project ID returned" });
+                      }
+                    },
+                    onError: (err: any) => {
+                      toast.error("Certificate upload failed", { description: err?.message || String(err) });
+                    }
+                  });
+              }} /></TabsContent>
             </Tabs>
 
             <div className="mt-6 rounded-lg border bg-muted/30 p-4">
@@ -158,8 +180,45 @@ function ScanPage() {
 
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => { setRunning(false); setProgress(0); setPhase("Idle"); }}><X className="h-4 w-4" />Cancel</Button>
-              <Button onClick={() => {}} disabled={running || uploadProject.isPending} className="shadow-[var(--shadow-glow)]">
-                {uploadProject.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />Uploading…</> : running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />Waiting for Upload</>}
+              <Button onClick={() => {
+                if (activeTab === "github") {
+                  if (!githubUrl) {
+                    toast.error("Please enter a GitHub URL");
+                    return;
+                  }
+                  importGitHub.mutate({ url: githubUrl, branch: githubBranch, token: githubToken }, {
+                    onSuccess: (data: any) => {
+                      if (data && data.project_id) {
+                        start(data.project_id);
+                      } else {
+                        toast.error("GitHub import failed", { description: "No project ID returned" });
+                      }
+                    },
+                    onError: (err: any) => {
+                      toast.error("GitHub import failed", { description: err?.message || String(err) });
+                    }
+                  });
+                } else if (activeTab === "domain") {
+                  if (!domainHost) {
+                    toast.error("Please enter a domain");
+                    return;
+                  }
+                  const ports = domainPorts.split(",").map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+                  scanDomain.mutate({ domain: domainHost, ports }, {
+                    onSuccess: (data: any) => {
+                      if (data && data.project_id) {
+                        start(data.project_id);
+                      } else {
+                        toast.error("Domain scan failed", { description: "No project ID returned" });
+                      }
+                    },
+                    onError: (err: any) => {
+                      toast.error("Domain scan failed", { description: err?.message || String(err) });
+                    }
+                  });
+                }
+              }} disabled={running || uploadProject.isPending || importGitHub.isPending || scanDomain.isPending || uploadCertificate.isPending} className="shadow-[var(--shadow-glow)]">
+                {uploadProject.isPending || importGitHub.isPending || scanDomain.isPending || uploadCertificate.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />Processing…</> : running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />{activeTab === "github" ? "Start GitHub Scan" : activeTab === "domain" ? "Start Domain Scan" : "Waiting for Upload"}</>}
               </Button>
             </div>
           </div>

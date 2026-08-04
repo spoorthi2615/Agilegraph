@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_app/graph")({
   }),
 });
 
-const TYPES = ["file", "dependency", "key", "certificate", "hash", "symmetric_key", "asymmetric_key", "jwt", "unknown", "service", "library", "code", "data", "application", "server"];
+const TYPES = ["file", "dependency", "key", "certificate", "crypto_asset", "hash", "symmetric_key", "asymmetric_key", "jwt", "unknown", "service", "library", "code", "data", "application", "server"];
 
 function GraphView() {
   const [selected, setSelected] = useState<string | null>(null);

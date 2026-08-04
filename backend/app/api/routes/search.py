@@ -28,7 +28,7 @@ def search_graph(
     # Simple Cypher query to find nodes matching the query in name, algorithm, or type
     cypher = """
     MATCH (n)
-    WHERE toLower(n.name) CONTAINS toLower($q) 
+    WHERE toLower(n.label) CONTAINS toLower($q) 
        OR toLower(n.algorithm) CONTAINS toLower($q)
        OR toLower(labels(n)[0]) CONTAINS toLower($q)
     RETURN n, labels(n)[0] AS label
@@ -45,29 +45,29 @@ def search_graph(
             # Map node to SearchResult based on label
             if label == "PROJECT":
                 results.append(SearchResult(
-                    id=node.get("id", "unknown"),
-                    title=node.get("name", "Unknown Project"),
+                    id=str(node.get("node_id", "unknown")),
+                    title=node.get("label", "Unknown Project"),
                     type="scan",
                     subtitle="Project Repository",
                     url=f"/scan"
                 ))
             elif label == "FILE":
                 results.append(SearchResult(
-                    id=node.get("id", "unknown"),
-                    title=node.get("name", "Unknown File"),
+                    id=str(node.get("node_id", "unknown")),
+                    title=node.get("label", "Unknown File"),
                     type="asset",
                     subtitle=node.get("path", "File"),
-                    url=f"/assets/{node.get('id', '')}"
+                    url=f"/assets/{node.get('node_id', '')}"
                 ))
             else:
                 # E.g. KEY, CERTIFICATE, ALGORITHM usage
                 algo = node.get("algorithm", "")
                 results.append(SearchResult(
-                    id=node.get("id", "unknown"),
-                    title=node.get("name", "Unknown Asset"),
+                    id=str(node.get("node_id", "unknown")),
+                    title=node.get("label", "Unknown Asset"),
                     type="asset",
                     subtitle=f"{label} • {algo}" if algo else label,
-                    url=f"/assets/{node.get('id', '')}"
+                    url=f"/assets/{node.get('node_id', '')}"
                 ))
                 
         return results

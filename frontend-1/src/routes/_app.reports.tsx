@@ -3,8 +3,9 @@ import { AppTopbar } from "@/components/app-topbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRiskReports } from "@/hooks/use-agilegraph";
-import { api } from "@/services/api";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { API_BASE_URL } from "@/services/api-client";
 import { FileText, FileBarChart, Route as RouteIcon, ShieldAlert, Download, Printer, Table2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/reports")({
@@ -30,12 +31,20 @@ function Reports() {
   const handleDownload = async (type: string, format: string) => {
     toast.info(`Generating ${format.toUpperCase()} report...`);
     try {
-      // Connect to the backend using api client to ensure JWT Authorization headers are sent
-      const response = await api.client.get(`/reports/latest/download?format=${format}&type=${encodeURIComponent(type)}`, {
-        responseType: 'blob'
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/reports/latest/download?format=${format}&type=${encodeURIComponent(type)}`, {
+        method: 'GET',
+        headers
       });
-      
-      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -12,7 +12,21 @@ export const api = {
 
   importGitHubRepository: async (url: string, branch?: string, token?: string) => {
     return apiClient.post<any>("/github", {
-      body: { repository_url: url, branch, token },
+      body: { repository_url: url, branch, access_token: token },
+    });
+  },
+
+  scanDomain: async (domain: string, ports: number[]) => {
+    return apiClient.post<any>("/domain", {
+      body: { domain, ports },
+    });
+  },
+
+  uploadCertificate: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post<any>("/certificate", {
+      body: formData,
     });
   },
 

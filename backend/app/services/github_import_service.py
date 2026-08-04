@@ -12,9 +12,11 @@ from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
+from fastapi import BackgroundTasks
+
 class GitHubImportService:
     @staticmethod
-    async def process_import(request: GithubImportRequest, user_id: str = None, owner_email: str = None) -> GithubImportResponse:
+    async def process_import(request: GithubImportRequest, background_tasks: BackgroundTasks, user_id: str = None, owner_email: str = None) -> GithubImportResponse:
         url = request.repository_url.strip()
         
         # Regex to validate the URL format strictly matches a GitHub repository
@@ -42,10 +44,33 @@ class GitHubImportService:
         clone_dir = os.path.join(project_dir, "extracted")
         os.makedirs(project_dir, exist_ok=True)
         
-        # Execute git clone
+        from app.services.scan_status_service import ScanStatusService, ScanStage
+        ScanStatusService.set_status(project_id, ScanStage.QUEUED)
+        
+        # Schedule the blocking clone and analysis pipeline in the background
+        background_tasks.add_task(
+            GitHubImportService._run_pipeline_in_background,
+            project_id, clone_url, request.branch, clone_dir, url, user_id, owner_email, request.access_token
+        )
+        
+        return GithubImportResponse(
+            project_id=project_id,
+            repository_url=url,
+            status="queued"
+        )
+
+    @staticmethod
+    def _run_pipeline_in_background(project_id, clone_url, branch, clone_dir, original_url, user_id, owner_email, access_token):
+        import subprocess
+        import os
+        import shutil
+        from app.services.scan_status_service import ScanStatusService, ScanStage
+        
+        ScanStatusService.set_status(project_id, ScanStage.CLONING)
+        
         clone_cmd = ["git", "clone", "--depth=1"]
-        if request.branch:
-            clone_cmd.extend(["--branch", request.branch])
+        if branch:
+            clone_cmd.extend(["--branch", branch])
         clone_cmd.extend([clone_url, clone_dir])
         
         try:
@@ -59,18 +84,20 @@ class GitHubImportService:
             )
             
             if process.returncode != 0:
-                # Sanitize the error message to remove token if present
                 err_msg = process.stderr
-                if request.access_token:
-                    err_msg = err_msg.replace(request.access_token, "***")
+                if access_token:
+                    err_msg = err_msg.replace(access_token, "***")
                 logger.error(f"Git clone failed: {err_msg}")
-                raise AgileGraphException("Failed to clone repository: Git error.")
+                ScanStatusService.set_status(project_id, ScanStage.FAILED)
+                return
                 
             # Execute pipeline
             from app.services.analysis_workflow_service import AnalysisWorkflowService
             from app.services.project_analysis_service import ProjectAnalysisService
             from app.services.neo4j_export_service import Neo4jExportService
-            from app.scanners.registry import get_default_registry
+            from app.scanners.scanner_registry import get_default_registry
+            from pathlib import Path
+            from app.config.settings import settings
             
             analysis_service = ProjectAnalysisService(get_default_registry())
             export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
@@ -78,20 +105,12 @@ class GitHubImportService:
             workflow = AnalysisWorkflowService(analysis_service, export_service)
             workflow.execute_pipeline(project_id, Path(clone_dir), user_id=user_id, owner_email=owner_email)
             
-            return GithubImportResponse(
-                project_id=project_id,
-                repository_url=url,
-                status="imported_and_processed"
-            )
-            
         except subprocess.TimeoutExpired:
-            logger.error(f"Git clone timed out for {url}")
-            raise AgileGraphException("Repository clone timed out after 60 seconds.")
+            logger.error(f"Git clone timed out for {original_url}")
+            ScanStatusService.set_status(project_id, ScanStage.FAILED)
         except Exception as e:
             logger.error(f"Pipeline execution failed for {project_id}: {str(e)}")
-            raise AgileGraphException(f"Pipeline execution failed: {str(e)}")
+            ScanStatusService.set_status(project_id, ScanStage.FAILED)
         finally:
-            # Clean up the temp clone directory regardless of success/failure
             if os.path.exists(clone_dir):
                 shutil.rmtree(clone_dir, ignore_errors=True)
-                

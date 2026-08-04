@@ -58,6 +58,27 @@ export function useGitHubImport() {
   });
 }
 
+export function useDomainScan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ domain, ports }: { domain: string; ports: number[] }) =>
+      api.scanDomain(domain, ports),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+export function useCertificateScan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => api.uploadCertificate(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
 export function useDashboardSummary() {

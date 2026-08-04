@@ -122,7 +122,7 @@ function Explainability() {
               { t: "Discovery", d: "Asset detected during monorepo scan", ok: true },
               { t: "Graph analysis", d: "Blast radius computed across 3 tiers", ok: true },
               { t: "Risk scoring", d: "Multi-factor model produced score 92", ok: true },
-              { t: "Recommendation", d: `PQC upgrade to ${asset.recommended}`, ok: true },
+              { t: "Recommendation", d: `PQC upgrade to ${mig?.recommendedPqcAlgorithm || asset.recommended}`, ok: true },
             ].map((s, i) => (
               <li key={i} className="relative rounded-lg border p-4">
                 <div className="flex items-center gap-2">

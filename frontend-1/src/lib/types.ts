@@ -1,5 +1,5 @@
 export type RiskLevel = "critical" | "high" | "medium" | "low";
-export type AssetType = "service" | "certificate" | "library" | "code" | "data" | "application" | "server";
+export type AssetType = "service" | "certificate" | "crypto_asset" | "library" | "code" | "data" | "application" | "server" | string;
 export type MigrationStatus = "not-started" | "planned" | "in-progress" | "completed";
 
 export interface CryptoAsset {

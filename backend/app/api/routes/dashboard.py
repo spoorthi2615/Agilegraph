@@ -161,7 +161,13 @@ def get_summary(
     low_count = severity_counts.get("LOW", 0)
 
     total_vulnerable = critical_count + high_count + medium_count + low_count
-    y = round((critical_count * 0.1) + (high_count * 0.05) + (medium_count * 0.02) + (low_count * 0.01), 1)
+    y = round(
+        (critical_count * 0.1)
+        + (high_count * 0.05)
+        + (medium_count * 0.02)
+        + (low_count * 0.01),
+        1,
+    )
     if total_vulnerable > 0 and y < 0.5:
         y = 0.5
     if critical_count > 0:
@@ -285,7 +291,13 @@ def get_mosca_readiness(
         
         # Y: Estimated migration duration based on volume and complexity
         # Assume: 0.1 years per critical, 0.05 per high, 0.02 per medium, 0.01 per low
-        y = round((critical_count * 0.1) + (high_count * 0.05) + (medium_count * 0.02) + (low_count * 0.01), 1)
+        y = round(
+            (critical_count * 0.1)
+            + (high_count * 0.05)
+            + (medium_count * 0.02)
+            + (low_count * 0.01),
+            1,
+        )
         # Ensure minimum 0.5 years if there are any vulnerable assets
         if total_vulnerable > 0 and y < 0.5:
             y = 0.5
@@ -331,7 +343,7 @@ def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGr
             # Risk level fallback to "medium", type fallback to "service" if undefined
             nodes.append(DashboardNode(
                 id=str(node.node_id),
-                label=str(node.name) if hasattr(node, 'name') else str(node.node_id),
+                label=str(node.label) if hasattr(node, 'label') else str(node.node_id),
                 type="service", 
                 risk="medium",
                 x=0.0, 
@@ -342,8 +354,8 @@ def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGr
     if graph and hasattr(graph, 'edges'):
         for edge in graph.edges:
             edges.append(DashboardEdge(
-                source=str(edge.source_id),
-                target=str(edge.target_id)
+                source=str(edge.source_node),
+                target=str(edge.target_node)
             ))
             
     return DashboardGraph(nodes=nodes, edges=edges)

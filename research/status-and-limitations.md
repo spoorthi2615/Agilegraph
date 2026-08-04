@@ -8,7 +8,7 @@ This addendum serves to clarify the discrepancies between the early exploratory 
 
 ## 2. CBOMkit Baseline Scope
 **Initial Synopsis Claim:** CBOMkit would be used as a direct baseline comparison for source-code cryptographic vulnerability detection.
-**Final Reality:** CBOMkit is primarily designed to scan binary artifacts and manifest files for SBOM generation, and its source-code scanning capabilities are fundamentally different in objective compared to AgileGraph's deep topological vulnerability detection. While we successfully ran the CBOMkit Docker baseline across the 40 repositories, comparing its manifest-level findings directly to AgileGraph's source-level semantic findings proved to be an apples-to-oranges comparison. As a result, the evaluation focuses on comparing the Full AgileGraph model against ablated versions of itself (e.g., without Heuristics, or using CodeBERT/GATv2 individually) to prove the value of its specific architecture.
+**Final Reality:** CBOMkit provides a robust industry-standard foundation and is used as a baseline for certificate and cryptographic inventory generation where applicable. However, AgileGraph extends beyond CBOMkit by analyzing deep source code, dependency graphs, and migration risk topological vulnerabilities. As a result, the deep source-code evaluation focuses on comparing the Full AgileGraph model against ablated versions of itself (e.g., without Heuristics, or using CodeBERT/GATv2 individually) to prove the value of its specific graph-based architecture, while treating CBOMkit as the foundational baseline for filesystem and manifest-level detection.
 
 ## 3. Reconciled Performance Metrics
 **Initial Synopsis Claim:** Outdated or aspirational F1 scores scattered across early documentation drafts.

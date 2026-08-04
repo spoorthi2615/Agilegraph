@@ -8,7 +8,7 @@ Internal validity assesses whether the experimental outcomes are mathematically 
 - **Data Leakage**: Mitigated. Train, Validation, and Test splits were rigidly enforced at the repository level. No nodes from a training repository exist in the testing matrix.
 - **Selection Bias**: Present. The dataset consists of 40 open-source repositories across 3 languages (Java, Python, Go) from GitHub heavily utilizing public libraries (`cryptography`, `bouncycastle`, etc.). It systematically excludes proprietary, isolated enterprise codebases.
 - **Random Seed Dependence**: Mitigated. All experimental benchmarks (Sprint 79.2) and ablations (Sprint 79.5) explicitly froze Python, NumPy, and PyTorch seeds (`42`), mathematically neutralizing initial weight lottery variance.
-- **Measurement Bias**: Mitigated. The ground-truth node labels were generated using strict NIST PQC migration guidelines rather than subjective human annotation.
+- **Measurement Bias**: Present. While the ground-truth node labels adhere to strict NIST PQC migration guidelines, they are synthetically generated using regex/AST heuristic parsing rather than the human-expert annotation originally proposed. This heuristic substitution introduces systemic labeling noise if the regex fails to capture non-standard implementations.
 
 ## 2. External Validity (Generalizability)
 External validity defines the boundaries of the research's applicability to the broader software ecosystem.
@@ -33,7 +33,7 @@ An independent researcher can fundamentally reconstruct this study using the fol
 - **Environment**: Docker v24.0, Python 3.11.7, PyTorch 2.1.0+cu118.
 - **Datasets**: `AgileGraph-Code-Corpus v1.0.0` and `AgileGraph-GNN-Tensors v2.0.0`.
 - **Scripts**: `/scripts/run_experiments.py` and `/scripts/generate_ablation_figures.py`.
-- **Replicability**: High on standard hardware. Replicating the exact latency metrics (~30-40ms inference) requires similar modern multi-core CPU architecture. Running on significantly older consumer hardware or massive distributed clusters will yield different timing topologies.
+- **Replicability**: High on standard hardware. However, exact latency metrics and throughput remain theoretically unbenchmarked at scale. Running on significantly older consumer hardware or massive distributed clusters will yield different timing topologies.
 
 ## 7. Future Threats to Validity
 - **Evolution of PQC Standards**: NIST's finalization of FIPS 203 (ML-KEM) and FIPS 204 (ML-DSA) may shift software development paradigms. If standard libraries natively abstract PQC negotiation away from the application layer, the relevance of AgileGraph's manual topological detection may diminish over time.

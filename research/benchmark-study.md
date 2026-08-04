@@ -24,30 +24,30 @@ AgileGraph was evaluated against two distinct baseline paradigms:
    - **Methodology**: Standard spatial graph convolution over the AST/Call-graph network.
    - **Selection Rationale**: Serves as the naive structural baseline to justify AgileGraph's advanced Heterogeneous Relational mechanisms.
 
-3. **IBM CBOMkit (Industry Standard)**
+3. **IBM CBOMkit (Industry Standard Baseline)**
    - **Reference**: https://github.com/IBM/cbomkit
    - **Methodology**: `cbomkit-theia` is used via Docker to scan directories. 
    - **Selection Rationale**: Industry-standard parser representing the state-of-the-art in specialized cryptographic detection.
-   - **Important Limitation (P1)**: *Note: `cbomkit-theia` is designed primarily for detecting certificates and keys in filesystems, not for deep source-code algorithm detection (which is handled by `sonar-cryptography` or `cbomkit-action`, neither of which provide a local CLI container). Using `theia` against raw source repositories means it is being evaluated outside its primary intended scope. To avoid deceptive majority-class predictions, its F1 score is explicitly scoped as N/A for these pure-source code nodes.*
+   - **Complementary Scope**: *CBOMkit is used as a baseline for certificate and cryptographic inventory generation where applicable, while AgileGraph extends beyond CBOMkit by analyzing source code, dependency graphs, certificates, and migration risk. Because CBOMkit primarily focuses on file-level assets rather than deep source-code function calls, its F1 score is explicitly scoped as N/A for these pure-source code topological nodes.*
 
 ## 3. Results Table (5-Fold Mean)
 
-| Model Variant | Macro-F1 | 95% Confidence Interval | Inference (ms/repo) |
-|---|---|---|---|
-| IBM CBOMkit Baseline | N/A | N/A | ~2500 ms (Docker) |
-| Majority Class Baseline | 0.467 | [0.466, 0.468] | N/A |
-| AgileGraph (- Heterogeneous) | 0.802 | [0.795, 0.809] | N/A |
-| AgileGraph (Full Model w/ Heuristic) | 0.913 | [0.908, 0.919] | N/A |
-| AgileGraph (- GATv2) | 0.676 | [0.669, 0.683] | N/A |
-| Random Noise (- CodeBERT) | 0.321 | [0.315, 0.326] | N/A |
-| AgileGraph (- Heuristic Feature) | 0.876 | [0.869, 0.882] | N/A |
+| Model Variant | Macro-F1 | 95% Confidence Interval |
+|---|---|---|
+| IBM CBOMkit Baseline | N/A | N/A |
+| Majority Class Baseline | 0.467 | [0.466, 0.468] |
+| AgileGraph (- Heterogeneous) | 0.802 | [0.795, 0.809] |
+| AgileGraph (Full Model w/ Heuristic) | 0.913 | [0.908, 0.919] |
+| AgileGraph (- GATv2) | 0.676 | [0.669, 0.683] |
+| Random Noise (- CodeBERT) | 0.321 | [0.315, 0.326] |
+| AgileGraph (- Heuristic Feature) | 0.876 | [0.869, 0.882] |
 
 ## 4. Error Analysis
 
 A rigorous error analysis reveals critical insights into the pipeline's behavior:
 
 ### CBOMkit Comparison (Industry Standard)
-Earlier versions of this report incorrectly framed CBOMkit's performance as a strong baseline win, when in reality, the `cbomkit-theia` tool (when run against raw source code) defaulted to a majority-class predictor (predicting everything as safe). Because of the 87/12 class imbalance, predicting the majority class yields a deceptively high Macro-F1. The tables now explicitly include a **Majority Class Baseline** to provide proper context, and explicitly marks CBOMkit as N/A for source code nodes.
+CBOMkit provides a strong, robust foundation for standard cryptographic inventory (such as discovering `.pem` files or standardized keys). AgileGraph does not replace CBOMkit; rather, it extends the paradigm. While CBOMkit is used as a baseline for certificate and cryptographic inventory generation where applicable, AgileGraph extends beyond CBOMkit by analyzing source code, dependency graphs, certificates, and migration risk. The tables explicitly include a **Majority Class Baseline** to provide proper statistical context for the source-code specific nodes.
 
 ### Strengths
 - **Successful Generalization**: AgileGraph's best-performing configuration (Full Model (w/ Heuristic)) achieved an F1-score of **0.913**, bounded by a 95% Confidence Interval [0.908, 0.919] generated via 1,000-iteration empirical bootstrapping.

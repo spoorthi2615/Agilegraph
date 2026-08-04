@@ -32,7 +32,7 @@ function Reports() {
     toast.info(`Generating ${format.toUpperCase()} report...`);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const headers: HeadersInit = {};
+      const headers: Record<string, string> = {};
       if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }

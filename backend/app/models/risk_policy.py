@@ -21,6 +21,7 @@ class RiskPolicy(BaseModel):
     
     dependency_baseline_score: int = 30
     unknown_baseline_score: int = 50
+    cvss_weight_multiplier: float = 3.0
 
     @classmethod
     def default(cls) -> "RiskPolicy":

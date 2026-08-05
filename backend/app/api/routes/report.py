@@ -109,8 +109,10 @@ def download_report(
             csv_lines = ["Metric,Value"]
             csv_lines.append(f"Total Assets,{report.total_assets}")
             csv_lines.append(f"High Risk Assets,{report.total_high_risk_assets}")
+            csv_lines.append(f"Total CVEs Found,{report.total_cves}")
             csv_lines.append(f"PQC Readiness Score,{report.pqc_readiness_score}%")
             csv_lines.append(f"Readiness Level,{report.pqc_readiness_level.value}")
+            csv_lines.append(f"Mosca Readiness Status,{report.mosca_status}")
         else:
             csv_lines = ["Category,Metric"]
             csv_lines.append(f"Assets,{report.total_assets}")
@@ -144,12 +146,14 @@ def download_report(
         c.setFont("Helvetica", 10)
         c.drawString(60, 620, f"- Total Assets: {report.total_assets}")
         c.drawString(60, 600, f"- High Risk Assets: {report.total_high_risk_assets}")
-        c.drawString(60, 580, f"- PQC Readiness: {report.pqc_readiness_score}% ({report.pqc_readiness_level.value})")
+        c.drawString(60, 580, f"- Total CVEs Found: {report.total_cves}")
+        c.drawString(60, 560, f"- PQC Readiness: {report.pqc_readiness_score}% ({report.pqc_readiness_level.value})")
+        c.drawString(60, 540, f"- Mosca Index Status: {report.mosca_status}")
         
         c.setFont("Helvetica-Bold", 12)
-        c.drawString(50, 540, "Migration Roadmap")
+        c.drawString(50, 500, "Migration Roadmap")
         c.setFont("Helvetica", 10)
-        c.drawString(60, 520, str(report.roadmap_summary)[:100])
+        c.drawString(60, 480, str(report.roadmap_summary)[:100])
         
         c.save()
         content = buffer.getvalue()
@@ -165,7 +169,9 @@ def download_report(
             "\n## Key Metrics",
             f"- Total Assets: {report.total_assets}",
             f"- High Risk Assets: {report.total_high_risk_assets}",
+            f"- Total CVEs Found: {report.total_cves}",
             f"- PQC Readiness: {report.pqc_readiness_score}% ({report.pqc_readiness_level.value})",
+            f"- Mosca Index Status: {report.mosca_status}",
             "\n## Migration Roadmap",
             f"{report.roadmap_summary}"
         ]

@@ -20,6 +20,8 @@ class SecurityReport(BaseModel):
     pqc_readiness_score: float
     pqc_readiness_level: PQCReadinessLevel
     total_recommendations: int
+    total_cves: int = 0
+    mosca_status: str = "Unknown"
     roadmap_summary: str
     executive_summary: str
     recommendations: List[MigrationRecommendation]

@@ -38,20 +38,32 @@ class RiskScoringService:
         """
         Determines the numeric risk score using deterministic rules from the injected policy.
         """
+        base_score = 0
         if asset.asset_type == AssetType.DEPENDENCY:
-            return policy.dependency_baseline_score
-            
-        if not asset.algorithm:
-            return policy.unknown_baseline_score
-            
-        # Upper case matching for robust lookup
-        algo = asset.algorithm.upper()
-        
-        # Handle ECC curve variations (e.g., "ECC (secp256r1)") by extracting base name
-        if algo.startswith("ECC") or algo.startswith("EC"):
-            return policy.algorithm_scores.get("EC", 40)
-            
-        return policy.algorithm_scores.get(algo, policy.unknown_baseline_score)
+            base_score = policy.dependency_baseline_score
+        elif not asset.algorithm:
+            base_score = policy.unknown_baseline_score
+        else:
+            algo = asset.algorithm.upper()
+            if algo.startswith("ECC") or algo.startswith("EC"):
+                base_score = policy.algorithm_scores.get("EC", 40)
+            else:
+                base_score = policy.algorithm_scores.get(algo, policy.unknown_baseline_score)
+                
+        # Calculate CVE Penalty: Highest CVSS + 0.25 * sum(other_cvss)
+        cve_penalty = 0.0
+        cves = asset.metadata.get("cves", [])
+        if cves:
+            cvss_scores = [cve.get("cvss", 0.0) for cve in cves]
+            if cvss_scores:
+                cvss_scores.sort(reverse=True)
+                highest_cvss = cvss_scores[0]
+                other_cvss_sum = sum(cvss_scores[1:])
+                total_cve_factor = highest_cvss + (0.25 * other_cvss_sum)
+                cve_penalty = total_cve_factor * policy.cvss_weight_multiplier
+                
+        final_score = int(min(base_score + cve_penalty, 100))
+        return final_score
 
     @classmethod
     def _determine_severity(cls, score: int) -> Severity:

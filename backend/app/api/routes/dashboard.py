@@ -109,14 +109,50 @@ def provide_security_report(
     readiness: PQCReadinessAssessment = Depends(provide_pqc_readiness),
     roadmap: MigrationRoadmap = Depends(provide_roadmap),
     recommendations: List[MigrationRecommendation] = Depends(provide_recommendations),
-    explanations: List[Explanation] = Depends(provide_explanations)
+    explanations: List[Explanation] = Depends(provide_explanations),
+    graph: CryptoGraph = Depends(provide_crypto_graph)
 ) -> SecurityReport:
+    total_cves = 0
+    critical_count = 0
+    high_count = 0
+    medium_count = 0
+    low_count = 0
+    
+    for node in graph.nodes.values():
+        cves = node.metadata.get("cves", [])
+        if cves:
+            total_cves += len(cves)
+            
+        severity = str(node.severity).upper() if node.severity else "LOW"
+        if severity == "CRITICAL": critical_count += 1
+        elif severity == "HIGH": high_count += 1
+        elif severity == "MEDIUM": medium_count += 1
+        else: low_count += 1
+        
+    y = round(
+        (critical_count * 0.1)
+        + (high_count * 0.05)
+        + (medium_count * 0.02)
+        + (low_count * 0.01),
+        1,
+    )
+    if critical_count > 0: x = 10.0
+    elif high_count > 0: x = 7.0
+    elif medium_count > 0: x = 3.0
+    else: x = 1.0
+    z = 8.0
+    
+    from app.services.mosca_service import MoscaService
+    mosca_result = MoscaService.calculate_index(int(x), int(y), int(z))
+    
     return SecurityReportService.generate_report(
         analysis_result=analysis_result,
         readiness=readiness,
         roadmap=roadmap,
         recommendations=recommendations,
-        explanations=explanations
+        explanations=explanations,
+        total_cves=total_cves,
+        mosca_status=mosca_result["status"]
     )
 
 # ---------------------------------------------------------

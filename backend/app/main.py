@@ -3,7 +3,15 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config.settings import settings
-from app.api.v1.endpoints import health, upload, github, metrics, domain, certificate
+from app.api.v1.endpoints import (
+    health,
+    upload,
+    github,
+    metrics,
+    domain,
+    certificate,
+    mosca,
+)
 from app.api.routes import dashboard, analysis, graph, explainability, report
 from app.core.exceptions import AgileGraphException, ValidationException, ResourceNotFoundException, EntityTooLargeException
 from app.core.logging import setup_logging, request_id_ctx
@@ -140,6 +148,7 @@ def create_app() -> FastAPI:
     app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
     app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
     app.include_router(workspaces.router, prefix="/api/v1/workspaces", tags=["Workspaces"])
+    app.include_router(mosca.router, prefix="/api/v1", tags=["Mosca Readiness"])
     return app
 
 app = create_app()

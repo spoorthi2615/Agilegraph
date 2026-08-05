@@ -1,0 +1,94 @@
+{
+    "openssl": [
+        {
+            "id": "CVE-2023-0286",
+            "cvss": 7.4,
+            "severity": "HIGH",
+            "description": "X.400 address type confusion vulnerability."
+        },
+        {
+            "id": "CVE-2022-3786",
+            "cvss": 7.5,
+            "severity": "HIGH",
+            "description": "X.509 Email Address Buffer Overflow."
+        }
+    ],
+    "log4j": [
+        {
+            "id": "CVE-2021-44228",
+            "cvss": 10.0,
+            "severity": "CRITICAL",
+            "description": "Apache Log4j2 JNDI features do not protect against attacker controlled LDAP and other JNDI related endpoints."
+        }
+    ],
+    "spring-security": [
+        {
+            "id": "CVE-2022-22978",
+            "cvss": 9.8,
+            "severity": "CRITICAL",
+            "description": "Authorization Bypass in RegexRequestMatcher."
+        }
+    ],
+    "bouncycastle": [
+        {
+            "id": "CVE-2023-33201",
+            "cvss": 5.3,
+            "severity": "MEDIUM",
+            "description": "Bouncy Castle Java implementation contains a potential timing leakage in RSA decryption."
+        },
+        {
+            "id": "CVE-2020-28052",
+            "cvss": 7.5,
+            "severity": "HIGH",
+            "description": "Bouncy Castle OpenBSDBCrypt.doCheckPassword authentication bypass."
+        }
+    ],
+    "tomcat": [
+        {
+            "id": "CVE-2023-46589",
+            "cvss": 5.3,
+            "severity": "MEDIUM",
+            "description": "Apache Tomcat HTTP Request Smuggling."
+        }
+    ],
+    "netty": [
+        {
+            "id": "CVE-2023-34462",
+            "cvss": 7.5,
+            "severity": "HIGH",
+            "description": "Netty Information Disclosure in SniHandler."
+        }
+    ],
+    "conscrypt": [
+        {
+            "id": "CVE-2020-0454",
+            "cvss": 5.9,
+            "severity": "MEDIUM",
+            "description": "Information disclosure in Conscrypt."
+        }
+    ],
+    "wolfssl": [
+        {
+            "id": "CVE-2022-42905",
+            "cvss": 7.5,
+            "severity": "HIGH",
+            "description": "wolfSSL callback for verifying peer certificates can be bypassed."
+        }
+    ],
+    "botan": [
+        {
+            "id": "CVE-2021-24115",
+            "cvss": 5.9,
+            "severity": "MEDIUM",
+            "description": "Botan constant-time RSA decryption vulnerability."
+        }
+    ],
+    "requests": [
+        {
+            "id": "CVE-2023-32681",
+            "cvss": 6.1,
+            "severity": "MEDIUM",
+            "description": "Requests package leaks Proxy-Authorization header during redirect."
+        }
+    ]
+}

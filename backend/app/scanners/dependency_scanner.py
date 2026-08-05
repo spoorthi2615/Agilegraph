@@ -7,6 +7,7 @@ import requests
 from app.scanners.base_scanner import BaseScanner
 from app.scanners.scanner_result import ScannerResult
 from app.models.crypto_asset import CryptoAsset, AssetType
+from app.services.cve_service import CVEService
 
 class DependencyScanner(BaseScanner):
     """
@@ -37,7 +38,7 @@ class DependencyScanner(BaseScanner):
                     self._parse_go_mod(file_path, findings, errors, processed_deps)
                     
             if findings:
-                self._enrich_with_osv(findings, errors)
+                self._enrich_with_cve_snapshot(findings, errors)
                 
         execution_time_ms = (time.time() - start_time) * 1000.0
         
@@ -70,66 +71,24 @@ class DependencyScanner(BaseScanner):
         )
         return asset.model_dump(mode="json")
         
-    def _enrich_with_osv(self, findings: List[Dict[str, Any]], errors: List[str]) -> None:
+    def _enrich_with_cve_snapshot(
+        self, findings: List[Dict[str, Any]], errors: List[str]
+    ) -> None:
         """
-        Batch queries the OSV.dev API to identify CVEs and vulnerabilities in the discovered dependencies.
+        Queries the local CVEService snapshot to identify CVEs and vulnerabilities 
+        in the discovered dependencies. This ensures offline demonstrations.
         """
-        queries = []
-        # Keep track of mapping from OSV query index back to finding index
-        query_map = {}
-        
-        for idx, f in enumerate(findings):
-            meta = f.get("metadata", {})
+        for finding in findings:
+            meta = finding.get("metadata", {})
             pkg = meta.get("package_name")
-            ver = meta.get("version")
-            lang = f.get("language")
             
-            if not pkg or ver == "unknown":
+            if not pkg:
                 continue
                 
-            # Determine OSV ecosystem
-            ecosystem = "PyPI" if lang in ["Python", "Unknown"] else "Go"
-            
-            # Clean up version string (remove operators like ==, >=)
-            clean_ver = ver
-            for op in ["==", ">=", "<=", "~=", ">", "<", "!="]:
-                clean_ver = clean_ver.replace(op, "").strip()
-                
-            queries.append({
-                "package": {"name": pkg, "ecosystem": ecosystem},
-                "version": clean_ver
-            })
-            query_map[len(queries) - 1] = idx
-            
-        if not queries:
-            return
-            
-        try:
-            response = requests.post("https://api.osv.dev/v1/querybatch", json={"queries": queries}, timeout=10)
-            if response.status_code == 200:
-                results = response.json().get("results", [])
-                for q_idx, res in enumerate(results):
-                    if "vulns" in res:
-                        vulns = res["vulns"]
-                        f_idx = query_map[q_idx]
-                        finding = findings[f_idx]
-                        
-                        # Extract CVEs
-                        cves = []
-                        max_severity = "LOW"
-                        for v in vulns:
-                            if "aliases" in v:
-                                cves.extend([a for a in v["aliases"] if a.startswith("CVE-")])
-                            # Simple severity fallback based on OSV schema if database specific CVSS isn't easily parsed
-                            # Just tag it HIGH if it has a vulnerability for now to alert the graph
-                            max_severity = "HIGH"
-                            
-                        finding["severity"] = max_severity
-                        finding["metadata"]["vulnerabilities"] = list(set(cves)) if cves else [v["id"] for v in vulns]
-            else:
-                errors.append(f"OSV API returned status {response.status_code}")
-        except Exception as e:
-            errors.append(f"Failed to query OSV API: {str(e)}")
+            cves = CVEService.lookup_cves(pkg)
+            if cves:
+                finding["metadata"]["cves"] = cves
+                finding["severity"] = "HIGH"
             
     def _parse_requirements_txt(self, file_path: Path, findings: List[Dict[str, Any]], errors: List[str], processed_deps: set) -> None:
         try:

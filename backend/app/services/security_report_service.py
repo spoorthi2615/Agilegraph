@@ -19,7 +19,9 @@ class SecurityReportService:
         readiness: PQCReadinessAssessment,
         roadmap: MigrationRoadmap,
         recommendations: List[MigrationRecommendation],
-        explanations: List[Explanation]
+        explanations: List[Explanation],
+        total_cves: int = 0,
+        mosca_status: str = "Unknown"
     ) -> SecurityReport:
         """
         Consolidates the entire analytical output of the AgileGraph pipeline into 
@@ -50,5 +52,7 @@ class SecurityReportService:
             roadmap_summary=roadmap.executive_summary,
             executive_summary=executive_summary,
             recommendations=recommendations,
-            explanations=explanations
+            explanations=explanations,
+            total_cves=total_cves,
+            mosca_status=mosca_status
         )

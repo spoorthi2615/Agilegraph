@@ -9,7 +9,12 @@ from app.config.settings import settings
 
 class AssetGraphIngestionService:
     @staticmethod
-    def ingest_certificates(project_id: str, parsed_certs: List[Dict[str, Any]], user_id: str = None, owner_email: str = None) -> None:
+    def ingest_certificates(
+        project_id: str,
+        parsed_certs: List[Dict[str, Any]],
+        user_id: str = None,
+        owner_email: str = None,
+    ) -> None:
         """
         Converts parsed certificates directly into GraphNodes and pushes them to Neo4j.
         """
@@ -67,7 +72,9 @@ class AssetGraphIngestionService:
             )
             graph.add_edge(edge)
             
-        export_service = Neo4jExportService(settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+        export_service = Neo4jExportService(
+            settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD
+        )
         try:
             export_service.export_graph(graph, user_id=user_id, owner_email=owner_email)
         finally:

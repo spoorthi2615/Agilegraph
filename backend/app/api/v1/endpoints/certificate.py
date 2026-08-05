@@ -12,7 +12,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("", response_model=ScanResponse, status_code=status.HTTP_201_CREATED)
-async def upload_certificate(file: UploadFile = File(...), user: User = Depends(get_current_user_strict)):
+async def upload_certificate(
+    file: UploadFile = File(...), user: User = Depends(get_current_user_strict)
+):
     """
     Parse an uploaded certificate (.pem/.crt) and ingest the cryptographic assets into the graph.
     """
@@ -34,7 +36,11 @@ async def upload_certificate(file: UploadFile = File(...), user: User = Depends(
         )
         ScanStatusService.set_status(project_id, ScanStage.COMPLETED)
         
-        return ScanResponse(project_id=project_id, status="completed", message=f"Successfully scanned {file.filename}")
+        return ScanResponse(
+            project_id=project_id,
+            status="completed",
+            message=f"Successfully scanned {file.filename}",
+        )
     except Exception as e:
         logger.error(f"Certificate scan failed: {e}")
         ScanStatusService.set_status(project_id, ScanStage.FAILED)

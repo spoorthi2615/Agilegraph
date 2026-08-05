@@ -50,7 +50,8 @@ class CertificateParsingService:
             "issuer": issuer,
             "not_before": not_before,
             "not_after": not_after,
-            "is_pqc_safe": False # Standard x509 are not PQC safe yet unless Dilithium/Sphincs+
+            # Standard x509 are not PQC safe yet unless Dilithium/Sphincs+
+            "is_pqc_safe": False,
         }
 
 class TLSScanningService:
@@ -62,7 +63,8 @@ class TLSScanningService:
         """
         context = ssl.create_default_context()
         context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE # We just want to extract, not validate trust
+        # We just want to extract, not validate trust
+        context.verify_mode = ssl.CERT_NONE
         
         parsed_certs = []
         try:

@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, status, Depends
 
 from app.schemas.scan_schema import DomainScanRequest, ScanResponse
-from app.services.tls_scanning_service import TLSScanningService
+from app.services.certificate_parsing_service import TLSScanningService
 from app.services.asset_graph_ingestion_service import AssetGraphIngestionService
 from app.services.scan_status_service import ScanStatusService, ScanStage
 from app.core.security import get_current_user_strict, User
@@ -12,7 +12,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("", response_model=ScanResponse, status_code=status.HTTP_201_CREATED)
-async def scan_domain(request: DomainScanRequest, user: User = Depends(get_current_user_strict)):
+async def scan_domain(
+    request: DomainScanRequest, user: User = Depends(get_current_user_strict)
+):
     """
     Perform a TLS handshake against a domain, parse the certificate chain,
     and ingest the resulting cryptographic assets into the graph.
@@ -35,7 +37,11 @@ async def scan_domain(request: DomainScanRequest, user: User = Depends(get_curre
         )
         ScanStatusService.set_status(project_id, ScanStage.COMPLETED)
         
-        return ScanResponse(project_id=project_id, status="completed", message=f"Successfully scanned {request.domain}")
+        return ScanResponse(
+            project_id=project_id,
+            status="completed",
+            message=f"Successfully scanned {request.domain}",
+        )
     except Exception as e:
         logger.error(f"Domain scan failed: {e}")
         ScanStatusService.set_status(project_id, ScanStage.FAILED)

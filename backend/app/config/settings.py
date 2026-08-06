@@ -26,10 +26,10 @@ class Settings(BaseSettings):
     UPLOAD_DIRECTORY: str = Field(default="uploads")
     REPORT_DIRECTORY: str = Field(default="reports")
     
-    # Neo4j Settings (Optional for fallback/demo mode without DB)
-    NEO4J_URI: str = Field(default="", description="Neo4j connection string (e.g. bolt://neo4j:7687)")
-    NEO4J_USERNAME: str = Field(default="", description="Neo4j authentication username")
-    NEO4J_PASSWORD: str = Field(default="", description="Neo4j authentication password")
+    # Neo4j Settings (Required for backend operation)
+    NEO4J_URI: str = Field(description="Neo4j connection string (e.g. bolt://neo4j:7687)")
+    NEO4J_USERNAME: str = Field(description="Neo4j authentication username")
+    NEO4J_PASSWORD: str = Field(description="Neo4j authentication password")
     
     # Security / CORS
     CORS_ORIGINS: str = Field(default="*")
@@ -45,13 +45,7 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    @field_validator("NEO4J_PASSWORD", mode="before")
-    def validate_password_in_prod(cls, v, info):
-        # We can't access self.ENVIRONMENT easily in a 'before' validator without info.data,
-        # but pydantic handles missing required fields natively. Since it has no default, 
-        # it will immediately fail fast on startup if missing.
-        return v
-        
+
     @field_validator("UPLOAD_DIRECTORY", "REPORT_DIRECTORY")
     def validate_directories(cls, v):
         # Ensure directories exist

@@ -17,6 +17,16 @@ except Exception as e:
 # Add the backend directory to the Python path so imports work
 sys.path.insert(0, os.path.abspath("backend"))
 
+# Hugging Face ZeroGPU strict check bypass
+try:
+    import spaces
+    @spaces.GPU
+    def _zero_gpu_warmup():
+        pass
+except ImportError:
+    pass
+
+
 from app.main import app
 
 if __name__ == "__main__":

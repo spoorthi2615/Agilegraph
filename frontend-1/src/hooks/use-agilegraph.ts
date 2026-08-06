@@ -15,6 +15,7 @@ async function withFallback<T>(fn: () => Promise<T>, fallback: T, ms = 5000): Pr
         setTimeout(() => reject(new Error("API timeout")), ms)
       ),
     ]);
+    demoStore.setDemoMode(false);
     return result;
   } catch {
     demoStore.setDemoMode(true);
@@ -88,11 +89,6 @@ export function useDashboardSummary() {
     queryKey: ["dashboard", "summary"],
     queryFn: async (): Promise<DashboardSummary> => {
       const data = await withFallback(api.getDashboardSummary, MOCK_DASHBOARD);
-      // If real API returned but Neo4j is empty, use rich mock data
-      if (data && data.kpis && data.kpis.totalAssets === 0 && data.activity.length === 0) {
-        demoStore.setDemoMode(true);
-        return MOCK_DASHBOARD;
-      }
       return data;
     },
     retry: false,
@@ -118,11 +114,6 @@ export function useAssets() {
     queryKey: ["assets"],
     queryFn: async () => {
       const data = await withFallback(api.getAssets, mock.assets as any[]);
-      // If empty result from API, fall back to mock assets
-      if (!data || (Array.isArray(data) && data.length === 0)) {
-        demoStore.setDemoMode(true);
-        return mock.assets as any[];
-      }
       return data;
     },
     retry: false,

@@ -48,7 +48,7 @@ function AppLayout() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
             </span>
-            Demo Mode: Backend unavailable or empty. Showing sample data.
+            Demo Mode: Sample data is being displayed because live scan data is unavailable.
           </div>
         )}
         <div className="flex-1 overflow-auto">

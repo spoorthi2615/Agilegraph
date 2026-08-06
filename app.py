@@ -14,18 +14,24 @@ try:
 except Exception as e:
     print(f"Warning: Failed to pre-download CodeBERT model: {e}. Falling back to cached embeddings or AST features.")
 
-# Add the backend directory to the Python path so imports work
-sys.path.insert(0, os.path.abspath("backend"))
-
 # Hugging Face ZeroGPU strict check bypass
+class MockSpaces:
+    def GPU(self, func=None, **kwargs):
+        if func is None:
+            return self.GPU
+        return func
+
 try:
     import spaces
-    @spaces.GPU
-    def _zero_gpu_warmup():
-        pass
 except ImportError:
+    spaces = MockSpaces()
+
+@spaces.GPU
+def _zero_gpu_warmup():
     pass
 
+import sys
+sys.path.insert(0, os.path.abspath("backend"))
 
 from app.main import app
 

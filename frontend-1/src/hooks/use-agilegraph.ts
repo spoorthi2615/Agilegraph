@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { DashboardSummary } from "../lib/types";
 import * as mock from "../lib/mock-data";
+import { demoStore } from "../lib/demo-store";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ async function withFallback<T>(fn: () => Promise<T>, fallback: T, ms = 5000): Pr
     ]);
     return result;
   } catch {
+    demoStore.setDemoMode(true);
     return fallback;
   }
 }
@@ -88,6 +90,7 @@ export function useDashboardSummary() {
       const data = await withFallback(api.getDashboardSummary, MOCK_DASHBOARD);
       // If real API returned but Neo4j is empty, use rich mock data
       if (data && data.kpis && data.kpis.totalAssets === 0 && data.activity.length === 0) {
+        demoStore.setDemoMode(true);
         return MOCK_DASHBOARD;
       }
       return data;
@@ -117,6 +120,7 @@ export function useAssets() {
       const data = await withFallback(api.getAssets, mock.assets as any[]);
       // If empty result from API, fall back to mock assets
       if (!data || (Array.isArray(data) && data.length === 0)) {
+        demoStore.setDemoMode(true);
         return mock.assets as any[];
       }
       return data;

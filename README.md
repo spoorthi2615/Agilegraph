@@ -1,3 +1,14 @@
+---
+title: Agilegraph API
+emoji: 🚀
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: 4.41.0
+app_file: app.py
+pinned: false
+---
+
 # AGILEGRAPH: Graph-Learned Crypto-Agility Risk Scoring for Post-Quantum Migration
 
 **AgileGraph** is a full-stack, production-ready platform designed to analyze source code repositories, construct cryptographic knowledge graphs, and evaluate cryptographic agility using advanced heuristic algorithms and Graph Neural Networks (GNNs). 

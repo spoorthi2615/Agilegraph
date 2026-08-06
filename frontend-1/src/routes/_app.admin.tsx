@@ -30,8 +30,14 @@ function AdminDashboard() {
         return;
       }
 
-      // Check if user is admin (hardcoded to bypass DB issues)
-      if (user.email !== 'spoorthipyadav@gmail.com' && user.email !== 'spoorthi2615@gmail.com') {
+      // Check if user is admin based on profile role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile || profile.role !== 'admin') {
         await supabase.auth.signOut();
         toast.info('Oops! Admin access only.', { 
           description: 'It looks like you are not an administrator. Please use the standard User Login to access your workspace! 😊',

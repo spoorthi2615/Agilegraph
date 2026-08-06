@@ -7,7 +7,7 @@ import { demoStore } from "../lib/demo-store";
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Race an async fn against a timeout; on error/timeout return fallback */
-async function withFallback<T>(fn: () => Promise<T>, fallback: T, ms = 5000): Promise<T> {
+async function withFallback<T>(id: string, fn: () => Promise<T>, fallback: T, ms = 5000): Promise<T> {
   try {
     const result = await Promise.race([
       fn(),
@@ -15,10 +15,10 @@ async function withFallback<T>(fn: () => Promise<T>, fallback: T, ms = 5000): Pr
         setTimeout(() => reject(new Error("API timeout")), ms)
       ),
     ]);
-    demoStore.setDemoMode(false);
+    demoStore.setFallback(id, false);
     return result;
   } catch {
-    demoStore.setDemoMode(true);
+    demoStore.setFallback(id, true);
     return fallback;
   }
 }
@@ -88,7 +88,7 @@ export function useDashboardSummary() {
   return useQuery({
     queryKey: ["dashboard", "summary"],
     queryFn: async (): Promise<DashboardSummary> => {
-      const data = await withFallback(api.getDashboardSummary, MOCK_DASHBOARD);
+      const data = await withFallback("dashboardSummary", api.getDashboardSummary, MOCK_DASHBOARD);
       return data;
     },
     retry: false,
@@ -101,7 +101,7 @@ export function useDashboardSummary() {
 export function useCryptoGraph() {
   return useQuery({
     queryKey: ["graph"],
-    queryFn: () => withFallback(api.getGraph, MOCK_GRAPH),
+    queryFn: () => withFallback("cryptoGraph", api.getGraph, MOCK_GRAPH),
     retry: false,
     staleTime: 1000 * 60 * 5,
   });
@@ -113,7 +113,7 @@ export function useAssets() {
   return useQuery({
     queryKey: ["assets"],
     queryFn: async () => {
-      const data = await withFallback(api.getAssets, mock.assets as any[]);
+      const data = await withFallback("assets", api.getAssets, mock.assets as any[]);
       return data;
     },
     retry: false,
@@ -128,7 +128,7 @@ export function useAsset(id: string) {
       if (!id) return null;
       // Try backend first, fall back to mock assets lookup
       const fallback = (mock.assets as any[]).find((a) => a.id === id) ?? null;
-      return withFallback(() => api.getAssetById(id), fallback);
+      return withFallback(`asset-${id}`, () => api.getAssetById(id), fallback);
     },
     enabled: !!id,
     retry: false,
@@ -141,7 +141,7 @@ export function useAsset(id: string) {
 export function useRiskReports() {
   return useQuery({
     queryKey: ["reports"],
-    queryFn: () => withFallback(api.getRiskReports, mock.reports as any[]),
+    queryFn: () => withFallback("riskReports", api.getRiskReports, mock.reports as any[]),
     retry: false,
     staleTime: 1000 * 60,
   });
@@ -185,7 +185,7 @@ const MOCK_EXPLAIN = (assetId: string) => {
 export function useExplainability(id: string) {
   return useQuery({
     queryKey: ["explainability", id],
-    queryFn: () => withFallback(() => api.getExplainability(id), MOCK_EXPLAIN(id)),
+    queryFn: () => withFallback(`explainability-${id}`, () => api.getExplainability(id), MOCK_EXPLAIN(id)),
     enabled: !!id,
     retry: false,
     staleTime: 1000 * 60 * 5,
@@ -199,6 +199,7 @@ export function useMoscaReadiness(z: number) {
     queryKey: ["mosca", z],
     queryFn: () =>
       withFallback(
+        `mosca-${z}`,
         async () => {
           const { apiClient } = await import("../services/api-client");
           return apiClient.get<any>(`/dashboard/mosca?z=${z}`);
@@ -226,7 +227,7 @@ export function useSearch(query: string) {
 export function useNotifications() {
   return useQuery({
     queryKey: ["notifications"],
-    queryFn: () => withFallback(api.getNotifications, []),
+    queryFn: () => withFallback("notifications", api.getNotifications, []),
     retry: false,
     staleTime: 1000 * 60,
   });
@@ -235,7 +236,7 @@ export function useNotifications() {
 export function useWorkspaces() {
   return useQuery({
     queryKey: ["workspaces"],
-    queryFn: () => withFallback(api.getWorkspaces, []),
+    queryFn: () => withFallback("workspaces", api.getWorkspaces, []),
     retry: false,
     staleTime: 1000 * 60 * 60,
   });

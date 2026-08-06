@@ -15,16 +15,7 @@ except Exception as e:
     print(f"Warning: Failed to pre-download CodeBERT model: {e}. Falling back to cached embeddings or AST features.")
 
 # Hugging Face ZeroGPU strict check bypass
-class MockSpaces:
-    def GPU(self, func=None, **kwargs):
-        if func is None:
-            return self.GPU
-        return func
-
-try:
-    import spaces
-except ImportError:
-    spaces = MockSpaces()
+import spaces
 
 @spaces.GPU
 def _zero_gpu_warmup():

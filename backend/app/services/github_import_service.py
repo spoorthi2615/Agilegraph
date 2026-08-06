@@ -61,9 +61,6 @@ class GitHubImportService:
 
     @staticmethod
     def _run_pipeline_in_background(project_id, clone_url, branch, clone_dir, original_url, user_id, owner_email, access_token):
-        import subprocess
-        import os
-        import shutil
         from app.services.scan_status_service import ScanStatusService, ScanStage
         
         ScanStatusService.set_status(project_id, ScanStage.CLONING)

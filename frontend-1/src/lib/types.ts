@@ -78,7 +78,7 @@ export interface DashboardSummary {
   migrationTrend: Array<{ month: string; migrated: number; planned: number }>;
   recentScans: ScanRecord[];
   activity: ActivityItem[];
-  criticalAlerts: Array<{ id: string; title: string; reason: string; score: number }>;
+  criticalAlerts: Array<{ id: string; title: string; reason: string; score: number; ownerEmail?: string }>;
 }
 
 export const riskColor: Record<RiskLevel, string> = {

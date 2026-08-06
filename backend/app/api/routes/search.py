@@ -63,7 +63,7 @@ def search_graph(
                         title=node.get("label", "Unknown Project"),
                         type="scan",
                         subtitle="Project Repository",
-                        url=f"/scan",
+                        url=f"/scan/{node.get('node_id', '')}",
                     )
                 )
             elif label == "FILE":

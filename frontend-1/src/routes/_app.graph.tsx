@@ -159,7 +159,7 @@ function GraphView() {
                         <li key={c}>
                           <button onClick={() => setSelected(c)} className="flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-sm hover:bg-muted/40">
                             <span className="h-2 w-2 rounded-full" style={{ background: riskColor[asset.risk] }} />
-                            <span className="truncate">{asset.name}</span>
+                            <span className="truncate">{asset.label}</span>
                             <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                         </li>

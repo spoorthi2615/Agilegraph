@@ -12,7 +12,7 @@ try:
     AutoModel.from_pretrained('microsoft/codebert-base')
     print("Model downloaded successfully!")
 except Exception as e:
-    print(f"Warning: Failed to pre-download model: {e}")
+    print(f"Warning: Failed to pre-download CodeBERT model: {e}. Falling back to cached embeddings or AST features.")
 
 # Add the backend directory to the Python path so imports work
 sys.path.insert(0, os.path.abspath("backend"))

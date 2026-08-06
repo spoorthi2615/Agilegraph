@@ -25,7 +25,8 @@ function Explainability() {
   if (isLoading || !assets.length || !explainData) return <div className="p-8 text-center text-muted-foreground">Loading explainability data...</div>;
 
   const { assetInformation: info, gnnExplanation: gnn, heuristicExplanation: heur, migrationRecommendation: mig, naturalLanguageSummary } = explainData;
-  const factors = gnn?.featureImportance?.map((f: any) => ({
+  interface FeatureItem { featureName: string; contribution: number; positiveInfluence: boolean }
+  const factors = gnn?.featureImportance?.map((f: FeatureItem) => ({
     label: f.featureName,
     weight: Math.round(f.contribution * 100),
     note: f.positiveInfluence ? "Increases risk" : "Decreases risk"

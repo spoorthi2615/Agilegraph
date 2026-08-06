@@ -52,6 +52,9 @@ jobs:
         working-directory: ./backend
         run: pytest --cov=app --cov-report=xml
 
+      - name: Verify Document Drift
+        run: python scripts/check_doc_drift.py
+
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
@@ -85,6 +88,10 @@ jobs:
       - name: Security Scan
         working-directory: ./frontend-1
         run: npm audit --omit=dev --audit-level=high
+
+      - name: TypeScript Type Check
+        working-directory: ./frontend-1
+        run: npx tsc --noEmit
 
       - name: TypeScript Compile & Build
         working-directory: ./frontend-1

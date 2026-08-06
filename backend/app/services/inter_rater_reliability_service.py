@@ -1,62 +1,84 @@
 from datetime import datetime, timezone
+from typing import List, Set
+
 from app.models.expert_validation import ExpertValidation
 from app.models.inter_rater_reliability import InterRaterReliability, KappaInterpretation
 
 class InterRaterReliabilityService:
     """
-    Service responsible for rigorously computing Cohen's Kappa to measure inter-rater 
-    reliability between exactly two cybersecurity experts assessing a single node.
+    Service responsible for rigorously computing Fleiss' Kappa to measure inter-rater 
+    reliability across multiple cybersecurity experts assessing a batch of nodes.
     """
 
     @classmethod
-    def calculate_kappa(
+    def calculate_fleiss_kappa(
         cls, 
-        validation_1: ExpertValidation, 
-        validation_2: ExpertValidation
+        validations_batch: List[List[ExpertValidation]]
     ) -> InterRaterReliability:
         """
-        Executes the mathematical Cohen's Kappa formula (Observed vs Expected Agreement) 
-        and maps the resulting score to a standardized interpretation string.
+        Executes the mathematical Fleiss' Kappa formula for N subjects and n raters.
+        Maps the resulting score to a standardized interpretation string.
+        
+        Args:
+            validations_batch: A list of subjects. Each subject is a list of validations 
+                               performed by different experts on that subject.
         """
         
-        # 1. Reject different node_ids
-        if validation_1.node_id != validation_2.node_id:
-            raise ValueError(
-                f"Mixed nodes detected. Expected both experts to evaluate the same node, "
-                f"but found {validation_1.node_id} and {validation_2.node_id}."
-            )
+        N = len(validations_batch)
+        if N == 0:
+            raise ValueError("No validations provided. Cannot compute Fleiss' Kappa.")
             
-        # 2. Validate exactly two distinct experts
-        if validation_1.expert_id == validation_2.expert_id:
-            raise ValueError("Cohen's Kappa requires exactly two distinct experts. Found identical expert IDs.")
+        # Ensure consistent number of raters
+        n = len(validations_batch[0])
+        if n < 2:
+            raise ValueError("Fleiss' Kappa requires at least 2 raters per subject.")
             
-        label_1 = validation_1.expert_label
-        label_2 = validation_2.expert_label
+        expert_ids: Set[str] = set()
         
-        # 3. Calculate Observed Agreement (Po)
-        # For a single node, observed agreement is either exactly 1.0 (match) or 0.0 (mismatch)
-        is_agreement = (label_1 == label_2)
-        p_o = 1.0 if is_agreement else 0.0
+        # Discover all unique categories (labels)
+        categories = set()
+        for subject_validations in validations_batch:
+            if len(subject_validations) != n:
+                raise ValueError("Inconsistent number of raters across subjects.")
+            for val in subject_validations:
+                categories.add(val.expert_label)
+                expert_ids.add(val.expert_id)
+                
+        category_list = list(categories)
+        k = len(category_list)
         
-        # 4. Calculate Expected Agreement (Pe) based on marginal probabilities
-        # Given N=1 sample, the marginal probabilities are degenerate (either 1.0 or 0.0).
-        unique_labels = set([label_1, label_2])
-        p_e = 0.0
-        
-        for label in unique_labels:
-            prob_1 = 1.0 if label_1 == label else 0.0
-            prob_2 = 1.0 if label_2 == label else 0.0
-            p_e += (prob_1 * prob_2)
+        # Calculate n_ij (number of raters who assigned subject i to category j)
+        n_ij = [[0] * k for _ in range(N)]
+        for i, subject_validations in enumerate(validations_batch):
+            for val in subject_validations:
+                j = category_list.index(val.expert_label)
+                n_ij[i][j] += 1
+                
+        # Calculate P_j (proportion of all assignments to category j)
+        P_j = [0.0] * k
+        for j in range(k):
+            column_sum = sum(n_ij[i][j] for i in range(N))
+            P_j[j] = column_sum / (N * n)
             
-        # 5. Compute Cohen's Kappa
-        # Formula: k = (Po - Pe) / (1 - Pe)
-        if (1.0 - p_e) == 0.0:
-            # Handle division by zero when experts are in perfect expected alignment
-            kappa = 1.0 if is_agreement else 0.0
+        P_e = sum(pj ** 2 for pj in P_j)
+        
+        # Calculate P_i (extent of agreement on subject i)
+        P_i = [0.0] * N
+        for i in range(N):
+            row_sum_squares = sum(n_ij[i][j] ** 2 for j in range(k))
+            # Formula: (sum(n_ij^2) - n) / (n * (n - 1))
+            P_i[i] = (row_sum_squares - n) / (n * (n - 1))
+            
+        P_bar = sum(P_i) / N
+        
+        # Compute Fleiss' Kappa
+        if (1.0 - P_e) == 0.0:
+            # Degenerate case: raters agreed on one category universally
+            kappa = 1.0 if P_bar == 1.0 else 0.0
         else:
-            kappa = (p_o - p_e) / (1.0 - p_e)
+            kappa = (P_bar - P_e) / (1.0 - P_e)
             
-        # 6. Determine Interpretation (Landis and Koch thresholds)
+        # Interpretation
         if kappa < 0.0:
             interpretation = KappaInterpretation.POOR
         elif kappa <= 0.20:
@@ -71,16 +93,15 @@ class InterRaterReliabilityService:
             interpretation = KappaInterpretation.ALMOST_PERFECT
             
         return InterRaterReliability(
-            node_id=validation_1.node_id,
-            expert_1_id=validation_1.expert_id,
-            expert_2_id=validation_2.expert_id,
-            cohens_kappa=kappa,
-            observed_agreement=p_o,
-            expected_agreement=p_e,
+            expert_ids=list(expert_ids),
+            total_subjects=N,
+            fleiss_kappa=kappa,
+            observed_agreement=P_bar,
+            expected_agreement=P_e,
             interpretation=interpretation,
             calculated_at=datetime.now(timezone.utc),
             metadata={
-                "validation_1_id": str(validation_1.validation_id),
-                "validation_2_id": str(validation_2.validation_id)
+                "raters_per_subject": n,
+                "categories": category_list
             }
         )

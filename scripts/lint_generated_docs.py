@@ -47,7 +47,7 @@ def check_cross_doc_consistency(doc_paths):
                              if any(not is_raw for (_, _, is_raw) in locs)}
         if len(unlabeled_values) > 1:
             passed = False
-            print(f"❌ CROSS-DOC DRIFT: '{model_name}' reports different UNLABELED "
+            print(f"[X] CROSS-DOC DRIFT: '{model_name}' reports different UNLABELED "
                   "(i.e. claimed-canonical) values across documents:")
             for value, locs in unlabeled_values.items():
                 for doc, line_num, is_raw in locs:
@@ -58,7 +58,7 @@ def check_cross_doc_consistency(doc_paths):
                   "explicitly labeled 'raw'/'per-fold'.")
 
     if passed:
-        print("✅ Cross-document consistency check passed: every tracked model "
+        print("[OK] Cross-document consistency check passed: every tracked model "
               "reports one canonical value everywhere it isn't explicitly labeled raw.")
     return passed
 
@@ -102,15 +102,15 @@ def lint_docs():
                         # Example: "A outperformed B (0.853 vs 0.793)"
                         if word in ["outperformed", "beat", "defeat", "exceed", "surpass", "higher than"]:
                             if n1 <= n2:
-                                print(f"❌ LINT ERROR in {doc}:{line_num}: Found '{word}' but first number ({n1}) is not greater than second number ({n2}).")
+                                print(f"[X] LINT ERROR in {doc}:{line_num}: Found '{word}' but first number ({n1}) is not greater than second number ({n2}).")
                                 passed = False
                         elif word in ["underperformed", "lower than", "worse"]:
                             if n1 >= n2:
-                                print(f"❌ LINT ERROR in {doc}:{line_num}: Found '{word}' but first number ({n1}) is not less than second number ({n2}).")
+                                print(f"[X] LINT ERROR in {doc}:{line_num}: Found '{word}' but first number ({n1}) is not less than second number ({n2}).")
                                 passed = False
     
     if passed:
-        print("✅ Linter passed: No conflicting hardcoded directional claims found.")
+        print("[OK] Linter passed: No conflicting hardcoded directional claims found.")
     return passed
 
 def main():

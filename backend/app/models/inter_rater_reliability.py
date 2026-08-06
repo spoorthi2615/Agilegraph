@@ -17,16 +17,15 @@ class KappaInterpretation(str, Enum):
 
 class InterRaterReliability(BaseModel):
     """
-    Domain model representing the scientific calculation of Cohen's Kappa 
-    between exactly two cybersecurity experts.
+    Domain model representing the scientific calculation of Fleiss' Kappa 
+    across multiple cybersecurity experts evaluating a batch of nodes.
     """
     reliability_id: UUID = Field(default_factory=uuid4)
-    node_id: str
     
-    expert_1_id: str
-    expert_2_id: str
+    expert_ids: list[str]
+    total_subjects: int
     
-    cohens_kappa: float
+    fleiss_kappa: float
     observed_agreement: float
     expected_agreement: float
     

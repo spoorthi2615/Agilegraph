@@ -1,7 +1,6 @@
 import json
 import os
-from report_helpers import load_and_validate_sources
-
+from report_helpers import load_and_validate_sources, get_f1_for_model
 def main():
     res_path = "research/results.json"
     stats_path = "research/statistical_results.json"
@@ -38,8 +37,7 @@ def main():
         
     # Regenerate statistical-analysis.md
     
-    from report_helpers import load_and_validate_sources, get_f1_for_model
-
+    table_rows = []
     for model, f1_data in results["ablation_f1"].items():
         mean_f1 = get_f1_for_model(model, results, stats)
         

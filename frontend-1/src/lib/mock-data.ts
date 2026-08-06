@@ -239,7 +239,13 @@ export const activity: ActivityItem[] = [
 export const criticalAlerts = assets
   .filter((a) => a.risk === "critical")
   .slice(0, 5)
-  .map((a) => ({ id: a.id, title: a.name, reason: `${a.algorithm} vulnerable to Shor's algorithm`, score: a.riskScore }));
+  .map((a, i) => ({
+    id: a.id,
+    title: a.name,
+    reason: `${a.algorithm} vulnerable to Shor's algorithm`,
+    score: a.riskScore,
+    ownerEmail: i % 2 === 0 ? "security-ops@acmebank.com" : undefined
+  }));
 
 export const reports: ReportRecord[] = [
   { id: "RPT-118", title: "Q4 2025 Executive Summary", type: "Executive", createdAt: "Nov 12, 2025", size: "1.8 MB", author: "Sarah Chen" },

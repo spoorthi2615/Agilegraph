@@ -109,7 +109,7 @@ def main():
     doc_mtime, doc_newest_file = get_latest_mtime(doc_paths)
     
     if code_mtime > doc_mtime:
-        print("\n❌ DRIFT DETECTED!")
+        print("\n[X] DRIFT DETECTED!")
         print(f"File '{code_newest_file}' was modified more recently than your research docs.")
         print("This means your documentation might be reporting stale numbers.")
         
@@ -121,7 +121,7 @@ def main():
             
         sys.exit(1)
         
-    print(f"✅ Docs are up-to-date! (Code/Data: {code_newest_file}, Docs: {doc_newest_file})")
+    print(f"[OK] Docs are up-to-date! (Code/Data: {code_newest_file}, Docs: {doc_newest_file})")
     
     # Run linter as secondary check
     try:

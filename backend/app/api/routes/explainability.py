@@ -12,26 +12,38 @@ from app.models.explainability import (
 
 router = APIRouter()
 
-def get_graph_query_service() -> GraphQueryService:
-    service = GraphQueryService(
-        uri=settings.NEO4J_URI,
-        user=settings.NEO4J_USERNAME,
-        password=settings.NEO4J_PASSWORD
-    )
+from typing import Optional
+
+def get_graph_query_service() -> Optional[GraphQueryService]:
+    if not settings.NEO4J_URI:
+        yield None
+        return
+
     try:
+        service = GraphQueryService(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD
+        )
         yield service
+    except Exception:
+        yield None
     finally:
-        service.close()
+        try:
+            if 'service' in locals() and service is not None:
+                service.close()
+        except Exception:
+            pass
 
 def get_recommendation_workflow_service(
-    query_service: GraphQueryService = Depends(get_graph_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service)
 ) -> RecommendationWorkflowService:
     return RecommendationWorkflowService(query_service=query_service)
 
 @router.get("/{asset_id}", response_model=ExplainabilityResponse)
 def get_explainability(
     asset_id: str = PathParam(...),
-    query_service: GraphQueryService = Depends(get_graph_query_service),
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
     rec_workflow: RecommendationWorkflowService = Depends(get_recommendation_workflow_service)
 ) -> ExplainabilityResponse:
     """
@@ -39,7 +51,13 @@ def get_explainability(
     Orchestrates GNN, Heuristics, and Recommendations into a single payload.
     """
     
-    node_data = query_service.get_node_by_id(asset_id)
+    node_data = None
+    if query_service:
+        try:
+            node_data = query_service.get_node_by_id(asset_id)
+        except Exception:
+            node_data = None
+
     if not node_data:
         # Fallback if not found
         node_data = {

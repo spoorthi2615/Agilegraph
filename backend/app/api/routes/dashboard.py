@@ -143,7 +143,7 @@ def provide_security_report(
     z = 8.0
     
     from app.services.mosca_service import MoscaService
-    mosca_result = MoscaService.calculate_index(int(x), int(y), int(z))
+    mosca_result = MoscaService.calculate_index(x, y, z)
     
     return SecurityReportService.generate_report(
         analysis_result=analysis_result,

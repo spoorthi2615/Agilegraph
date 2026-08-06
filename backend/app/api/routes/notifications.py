@@ -4,27 +4,43 @@ from app.models.topbar import Notification
 from app.services.graph_query_service import GraphQueryService
 from app.config.settings import settings
 
+from typing import List, Optional
+
 def get_query_service():
-    service = GraphQueryService(
-        uri=settings.NEO4J_URI,
-        user=settings.NEO4J_USERNAME,
-        password=settings.NEO4J_PASSWORD
-    )
+    if not settings.NEO4J_URI:
+        yield None
+        return
+
     try:
+        service = GraphQueryService(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD
+        )
         yield service
+    except Exception:
+        yield None
     finally:
-        service.close()
-from datetime import datetime
+        try:
+            if 'service' in locals() and service is not None:
+                service.close()
+        except Exception:
+            pass
 
 router = APIRouter()
 
 @router.get("/all", response_model=List[Notification])
 def get_notifications(
-    query_service: GraphQueryService = Depends(get_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_query_service)
 ) -> List[Notification]:
     
-    # We will simulate the notification feed using the Critical Alerts from the Dashboard aggregations
-    aggs = query_service.get_dashboard_aggregations()
+    aggs = {}
+    if query_service:
+        try:
+            aggs = query_service.get_dashboard_aggregations()
+        except Exception:
+            aggs = {}
+            
     alerts = aggs.get("alerts", [])
     
     notifications = []

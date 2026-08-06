@@ -12,19 +12,29 @@ from app.models.graph import (
 
 router = APIRouter()
 
-def get_graph_query_service() -> GraphQueryService:
-    service = GraphQueryService(
-        uri=settings.NEO4J_URI,
-        user=settings.NEO4J_USERNAME,
-        password=settings.NEO4J_PASSWORD
-    )
+def get_graph_query_service() -> Optional[GraphQueryService]:
+    if not settings.NEO4J_URI:
+        yield None
+        return
+
     try:
+        service = GraphQueryService(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD
+        )
         yield service
+    except Exception:
+        yield None
     finally:
-        service.close()
+        try:
+            if 'service' in locals() and service is not None:
+                service.close()
+        except Exception:
+            pass
 
 def get_recommendation_workflow_service(
-    query_service: GraphQueryService = Depends(get_graph_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service)
 ) -> RecommendationWorkflowService:
     return RecommendationWorkflowService(query_service=query_service)
 
@@ -37,7 +47,7 @@ def get_graph(
     node_type: Optional[str] = Query(None),
     algorithm: Optional[str] = Query(None),
     pqc_status: Optional[str] = Query(None),
-    query_service: GraphQueryService = Depends(get_graph_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service)
 ) -> GraphResponse:
     """
     Retrieves the visual graph data structure including nodes, edges, statistics, and metadata.
@@ -53,11 +63,16 @@ def get_graph(
         pqc_status=pqc_status
     )
     
-    try:
-        raw_graph = query_service.get_entire_graph()
-        raw_nodes = raw_graph.get("nodes", [])
-        raw_edges = raw_graph.get("edges", [])
-    except Exception:
+    raw_nodes = []
+    raw_edges = []
+    if query_service:
+        try:
+            raw_graph = query_service.get_entire_graph()
+            raw_nodes = raw_graph.get("nodes", [])
+            raw_edges = raw_graph.get("edges", [])
+        except Exception:
+            raw_nodes = []
+            raw_edges = []
         raw_nodes = []
         raw_edges = []
         
@@ -125,13 +140,19 @@ def get_graph(
 @router.get("/node/{node_id}", response_model=NodeDetails)
 def get_node_detail(
     node_id: str = PathParam(...),
-    query_service: GraphQueryService = Depends(get_graph_query_service),
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
     rec_workflow: RecommendationWorkflowService = Depends(get_recommendation_workflow_service)
 ) -> NodeDetails:
     """
     Retrieves complete details for a single graph node required for the side panel.
     """
-    node_data = query_service.get_node_by_id(node_id)
+    node_data = None
+    if query_service:
+        try:
+            node_data = query_service.get_node_by_id(node_id)
+        except Exception:
+            node_data = None
+
     if not node_data:
         # Return a fallback empty object if node isn't found
         return NodeDetails(

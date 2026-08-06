@@ -12,11 +12,11 @@ class MoscaService:
     """
 
     @classmethod
-    def calculate_index(cls, x: int, y: int, z: int) -> Dict[str, Any]:
+    def calculate_index(cls, x: float, y: float, z: float) -> Dict[str, Any]:
         """
         Calculates the Mosca Readiness Index and returns a rich dictionary for the dashboard.
         """
-        buffer = z - (x + y)
+        buffer = round(z - (x + y), 2)
         is_ready = buffer >= 0
         
         if buffer < 0:

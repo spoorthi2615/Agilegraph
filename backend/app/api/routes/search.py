@@ -4,25 +4,37 @@ from app.models.topbar import SearchResult
 from app.services.graph_query_service import GraphQueryService
 from app.config.settings import settings
 
+from typing import List, Optional
+
 def get_query_service():
-    service = GraphQueryService(
-        uri=settings.NEO4J_URI,
-        user=settings.NEO4J_USERNAME,
-        password=settings.NEO4J_PASSWORD
-    )
+    if not settings.NEO4J_URI:
+        yield None
+        return
+
     try:
+        service = GraphQueryService(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD
+        )
         yield service
+    except Exception:
+        yield None
     finally:
-        service.close()
+        try:
+            if 'service' in locals() and service is not None:
+                service.close()
+        except Exception:
+            pass
 
 router = APIRouter()
 
 @router.get("/all", response_model=List[SearchResult])
 def search_graph(
     q: str = Query("", description="Search query"),
-    query_service: GraphQueryService = Depends(get_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_query_service)
 ) -> List[SearchResult]:
-    if not q or len(q) < 2:
+    if not q or len(q) < 2 or not query_service or not query_service.driver:
         return []
 
     # Simple Cypher query to find nodes matching the query in name, algorithm, or type
@@ -35,9 +47,10 @@ def search_graph(
     LIMIT 10
     """
     
-    with query_service.driver.session() as session:
-        result = session.run(cypher, q=q)
-        results = []
+    try:
+        with query_service.driver.session() as session:
+            result = session.run(cypher, q=q)
+            results = []
         for record in result:
             node = record["n"]
             label = record["label"]
@@ -77,3 +90,5 @@ def search_graph(
                 )
                 
         return results
+    except Exception:
+        return []

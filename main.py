@@ -28,7 +28,7 @@ try:
     from app.main import app as fastapi_app
 
     # Create a dummy Gradio UI so HF's ZeroGPU scanner is completely satisfied
-    demo = gr.Interface(fn=_zero_gpu_warmup, inputs=None, outputs=None)
+    demo = gr.Interface(fn=_zero_gpu_warmup, inputs="text", outputs="text")
 
     # Mount the dummy UI onto our FastAPI app.
     # Hugging Face's Gradio SDK will automatically detect and run this FastAPI 'app' using Uvicorn!

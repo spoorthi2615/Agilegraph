@@ -27,9 +27,9 @@ class Settings(BaseSettings):
     REPORT_DIRECTORY: str = Field(default="reports")
     
     # Neo4j Settings
-    NEO4J_URI: str = Field(default="", description="Neo4j connection string (e.g. bolt://neo4j:7687)")
-    NEO4J_USERNAME: str = Field(default="", description="Neo4j authentication username")
-    NEO4J_PASSWORD: str = Field(default="", description="Neo4j authentication password")
+    NEO4J_URI: str = Field(..., description="Neo4j connection string (e.g. bolt://neo4j:7687)")
+    NEO4J_USERNAME: str = Field(..., description="Neo4j authentication username")
+    NEO4J_PASSWORD: str = Field(..., description="Neo4j authentication password")
     
     # Security / CORS
     CORS_ORIGINS: str = Field(default="*")

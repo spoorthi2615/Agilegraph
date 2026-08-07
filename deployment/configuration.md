@@ -28,7 +28,7 @@ The `ENVIRONMENT` variable dictates application profile behavior:
 - `UPLOAD_DIRECTORY`: Location to save incoming ZIP/Git artifacts (default: `uploads`)
 - `REPORT_DIRECTORY`: Location to save generated Markdown/CSV reports (default: `reports`)
 - `LOG_LEVEL`: Application logging verbosity (default: `INFO`)
-- `CORS_ORIGINS`: Allowed origins (default: `*`)
+- `CORS_ORIGINS`: Allowed origins (default: `""` — empty, fail-secure)
 
 ## Frontend Configuration
 

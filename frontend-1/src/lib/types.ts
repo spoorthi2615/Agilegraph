@@ -53,6 +53,7 @@ export interface ScanRecord {
   assets: number;
   criticalFindings: number;
   status: "completed" | "running" | "failed";
+  ownerEmail?: string;
 }
 
 export interface ActivityItem {
@@ -112,10 +113,12 @@ export const riskLabel: Record<RiskLevel, string> = {
   medium: "Medium",
   low: "Low",
 };
+
 export interface Workspace {
   id: string;
   name: string;
   isActive: boolean;
+  environment?: string;
 }
 
 export interface Notification {
@@ -124,11 +127,76 @@ export interface Notification {
   message: string;
   read: boolean;
   type: string;
+  time?: string;
 }
 
 export interface SearchResult {
   id: string;
   title: string;
+  subtitle?: string;
   type: string;
   url: string;
+}
+
+export interface ExplainabilityData {
+  assetInformation: {
+    assetId: string;
+    name: string;
+    algorithm: string;
+    overallRisk: number;
+  };
+  naturalLanguageSummary: string;
+  gnnExplanation: {
+    featureImportance: Array<{
+      featureName: string;
+      contribution: number;
+      positiveInfluence: boolean;
+    }>;
+  };
+  heuristicExplanation: {
+    breakdown: {
+      riskFormulaBreakdown: string;
+      penaltyBreakdown: string;
+    };
+  };
+  migrationRecommendation: {
+    recommendedPqcAlgorithm: string;
+    migrationEffort: number;
+    estimatedRiskReduction: number;
+  };
+  confidenceMetrics: {
+    overallConfidence: number;
+  };
+}
+
+export interface ScanStatusResponse {
+  status: string;
+  project_id?: string;
+  progress?: number;
+  message?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface MoscaResponse {
+  x: number;
+  y: number;
+  z: number;
+  surplus: number;
+  readiness_score: number;
+  has_data: boolean;
+}
+
+export interface AdminProfile {
+  id: string;
+  email?: string;
+  role?: string;
+  created_at?: string;
+}
+
+export interface AdminLog {
+  id: string;
+  action?: string;
+  target?: string;
+  created_at?: string;
+  profiles?: { email?: string } | null;
 }

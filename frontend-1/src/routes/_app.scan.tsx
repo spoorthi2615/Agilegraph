@@ -155,8 +155,8 @@ function ScanPage() {
                       onFileDrop={(file) => {
                         uploadProject.mutate(file, {
                           onSuccess: (data) => {
-                            if (data && (data as Record<string, string>).project_id) {
-                              start((data as Record<string, string>).project_id);
+                            if (data?.project_id) {
+                              start(data.project_id);
                             } else {
                               toast.error("Upload failed", {
                                 description: "No project ID returned",
@@ -165,7 +165,7 @@ function ScanPage() {
                           },
                           onError: (err: unknown) => {
                             toast.error("Upload failed", {
-                              description: err?.message || String(err),
+                              description: err instanceof Error ? err.message : String(err),
                             });
                           },
                         });
@@ -225,8 +225,8 @@ function ScanPage() {
                       onFileDrop={(file) => {
                         uploadCertificate.mutate(file, {
                           onSuccess: (data) => {
-                            if (data && (data as Record<string, string>).project_id) {
-                              start((data as Record<string, string>).project_id);
+                            if (data?.project_id) {
+                              start(data.project_id);
                             } else {
                               toast.error("Certificate upload failed", {
                                 description: "No project ID returned",
@@ -235,7 +235,7 @@ function ScanPage() {
                           },
                           onError: (err: unknown) => {
                             toast.error("Certificate upload failed", {
-                              description: err?.message || String(err),
+                              description: err instanceof Error ? err.message : String(err),
                             });
                           },
                         });
@@ -288,9 +288,9 @@ function ScanPage() {
                         importGitHub.mutate(
                           { url: githubUrl, branch: githubBranch, token: githubToken },
                           {
-                            onSuccess: (data: unknown) => {
-                              if (data && (data as Record<string, string>).project_id) {
-                                start((data as Record<string, string>).project_id);
+                            onSuccess: (data) => {
+                              if (data?.project_id) {
+                                start(data.project_id);
                               } else {
                                 toast.error("GitHub import failed", {
                                   description: "No project ID returned",
@@ -299,7 +299,7 @@ function ScanPage() {
                             },
                             onError: (err: unknown) => {
                               toast.error("GitHub import failed", {
-                                description: err?.message || String(err),
+                                description: err instanceof Error ? err.message : String(err),
                               });
                             },
                           },
@@ -316,9 +316,9 @@ function ScanPage() {
                         scanDomain.mutate(
                           { domain: domainHost, ports },
                           {
-                            onSuccess: (data: unknown) => {
-                              if (data && (data as Record<string, string>).project_id) {
-                                start((data as Record<string, string>).project_id);
+                            onSuccess: (data) => {
+                              if (data?.project_id) {
+                                start(data.project_id);
                               } else {
                                 toast.error("Domain scan failed", {
                                   description: "No project ID returned",
@@ -327,7 +327,7 @@ function ScanPage() {
                             },
                             onError: (err: unknown) => {
                               toast.error("Domain scan failed", {
-                                description: err?.message || String(err),
+                                description: err instanceof Error ? err.message : String(err),
                               });
                             },
                           },

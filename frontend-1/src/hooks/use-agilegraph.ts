@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
-import { DashboardSummary, CryptoAsset, ReportRecord } from "../lib/types";
+import { DashboardSummary, CryptoAsset, ReportRecord, MoscaResponse } from "../lib/types";
 import * as mock from "../lib/mock-data";
 import { demoStore } from "../lib/demo-store";
 
@@ -206,7 +206,7 @@ export function useMoscaReadiness(z: number) {
         `mosca-${z}`,
         async () => {
           const { apiClient } = await import("../services/api-client");
-          return apiClient.get<unknown>(`/dashboard/mosca?z=${z}`);
+          return apiClient.get<MoscaResponse>(`/dashboard/mosca?z=${z}`);
         },
         {
           x: 10.0,

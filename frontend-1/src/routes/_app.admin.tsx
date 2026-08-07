@@ -14,6 +14,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
+import { AdminProfile, AdminLog } from "@/lib/types";
+
 export const Route = createFileRoute("/_app/admin")({
   component: AdminDashboard,
 });
@@ -22,8 +24,8 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [profiles, setProfiles] = useState<Record<string, unknown>[]>([]);
-  const [logs, setLogs] = useState<Record<string, unknown>[]>([]);
+  const [profiles, setProfiles] = useState<AdminProfile[]>([]);
+  const [logs, setLogs] = useState<AdminLog[]>([]);
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
@@ -145,7 +147,9 @@ function AdminDashboard() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
-                      {new Date(profile.created_at).toLocaleDateString()}
+                      {profile.created_at
+                        ? new Date(profile.created_at).toLocaleDateString()
+                        : "N/A"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -176,10 +180,12 @@ function AdminDashboard() {
                     <p className="text-sm text-muted-foreground">{log.action}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(log.created_at).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {log.created_at
+                      ? new Date(log.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : ""}
                   </div>
                 </div>
               ))}

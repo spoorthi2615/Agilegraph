@@ -27,8 +27,8 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
     if (risk !== "all") r = r.filter((a) => a.risk === risk);
     if (dept !== "all") r = r.filter((a) => a.department === dept);
     r.sort((a, b) => {
-      const va = sort === "risk" ? a.riskScore : ((a as Record<string, unknown>)[sort] as number);
-      const vb = sort === "risk" ? b.riskScore : ((b as Record<string, unknown>)[sort] as number);
+      const va = sort === "risk" ? a.riskScore : (a as unknown as Record<string, number>)[sort];
+      const vb = sort === "risk" ? b.riskScore : (b as unknown as Record<string, number>)[sort];
       return dir === "asc" ? va - vb : vb - va;
     });
     return r;

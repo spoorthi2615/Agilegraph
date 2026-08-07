@@ -1,23 +1,34 @@
-import { DashboardSummary, CryptoAsset, GraphNode, GraphEdge, ReportRecord } from "../lib/types";
+import {
+  DashboardSummary,
+  CryptoAsset,
+  GraphNode,
+  GraphEdge,
+  ReportRecord,
+  Workspace,
+  Notification,
+  SearchResult,
+  ExplainabilityData,
+  ScanStatusResponse,
+} from "../lib/types";
 import { apiClient } from "./api-client";
 
 export const api = {
   uploadProject: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient.post<unknown>("/upload", {
+    return apiClient.post<ScanStatusResponse>("/upload", {
       body: formData,
     });
   },
 
   importGitHubRepository: async (url: string, branch?: string, token?: string) => {
-    return apiClient.post<unknown>("/github", {
+    return apiClient.post<ScanStatusResponse>("/github", {
       body: { repository_url: url, branch, access_token: token },
     });
   },
 
   scanDomain: async (domain: string, ports: number[]) => {
-    return apiClient.post<unknown>("/domain", {
+    return apiClient.post<ScanStatusResponse>("/domain", {
       body: { domain, ports },
     });
   },
@@ -25,7 +36,7 @@ export const api = {
   uploadCertificate: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient.post<unknown>("/certificate", {
+    return apiClient.post<ScanStatusResponse>("/certificate", {
       body: formData,
     });
   },
@@ -34,8 +45,8 @@ export const api = {
     return apiClient.get<DashboardSummary>("/dashboard/summary");
   },
 
-  getScanStatus: async (projectId: string): Promise<unknown> => {
-    return apiClient.get<unknown>(`/scan/status/${projectId}`);
+  getScanStatus: async (projectId: string): Promise<ScanStatusResponse> => {
+    return apiClient.get<ScanStatusResponse>(`/scan/status/${projectId}`);
   },
 
   getGraph: async (): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> => {
@@ -56,20 +67,20 @@ export const api = {
     return apiClient.get<ReportRecord[]>("/dashboard/reports");
   },
 
-  getExplainability: async (id: string): Promise<unknown> => {
-    return apiClient.get<unknown>(`/explainability/${id}`);
+  getExplainability: async (id: string): Promise<ExplainabilityData> => {
+    return apiClient.get<ExplainabilityData>(`/explainability/${id}`);
   },
 
-  search: async (query: string): Promise<unknown[]> => {
+  search: async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    return apiClient.get<unknown[]>(`/search/all?q=${encodeURIComponent(query)}`);
+    return apiClient.get<SearchResult[]>(`/search/all?q=${encodeURIComponent(query)}`);
   },
 
-  getNotifications: async (): Promise<unknown[]> => {
-    return apiClient.get<unknown[]>("/notifications/all");
+  getNotifications: async (): Promise<Notification[]> => {
+    return apiClient.get<Notification[]>("/notifications/all");
   },
 
-  getWorkspaces: async (): Promise<unknown[]> => {
-    return apiClient.get<unknown[]>("/workspaces/all");
+  getWorkspaces: async (): Promise<Workspace[]> => {
+    return apiClient.get<Workspace[]>("/workspaces/all");
   },
 };

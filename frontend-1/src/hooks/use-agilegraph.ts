@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
-import { DashboardSummary } from "../lib/types";
+import { DashboardSummary, CryptoAsset, ReportRecord } from "../lib/types";
 import * as mock from "../lib/mock-data";
 import { demoStore } from "../lib/demo-store";
 
@@ -113,7 +113,7 @@ export function useAssets() {
   return useQuery({
     queryKey: ["assets"],
     queryFn: async () => {
-      const data = await withFallback("assets", api.getAssets, mock.assets as any[]);
+      const data = await withFallback("assets", api.getAssets, mock.assets as CryptoAsset[]);
       return data;
     },
     retry: false,
@@ -127,7 +127,7 @@ export function useAsset(id: string) {
     queryFn: async () => {
       if (!id) return null;
       // Try backend first, fall back to mock assets lookup
-      const fallback = (mock.assets as any[]).find((a) => a.id === id) ?? null;
+      const fallback = (mock.assets as CryptoAsset[]).find((a) => a.id === id) ?? null;
       return withFallback(`asset-${id}`, () => api.getAssetById(id), fallback);
     },
     enabled: !!id,
@@ -141,7 +141,7 @@ export function useAsset(id: string) {
 export function useRiskReports() {
   return useQuery({
     queryKey: ["reports"],
-    queryFn: () => withFallback("riskReports", api.getRiskReports, mock.reports as any[]),
+    queryFn: () => withFallback("riskReports", api.getRiskReports, mock.reports as ReportRecord[]),
     retry: false,
     staleTime: 1000 * 60,
   });
@@ -150,7 +150,7 @@ export function useRiskReports() {
 // ─── Explainability ──────────────────────────────────────────────────────────
 
 const MOCK_EXPLAIN = (assetId: string) => {
-  const asset = (mock.assets as any[]).find((a) => a.id === assetId) ?? mock.assets[0];
+  const asset = (mock.assets as CryptoAsset[]).find((a) => a.id === assetId) ?? mock.assets[0];
   return {
     assetInformation: {
       assetId: asset.id,

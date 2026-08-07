@@ -14,8 +14,8 @@ try:
 except Exception as e:
     print(f"Warning: Failed to pre-download CodeBERT model: {e}. Falling back to cached embeddings or AST features.")
 
-import spaces
 import gradio as gr
+import spaces
 
 @spaces.GPU
 def _zero_gpu_warmup():

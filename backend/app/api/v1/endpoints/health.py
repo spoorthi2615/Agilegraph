@@ -28,10 +28,7 @@ def liveness_check() -> LivenessResponse:
     return LivenessResponse(status="alive")
 
 
-import spaces
-
 @router.get("/ready", response_model=ReadinessResponse)
-@spaces.GPU
 def readiness_check(response: Response) -> ReadinessResponse:
     """
     Readiness check endpoint.

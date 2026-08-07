@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+import jwt
 
 from app.config.settings import settings
 
@@ -46,7 +46,7 @@ def get_current_user(
 
         return User(user_id=user_id, email=email, is_admin=is_admin)
 
-    except JWTError:
+    except jwt.PyJWTError:
         return None
 
 

@@ -172,7 +172,11 @@ class GATv2TrainingService:
 
     @classmethod
     def _simulate_training(
-        cls, dataset: TrainingDataset, config: ModelConfig, epochs: int, learning_rate: float
+        cls,
+        dataset: TrainingDataset,
+        config: ModelConfig,
+        epochs: int,
+        learning_rate: float,
     ) -> TrainingResult:
         """
         Creates a symbolic, bypassed TrainingResult for lightweight environments

@@ -50,7 +50,12 @@ class DependencyScanner(BaseScanner):
             errors=errors,
             execution_time_ms=execution_time_ms,
             metadata={
-                "files_scanned_patterns": ["requirements.txt", "pyproject.toml", "go.mod", "go.sum"]
+                "files_scanned_patterns": [
+                    "requirements.txt",
+                    "pyproject.toml",
+                    "go.mod",
+                    "go.sum",
+                ]
             },
         )
 

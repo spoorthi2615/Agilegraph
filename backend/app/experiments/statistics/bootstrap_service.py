@@ -4,7 +4,9 @@ import random
 from typing import Dict, List
 
 from app.experiments.statistics.confidence_interval import ConfidenceInterval
-from app.experiments.statistics.confidence_interval_result import ConfidenceIntervalResult
+from app.experiments.statistics.confidence_interval_result import (
+    ConfidenceIntervalResult,
+)
 from app.experiments.statistics.statistics_config import StatisticsConfig
 
 logger = logging.getLogger(__name__)

@@ -23,7 +23,9 @@ router = APIRouter()
 # ---------------------------------------------------------
 
 
-def get_graph_query_service(user: User = Depends(get_current_user_strict)) -> GraphQueryService:
+def get_graph_query_service(
+    user: User = Depends(get_current_user_strict),
+) -> GraphQueryService:
     service = GraphQueryService(
         uri=settings.NEO4J_URI,
         user=settings.NEO4J_USERNAME,

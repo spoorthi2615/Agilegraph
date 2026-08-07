@@ -26,57 +26,57 @@ function AdminDashboard() {
   const [logs, setLogs] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
+    const checkAdminAndFetchData = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          navigate({ to: "/login" });
+          return;
+        }
+
+        // Check if user is admin based on profile role
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError || !profile || profile.role !== "admin") {
+          await supabase.auth.signOut();
+          toast.info("Oops! Admin access only.", {
+            description:
+              "It looks like you are not an administrator. Please use the standard User Login to access your workspace! 😊",
+            duration: 6000,
+          });
+          return;
+        }
+
+        setIsAdmin(true);
+
+        // Fetch users and logs
+        const [profilesResponse, logsResponse] = await Promise.all([
+          supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+          supabase
+            .from("activity_logs")
+            .select("*, profiles(email)")
+            .order("created_at", { ascending: false })
+            .limit(50),
+        ]);
+
+        if (profilesResponse.data) setProfiles(profilesResponse.data);
+        if (logsResponse.data) setLogs(logsResponse.data);
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+        toast.error("Failed to load admin data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     checkAdminAndFetchData();
-  }, []);
-
-  const checkAdminAndFetchData = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        navigate({ to: "/login" });
-        return;
-      }
-
-      // Check if user is admin based on profile role
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError || !profile || profile.role !== "admin") {
-        await supabase.auth.signOut();
-        toast.info("Oops! Admin access only.", {
-          description:
-            "It looks like you are not an administrator. Please use the standard User Login to access your workspace! 😊",
-          duration: 6000,
-        });
-        return;
-      }
-
-      setIsAdmin(true);
-
-      // Fetch users and logs
-      const [profilesResponse, logsResponse] = await Promise.all([
-        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-        supabase
-          .from("activity_logs")
-          .select("*, profiles(email)")
-          .order("created_at", { ascending: false })
-          .limit(50),
-      ]);
-
-      if (profilesResponse.data) setProfiles(profilesResponse.data);
-      if (logsResponse.data) setLogs(logsResponse.data);
-    } catch (error) {
-      console.error("Error fetching admin data:", error);
-      toast.error("Failed to load admin data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigate]);
 
   if (loading) {
     return (

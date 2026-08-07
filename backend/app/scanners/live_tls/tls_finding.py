@@ -44,10 +44,18 @@ class TLSFinding(BaseModel):
             edges.append((domain_node, "SECURED_BY", cert_node))
             edges.append((cert_node, "ISSUED_BY", f"CA:{self.certificate.issuer}"))
             edges.append(
-                (cert_node, "USES_ALGORITHM", f"Algorithm:{self.certificate.public_key_algorithm}")
+                (
+                    cert_node,
+                    "USES_ALGORITHM",
+                    f"Algorithm:{self.certificate.public_key_algorithm}",
+                )
             )
             edges.append(
-                (cert_node, "SIGNED_WITH", f"Signature:{self.certificate.signature_algorithm}")
+                (
+                    cert_node,
+                    "SIGNED_WITH",
+                    f"Signature:{self.certificate.signature_algorithm}",
+                )
             )
 
         return edges

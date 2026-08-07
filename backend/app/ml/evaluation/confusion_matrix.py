@@ -27,4 +27,8 @@ class ConfusionMatrix:
 
             stats[str(c)] = {"TP": tp, "FP": fp, "FN": fn, "TN": tn}
 
-        return {"classes": list(range(num_classes)), "matrix": matrix.tolist(), "stats": stats}
+        return {
+            "classes": list(range(num_classes)),
+            "matrix": matrix.tolist(),
+            "stats": stats,
+        }

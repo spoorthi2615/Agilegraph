@@ -83,7 +83,9 @@ def get_recommendation_workflow(
 # ---------------------------------------------------------
 
 
-def provide_analysis_result(project_id: str = "rehydrated-project") -> ProjectAnalysisResult:
+def provide_analysis_result(
+    project_id: str = "rehydrated-project",
+) -> ProjectAnalysisResult:
     # A lightweight object to satisfy SecurityReportService's dependency without scanning
     return ProjectAnalysisResult(project_id=project_id, scanner_results=[])
 
@@ -301,7 +303,9 @@ def get_summary(
 
     dept_usage = [
         DepartmentUsage(
-            department="Engineering", assets=stats.get("asset_count", 0), critical=critical_count
+            department="Engineering",
+            assets=stats.get("asset_count", 0),
+            critical=critical_count,
         )
     ]
 
@@ -398,12 +402,22 @@ def get_mosca_readiness(
         has_data = stats.get("asset_count", 0) > 0
 
         return MoscaResponse(
-            x=x, y=y, z=z, surplus=surplus, readiness_score=readiness_score, has_data=has_data
+            x=x,
+            y=y,
+            z=z,
+            surplus=surplus,
+            readiness_score=readiness_score,
+            has_data=has_data,
         )
     except Exception:
         # Fallback for when Neo4j is unavailable
         return MoscaResponse(
-            x=1.0, y=0.5, z=z, surplus=round(z - 1.5, 1), readiness_score=80, has_data=False
+            x=1.0,
+            y=0.5,
+            z=z,
+            surplus=round(z - 1.5, 1),
+            readiness_score=80,
+            has_data=False,
         )
 
 
@@ -417,7 +431,7 @@ def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGr
             nodes.append(
                 DashboardNode(
                     id=str(node.node_id),
-                    label=str(node.label) if hasattr(node, "label") else str(node.node_id),
+                    label=(str(node.label) if hasattr(node, "label") else str(node.node_id)),
                     type="service",
                     risk="medium",
                     x=0.0,
@@ -434,7 +448,9 @@ def get_graph(graph: CryptoGraph = Depends(provide_crypto_graph)) -> DashboardGr
 
 
 @router.get("/reports", response_model=List[ReportRecord])
-def get_reports(report: SecurityReport = Depends(provide_security_report)) -> List[ReportRecord]:
+def get_reports(
+    report: SecurityReport = Depends(provide_security_report),
+) -> List[ReportRecord]:
     from app.api.routes.report import GENERATED_REPORTS
 
     return GENERATED_REPORTS

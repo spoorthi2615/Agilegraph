@@ -15,8 +15,10 @@ class GraphEdge(BaseModel):
     source_node: UUID = Field(..., description="The UUID of the origin node")
     target_node: UUID = Field(..., description="The UUID of the destination node")
     edge_type: str = Field(
-        ..., description="The semantic relationship type (e.g., 'CALLS', 'CONTAINS', 'IMPLEMENTS')"
+        ...,
+        description="The semantic relationship type (e.g., 'CALLS', 'CONTAINS', 'IMPLEMENTS')",
     )
     metadata: Dict[str, Any] = Field(
-        default_factory=dict, description="Flexible key-value pairs for arbitrary edge properties"
+        default_factory=dict,
+        description="Flexible key-value pairs for arbitrary edge properties",
     )

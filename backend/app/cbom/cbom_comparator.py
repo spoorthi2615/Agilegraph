@@ -34,7 +34,10 @@ class CBOMComparator:
                         "discovered": d_asset.algorithm,
                     }
                 if c_asset.version and d_asset.version and c_asset.version != d_asset.version:
-                    mismatches["version"] = {"cbom": c_asset.version, "discovered": d_asset.version}
+                    mismatches["version"] = {
+                        "cbom": c_asset.version,
+                        "discovered": d_asset.version,
+                    }
                 if c_asset.key_size and d_asset.key_size and c_asset.key_size != d_asset.key_size:
                     mismatches["key_size"] = {
                         "cbom": c_asset.key_size,

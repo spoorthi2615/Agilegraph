@@ -4,7 +4,9 @@ import os
 from datetime import datetime, timezone
 from typing import List
 
-from app.experiments.statistics.confidence_interval_result import ConfidenceIntervalResult
+from app.experiments.statistics.confidence_interval_result import (
+    ConfidenceIntervalResult,
+)
 
 
 class ConfidenceIntervalReport:

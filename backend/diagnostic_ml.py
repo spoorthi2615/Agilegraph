@@ -1,7 +1,5 @@
-import os
-import sys
 import subprocess
-from pathlib import Path
+import sys
 
 
 def test_semgrep():
@@ -20,7 +18,6 @@ def test_semgrep():
 def test_transformers():
     print("\nTesting Transformers loading...")
     try:
-        from transformers import AutoTokenizer, AutoModel
         import transformers
 
         print(f"Transformers successfully imported. Version: {transformers.__version__}")

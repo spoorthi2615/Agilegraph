@@ -67,7 +67,9 @@ class AssetGraphIngestionService:
 
             # Create Edge: Certificate -> IMPLEMENTS -> Algorithm
             edge = GraphEdge(
-                source_node=cert_node_id, target_node=algo_node_id, edge_type="IMPLEMENTS"
+                source_node=cert_node_id,
+                target_node=algo_node_id,
+                edge_type="IMPLEMENTS",
             )
             graph.add_edge(edge)
 

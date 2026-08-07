@@ -12,11 +12,23 @@ class MigrationRecommendationService:
 
     # Deterministic migration mappings
     _MIGRATION_MAP = {
-        "MD5": ("SHA-256", "MD5 is cryptographically broken and vulnerable to collision attacks."),
-        "SHA-1": ("SHA-256", "SHA-1 is deprecated and vulnerable to collision attacks."),
+        "MD5": (
+            "SHA-256",
+            "MD5 is cryptographically broken and vulnerable to collision attacks.",
+        ),
+        "SHA-1": (
+            "SHA-256",
+            "SHA-1 is deprecated and vulnerable to collision attacks.",
+        ),
         "DES": ("AES-256", "DES uses a 56-bit key which is trivial to brute-force."),
-        "3DES": ("AES-256", "3DES is slow and deprecated. AES-256 is the modern standard."),
-        "DESEDE": ("AES-256", "DESede (3DES) is deprecated. AES-256 is the modern standard."),
+        "3DES": (
+            "AES-256",
+            "3DES is slow and deprecated. AES-256 is the modern standard.",
+        ),
+        "DESEDE": (
+            "AES-256",
+            "DESede (3DES) is deprecated. AES-256 is the modern standard.",
+        ),
         "RSA": (
             "ML-KEM",
             "RSA is vulnerable to Shor's algorithm on a quantum computer. ML-KEM is the NIST standard for PQC key encapsulation.",

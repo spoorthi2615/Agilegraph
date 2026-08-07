@@ -10,7 +10,9 @@ class FindingNormalizer:
     """
 
     def normalize(
-        self, custom_findings: List[SemgrepFinding], semgrep_findings: List[SemgrepFinding]
+        self,
+        custom_findings: List[SemgrepFinding],
+        semgrep_findings: List[SemgrepFinding],
     ) -> List[SemgrepFinding]:
         """
         Takes strongly typed existing findings and strongly typed Semgrep findings.

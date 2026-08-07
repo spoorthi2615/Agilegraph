@@ -15,7 +15,12 @@ class SemgrepService:
     Utilizes strict Dependency Injection to remain decoupled from concrete implementations.
     """
 
-    def __init__(self, runner: SemgrepRunner, parser: SemgrepParser, normalizer: FindingNormalizer):
+    def __init__(
+        self,
+        runner: SemgrepRunner,
+        parser: SemgrepParser,
+        normalizer: FindingNormalizer,
+    ):
         self.runner = runner
         self.parser = parser
         self.normalizer = normalizer

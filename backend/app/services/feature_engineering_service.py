@@ -11,7 +11,17 @@ class FeatureEngineeringService:
     """
 
     # Deterministic vocabulary of algorithms for one-hot encoding
-    _ALGORITHM_VOCAB = ["AES", "RSA", "MD5", "SHA-1", "SHA-256", "ECC", "EC", "DES", "3DES"]
+    _ALGORITHM_VOCAB = [
+        "AES",
+        "RSA",
+        "MD5",
+        "SHA-1",
+        "SHA-256",
+        "ECC",
+        "EC",
+        "DES",
+        "3DES",
+    ]
 
     @classmethod
     def expand_features(cls, dataset: TrainingDataset, graph: CryptoGraph) -> TrainingDataset:
@@ -50,7 +60,14 @@ class FeatureEngineeringService:
             sev_low = 1.0 if severity_str == "LOW" else 0.0
 
             feature_vector.extend(
-                [risk_score, contextual_risk, sev_critical, sev_high, sev_medium, sev_low]
+                [
+                    risk_score,
+                    contextual_risk,
+                    sev_critical,
+                    sev_high,
+                    sev_medium,
+                    sev_low,
+                ]
             )
 
             # 3. Topological Degree

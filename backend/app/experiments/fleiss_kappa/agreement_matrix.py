@@ -10,7 +10,9 @@ class AgreementMatrixEngine:
     """
 
     @staticmethod
-    def build(dataset: ValidationDataset) -> Tuple[List[List[int]], List[str], int, int]:
+    def build(
+        dataset: ValidationDataset,
+    ) -> Tuple[List[List[int]], List[str], int, int]:
         classes = [
             RiskLabel.LOW.value,
             RiskLabel.MEDIUM.value,

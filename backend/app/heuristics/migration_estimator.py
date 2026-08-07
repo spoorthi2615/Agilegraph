@@ -18,7 +18,10 @@ class MigrationEstimator:
     """
 
     def estimate_reduction(
-        self, current_total_score: float, algorithm_penalty: float, certificate_penalty: float
+        self,
+        current_total_score: float,
+        algorithm_penalty: float,
+        certificate_penalty: float,
     ) -> RiskReductionMetrics:
         """
         Calculates projected risk by assuming the algorithm and certificate penalties are driven to 0

@@ -59,8 +59,8 @@ function GraphView() {
   const { data: selectedAsset, isPending, isError } = useAsset(selected || "");
   const { data: explainData, isPending: isExplainPending } = useExplainability(selected || "");
 
-  const graphNodes = graphData?.nodes || [];
-  const graphEdges = graphData?.edges || [];
+  const graphNodes = useMemo(() => graphData?.nodes || [], [graphData?.nodes]);
+  const graphEdges = useMemo(() => graphData?.edges || [], [graphData?.edges]);
 
   const { visible, edges } = useMemo(() => {
     const v = graphNodes.filter(

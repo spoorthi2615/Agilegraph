@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from app.api.routes.dashboard import provide_security_report
+from app.core.security import User, get_current_user_strict
 from app.models.report import (
     DownloadLink,
     ExportFormat,
@@ -19,7 +20,6 @@ from app.models.report import (
     ReportPreview,
     ReportStatistics,
 )
-from app.core.security import User, get_current_user_strict
 from app.models.security_report import SecurityReport
 
 router = APIRouter()
@@ -81,7 +81,8 @@ def get_report_detail(
         ),
         download_links=[
             DownloadLink(
-                format="markdown", url=f"/api/v1/reports/{report_id}/download?format=markdown"
+                format="markdown",
+                url=f"/api/v1/reports/{report_id}/download?format=markdown",
             ),
             DownloadLink(format="json", url=f"/api/v1/reports/{report_id}/download?format=json"),
             DownloadLink(format="csv", url=f"/api/v1/reports/{report_id}/download?format=csv"),

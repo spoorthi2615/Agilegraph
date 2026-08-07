@@ -41,7 +41,13 @@ class ReportExporter:
                     ]
                 )
             writer.writerow(
-                ["Macro Avg", report.macro_precision, report.macro_recall, report.macro_f1, ""]
+                [
+                    "Macro Avg",
+                    report.macro_precision,
+                    report.macro_recall,
+                    report.macro_f1,
+                    "",
+                ]
             )
             writer.writerow(
                 [

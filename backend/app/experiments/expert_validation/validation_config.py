@@ -7,7 +7,8 @@ class ValidationConfig(BaseModel):
     """
 
     tie_breaker_strategy: str = Field(
-        default="highest_risk", description="Strategy for breaking ties: 'highest_risk', 'unknown'"
+        default="highest_risk",
+        description="Strategy for breaking ties: 'highest_risk', 'unknown'",
     )
     drop_unknowns_if_possible: bool = Field(
         default=True,

@@ -72,7 +72,14 @@ class GitHubImportService:
 
     @staticmethod
     def _run_pipeline_in_background(
-        project_id, clone_url, branch, clone_dir, original_url, user_id, owner_email, access_token
+        project_id,
+        clone_url,
+        branch,
+        clone_dir,
+        original_url,
+        user_id,
+        owner_email,
+        access_token,
     ):
         from app.services.scan_status_service import ScanStage, ScanStatusService
 
@@ -86,7 +93,11 @@ class GitHubImportService:
         try:
             # Clone repo
             process = subprocess.run(
-                clone_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60, text=True
+                clone_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=60,
+                text=True,
             )
 
             if process.returncode != 0:

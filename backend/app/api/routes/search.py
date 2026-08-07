@@ -15,7 +15,9 @@ def get_query_service():
     service = None
     try:
         service = GraphQueryService(
-            uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD,
         )
     except Exception:
         service = None

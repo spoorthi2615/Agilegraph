@@ -1,10 +1,10 @@
 import pytest
 import torch
+
 from app.models.model_config import ModelConfig
 from app.models.training_dataset import TrainingDataset
-from app.services.gatv2_model_service import GATv2ModelService, TORCH_AVAILABLE
-from app.services.feature_engineering_service import FeatureEngineeringService
 from app.services.gatv2_evaluation_service import GATv2EvaluationService
+from app.services.gatv2_model_service import TORCH_AVAILABLE, GATv2ModelService
 
 
 @pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch is required for this test")

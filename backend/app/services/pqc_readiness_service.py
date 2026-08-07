@@ -11,7 +11,16 @@ class PQCReadinessService:
     """
 
     # Algorithms vulnerable to quantum attacks (Shor's/Grover's) or classically deprecated
-    _CLASSICAL_ALGORITHMS = {"RSA", "ECC", "EC", "DES", "3DES", "DESEDE", "MD5", "SHA-1"}
+    _CLASSICAL_ALGORITHMS = {
+        "RSA",
+        "ECC",
+        "EC",
+        "DES",
+        "3DES",
+        "DESEDE",
+        "MD5",
+        "SHA-1",
+    }
 
     # Symmetric and hashing algorithms currently considered secure in a post-quantum world
     _MODERN_ALGORITHMS = {"AES", "SHA-256", "SHA-384", "SHA-512"}

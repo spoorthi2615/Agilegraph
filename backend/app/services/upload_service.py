@@ -5,7 +5,11 @@ import uuid
 from fastapi import BackgroundTasks, UploadFile
 
 from app.config.settings import settings
-from app.core.exceptions import AgileGraphException, EntityTooLargeException, ValidationException
+from app.core.exceptions import (
+    AgileGraphException,
+    EntityTooLargeException,
+    ValidationException,
+)
 from app.schemas.upload_schema import UploadResponse
 from app.services.scan_status_service import ScanStage, ScanStatusService
 
@@ -94,7 +98,11 @@ class UploadService:
 
         ScanStatusService.set_status(project_id, ScanStage.QUEUED)
         background_tasks.add_task(
-            workflow.execute_pipeline, project_id, Path(extracted_dir), user_id, owner_email
+            workflow.execute_pipeline,
+            project_id,
+            Path(extracted_dir),
+            user_id,
+            owner_email,
         )
 
         return UploadResponse(project_id=project_id, filename=safe_filename, status="queued")

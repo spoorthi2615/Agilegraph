@@ -36,7 +36,9 @@ class InferenceService:
                 f"Empty dataset provided for project {dataset.project_id}. Returning empty result."
             )
             return PredictionResult(
-                project_id=dataset.project_id, model_version=model_version, predictions=[]
+                project_id=dataset.project_id,
+                model_version=model_version,
+                predictions=[],
             )
 
         # Compile PyG Data Tensor and move to device
@@ -69,5 +71,7 @@ class InferenceService:
             )
 
         return PredictionResult(
-            project_id=dataset.project_id, model_version=model_version, predictions=predictions
+            project_id=dataset.project_id,
+            model_version=model_version,
+            predictions=predictions,
         )

@@ -9,8 +9,13 @@ from app.models.model_config import ModelConfig
 
 logger = logging.getLogger(__name__)
 
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
 
 
 class GATv2InferenceService:
@@ -27,6 +32,9 @@ class GATv2InferenceService:
         Executes a highly optimized, deterministic forward pass over the dataset with gradients disabled.
         Generates continuous risk scores and discrete labels mapped to exact graph nodes.
         """
+        if not TORCH_AVAILABLE:
+            raise RuntimeError("PyTorch is required for GATv2 inference but is not installed.")
+
         start_time = time.perf_counter()
 
         # 1. Read the classification threshold from ModelConfig (with safe fallback)

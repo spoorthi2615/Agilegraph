@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 from typing import List, Set
 
 from app.models.expert_validation import ExpertValidation
-from app.models.inter_rater_reliability import InterRaterReliability, KappaInterpretation
+from app.models.inter_rater_reliability import (
+    InterRaterReliability,
+    KappaInterpretation,
+)
 
 
 class InterRaterReliabilityService:

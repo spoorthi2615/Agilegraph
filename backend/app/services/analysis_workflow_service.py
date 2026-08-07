@@ -18,13 +18,19 @@ class AnalysisWorkflowService:
     from app.services.scan_status_service import ScanStage, ScanStatusService
 
     def __init__(
-        self, analysis_service: ProjectAnalysisService, export_service: Neo4jExportService
+        self,
+        analysis_service: ProjectAnalysisService,
+        export_service: Neo4jExportService,
     ) -> None:
         self.analysis_service = analysis_service
         self.export_service = export_service
 
     def execute_pipeline(
-        self, project_id: str, project_path: Path, user_id: str = None, owner_email: str = None
+        self,
+        project_id: str,
+        project_path: Path,
+        user_id: str = None,
+        owner_email: str = None,
     ) -> Dict[str, Any]:
         """
         Sequentially executes the scan, score, graph build, and export workflow.
@@ -99,7 +105,10 @@ class AnalysisWorkflowService:
                     for node_id, node in graph.nodes.items():
                         text_content = str(node.name) if hasattr(node, "name") else str(node_id)
                         inputs = tokenizer(
-                            text_content, return_tensors="pt", truncation=True, max_length=512
+                            text_content,
+                            return_tensors="pt",
+                            truncation=True,
+                            max_length=512,
                         )
                         outputs = codebert_model(**inputs)
                         cls_embedding = outputs.last_hidden_state[:, 0, :]

@@ -152,12 +152,18 @@ class GATv2EvaluationService:
             confusion_matrix=confusion_matrix,
             evaluation_duration_seconds=duration,
             evaluation_completed=True,
-            metadata={"classification_threshold": 75.0, "sklearn_available": SKLEARN_AVAILABLE},
+            metadata={
+                "classification_threshold": 75.0,
+                "sklearn_available": SKLEARN_AVAILABLE,
+            },
         )
 
     @classmethod
     def _simulate_evaluation(
-        cls, training_result: TrainingResult, dataset: TrainingDataset, config: ModelConfig
+        cls,
+        training_result: TrainingResult,
+        dataset: TrainingDataset,
+        config: ModelConfig,
     ) -> EvaluationResult:
         """
         Creates a symbolic, bypassed EvaluationResult for lightweight environments

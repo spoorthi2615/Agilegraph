@@ -87,7 +87,10 @@ class GoScanner(BaseScanner):
                                 line_number=line_idx + 1,
                                 severity=None,
                                 confidence=0.8,
-                                metadata={"package_name": pkg_name, "matched_line": line_str},
+                                metadata={
+                                    "package_name": pkg_name,
+                                    "matched_line": line_str,
+                                },
                             )
                             findings.append(asset.model_dump(mode="json"))
 

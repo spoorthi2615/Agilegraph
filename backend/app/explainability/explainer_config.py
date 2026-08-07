@@ -9,8 +9,10 @@ class ExplainerConfig(BaseModel):
     epochs: int = Field(default=200, description="Number of epochs to train the explainer mask.")
     lr: float = Field(default=0.01, description="Learning rate for the explainer optimizer.")
     threshold: float = Field(
-        default=0.5, description="Threshold for determining important edges and features."
+        default=0.5,
+        description="Threshold for determining important edges and features.",
     )
     return_type: str = Field(
-        default="log_prob", description="The return type of the GNN model (log_prob, prob, raw)."
+        default="log_prob",
+        description="The return type of the GNN model (log_prob, prob, raw).",
     )

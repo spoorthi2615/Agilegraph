@@ -14,8 +14,20 @@ class LanguageDetectionService:
     # Mapping of programming languages to their indicator rules.
     # Rules contain exact filenames (e.g., 'pom.xml') or file extensions (e.g., '.py').
     LANGUAGE_RULES = {
-        "Python": {".py", "requirements.txt", "pyproject.toml", "Pipfile", "poetry.lock"},
-        "Java": {".java", "pom.xml", "build.gradle", "build.gradle.kts", "settings.gradle"},
+        "Python": {
+            ".py",
+            "requirements.txt",
+            "pyproject.toml",
+            "Pipfile",
+            "poetry.lock",
+        },
+        "Java": {
+            ".java",
+            "pom.xml",
+            "build.gradle",
+            "build.gradle.kts",
+            "settings.gradle",
+        },
         "Go": {".go", "go.mod", "go.sum"},
         "JavaScript": {".js", "package.json", "yarn.lock"},
         "TypeScript": {".ts", "tsconfig.json", "package.json"},
@@ -76,7 +88,10 @@ class LanguageDetectionService:
                         extension = path.suffix.lower()
 
                         # Cross-reference the current file against all defined language rules
-                        for language, rules in LanguageDetectionService.LANGUAGE_RULES.items():
+                        for (
+                            language,
+                            rules,
+                        ) in LanguageDetectionService.LANGUAGE_RULES.items():
                             if filename in rules:
                                 found_indicators[language].add(filename)
                             elif extension in rules:
@@ -120,7 +135,9 @@ class LanguageDetectionService:
 
             results.append(
                 DetectedLanguage(
-                    language=language, confidence=confidence, indicators=sorted(list(indicators))
+                    language=language,
+                    confidence=confidence,
+                    indicators=sorted(list(indicators)),
                 )
             )
 

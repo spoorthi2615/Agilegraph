@@ -33,7 +33,11 @@ class CohensKappaService:
         return "Almost Perfect"
 
     def calculate_kappa(
-        self, rater_a_name: str, rater_b_name: str, labels_a: List[str], labels_b: List[str]
+        self,
+        rater_a_name: str,
+        rater_b_name: str,
+        labels_a: List[str],
+        labels_b: List[str],
     ) -> KappaResult:
         if not labels_a or not labels_b or len(labels_a) != len(labels_b):
             raise ValueError("Label arrays must be non-empty and of equal length.")

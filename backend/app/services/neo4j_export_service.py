@@ -27,7 +27,10 @@ class Neo4jExportService:
 
     @staticmethod
     def _export_transaction(
-        tx: Transaction, graph: CryptoGraph, user_id: str = None, owner_email: str = None
+        tx: Transaction,
+        graph: CryptoGraph,
+        user_id: str = None,
+        owner_email: str = None,
     ) -> None:
         """
         Internal transaction function. Iterates through all nodes and edges
@@ -69,7 +72,10 @@ class Neo4jExportService:
 
             # Relationships don't require full deduplication IDs in this schema,
             # we MERGE purely on the specific connection between the two exact node_ids.
-            props = {"source_id": str(edge.source_node), "target_id": str(edge.target_node)}
+            props = {
+                "source_id": str(edge.source_node),
+                "target_id": str(edge.target_node),
+            }
 
             # Flatten any potential edge metadata
             if edge.metadata:

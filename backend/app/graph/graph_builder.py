@@ -31,7 +31,8 @@ class GraphBuilder:
 
     @staticmethod
     def build_graph(
-        analysis_result: ProjectAnalysisResult, dependency_map: Dict[str, List[str]] = None
+        analysis_result: ProjectAnalysisResult,
+        dependency_map: Dict[str, List[str]] = None,
     ) -> CryptoGraph:
         """
         Converts the results of the orchestration pipeline into a graph.
@@ -82,7 +83,9 @@ class GraphBuilder:
                         file_metadata["language"] = asset.language
 
                     file_node = GraphNode(
-                        node_type=NodeType.FILE.value, label=file_label, metadata=file_metadata
+                        node_type=NodeType.FILE.value,
+                        label=file_label,
+                        metadata=file_metadata,
                     )
 
                     graph.add_node(file_node)

@@ -101,5 +101,8 @@ class CTScanner(BaseScanner):
             findings=findings,
             errors=errors,
             execution_time_ms=execution_time_ms,
-            metadata={"domains_scanned": total_scanned, "total_ct_findings": len(findings)},
+            metadata={
+                "domains_scanned": total_scanned,
+                "total_ct_findings": len(findings),
+            },
         )

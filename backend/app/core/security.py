@@ -1,8 +1,8 @@
 from typing import Optional
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import jwt
 
 from app.config.settings import settings
 
@@ -32,7 +32,10 @@ def get_current_user(
 
     try:
         payload = jwt.decode(
-            token, settings.SUPABASE_JWT_SECRET, algorithms=["HS256"], audience="authenticated"
+            token,
+            settings.SUPABASE_JWT_SECRET,
+            algorithms=["HS256"],
+            audience="authenticated",
         )
 
         user_id = payload.get("sub")

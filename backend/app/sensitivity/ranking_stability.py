@@ -23,7 +23,10 @@ class RankingStabilityEngine:
     """
 
     def calculate_stability(
-        self, perturbation_id: str, base_ranking: List[str], perturbed_ranking: List[str]
+        self,
+        perturbation_id: str,
+        base_ranking: List[str],
+        perturbed_ranking: List[str],
     ) -> RankingStabilityResult:
         n = len(base_ranking)
 

@@ -10,7 +10,12 @@ class GraphQueryService:
     """
 
     def __init__(
-        self, uri: str, user: str, password: str, user_id: str = None, is_admin: bool = False
+        self,
+        uri: str,
+        user: str,
+        password: str,
+        user_id: str = None,
+        is_admin: bool = False,
     ) -> None:
         self.user_id = user_id
         self.is_admin = is_admin
@@ -77,7 +82,11 @@ class GraphQueryService:
             return session.execute_read(
                 self._execute_and_fetch,
                 query,
-                {"package_name": package_name, "is_admin": self.is_admin, "owner_id": self.user_id},
+                {
+                    "package_name": package_name,
+                    "is_admin": self.is_admin,
+                    "owner_id": self.user_id,
+                },
             )
 
     def get_assets_in_file(self, file_path: str) -> List[Dict[str, Any]]:
@@ -95,7 +104,11 @@ class GraphQueryService:
             return session.execute_read(
                 self._execute_and_fetch,
                 query,
-                {"file_path": file_path, "is_admin": self.is_admin, "owner_id": self.user_id},
+                {
+                    "file_path": file_path,
+                    "is_admin": self.is_admin,
+                    "owner_id": self.user_id,
+                },
             )
 
     def get_summary_statistics(self) -> Dict[str, int]:
@@ -199,7 +212,11 @@ class GraphQueryService:
             """
             alerts = tx.run(alerts_query, is_admin=self.is_admin, owner_id=self.user_id).data()
 
-            return {"severities": severities, "algorithms": algorithms, "alerts": alerts}
+            return {
+                "severities": severities,
+                "algorithms": algorithms,
+                "alerts": alerts,
+            }
 
         with self.driver.session() as session:
             return session.execute_read(_get_aggs)
@@ -233,7 +250,11 @@ class GraphQueryService:
             result = session.execute_read(
                 self._execute_and_fetch,
                 query,
-                {"node_id": node_id, "is_admin": self.is_admin, "owner_id": self.user_id},
+                {
+                    "node_id": node_id,
+                    "is_admin": self.is_admin,
+                    "owner_id": self.user_id,
+                },
             )
             if result:
                 return result[0]

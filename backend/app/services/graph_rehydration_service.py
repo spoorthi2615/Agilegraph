@@ -61,7 +61,10 @@ class GraphRehydrationService:
                     metadata["severity"] = props["severity"]
 
                 node = GraphNode(
-                    node_id=node_id_obj, node_type=node_type, label=label, metadata=metadata
+                    node_id=node_id_obj,
+                    node_type=node_type,
+                    label=label,
+                    metadata=metadata,
                 )
                 graph.add_node(node)
 

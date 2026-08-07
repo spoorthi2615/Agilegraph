@@ -13,7 +13,9 @@ class MigrationRoadmapService:
 
     @classmethod
     def generate_roadmap(
-        cls, recommendations: List[MigrationRecommendation], readiness: PQCReadinessAssessment
+        cls,
+        recommendations: List[MigrationRecommendation],
+        readiness: PQCReadinessAssessment,
     ) -> MigrationRoadmap:
         """
         Groups migration recommendations into execution phases and generates an
@@ -38,7 +40,12 @@ class MigrationRoadmapService:
         # Calculate active phases. If a phase has 0 actions, it doesn't require execution time.
         active_phases = sum(
             1
-            for phase in [immediate_actions, high_priority, medium_priority, low_priority]
+            for phase in [
+                immediate_actions,
+                high_priority,
+                medium_priority,
+                low_priority,
+            ]
             if phase > 0
         )
 

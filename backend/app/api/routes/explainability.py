@@ -22,8 +22,6 @@ from app.services.recommendation_workflow_service import RecommendationWorkflowS
 
 router = APIRouter()
 
-from typing import Optional
-
 
 def get_graph_query_service() -> Optional[GraphQueryService]:
     if not settings.NEO4J_URI:
@@ -33,7 +31,9 @@ def get_graph_query_service() -> Optional[GraphQueryService]:
     service = None
     try:
         service = GraphQueryService(
-            uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD,
         )
     except Exception:
         service = None

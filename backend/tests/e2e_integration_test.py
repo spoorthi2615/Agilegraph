@@ -30,7 +30,10 @@ def test_integration_pipeline():
     target_repo = Path(__file__).parent.parent / "data" / "corpus" / "WebGoat"
     if not target_repo.exists() or not list(target_repo.iterdir()):
         import pytest
-        pytest.skip(f"WebGoat repository not found at {target_repo}. Please run fetch_github_corpus.py first.")
+
+        pytest.skip(
+            f"WebGoat repository not found at {target_repo}. Please run fetch_github_corpus.py first."
+        )
 
     print(f"Scanning target: {target_repo}")
 

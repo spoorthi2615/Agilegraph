@@ -129,13 +129,19 @@ class BenchmarkExecutor:
 
                 # Weighted Averages (Weighted by Support)
                 weighted_prec = (
-                    sum(p * s for p, s in zip(precisions, supports, strict=False)) / total if total > 0 else 0.0
+                    sum(p * s for p, s in zip(precisions, supports, strict=False)) / total
+                    if total > 0
+                    else 0.0
                 )
                 weighted_rec = (
-                    sum(r * s for r, s in zip(recalls, supports, strict=False)) / total if total > 0 else 0.0
+                    sum(r * s for r, s in zip(recalls, supports, strict=False)) / total
+                    if total > 0
+                    else 0.0
                 )
                 weighted_f1 = (
-                    sum(f * s for f, s in zip(f1s, supports, strict=False)) / total if total > 0 else 0.0
+                    sum(f * s for f, s in zip(f1s, supports, strict=False)) / total
+                    if total > 0
+                    else 0.0
                 )
 
                 exec_res = ExecutionResult(

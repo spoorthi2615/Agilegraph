@@ -18,7 +18,9 @@ def test_workspaces_endpoint_unauthenticated():
 
 
 def test_workspaces_endpoint_authenticated():
-    app.dependency_overrides[get_current_user_strict] = lambda: User("test-user", "test@agilegraph.ai", False)
+    app.dependency_overrides[get_current_user_strict] = lambda: User(
+        "test-user", "test@agilegraph.ai", False
+    )
     try:
         response = client.get("/api/v1/workspaces/all")
         assert response.status_code == 200
@@ -35,7 +37,9 @@ def test_search_endpoint_unauthenticated():
 
 
 def test_search_endpoint_authenticated():
-    app.dependency_overrides[get_current_user_strict] = lambda: User("test-user", "test@agilegraph.ai", False)
+    app.dependency_overrides[get_current_user_strict] = lambda: User(
+        "test-user", "test@agilegraph.ai", False
+    )
     try:
         res_empty = client.get("/api/v1/search/all?q=")
         assert res_empty.status_code == 200

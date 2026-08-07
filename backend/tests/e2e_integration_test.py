@@ -29,9 +29,8 @@ def test_integration_pipeline():
     # like "backend/..." to fail. Resolve dynamically via __file__ to guarantee safety.
     target_repo = Path(__file__).parent.parent / "data" / "corpus" / "WebGoat"
     if not target_repo.exists() or not list(target_repo.iterdir()):
-        print(f"ERROR: WebGoat repository not found at {target_repo}.")
-        print("Please run fetch_github_corpus.py first.")
-        sys.exit(1)
+        import pytest
+        pytest.skip(f"WebGoat repository not found at {target_repo}. Please run fetch_github_corpus.py first.")
 
     print(f"Scanning target: {target_repo}")
 

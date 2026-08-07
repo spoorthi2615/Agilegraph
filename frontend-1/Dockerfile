@@ -1,4 +1,4 @@
-# Stage 1: Build the React application
+# Stage 1: Build the TanStack Start application
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -11,30 +11,30 @@ RUN npm ci
 COPY . .
 
 # Build the application
-# We use standard vite build flags. Environment variables like VITE_API_BASE_URL 
-# should be provided during build time or injected via a runtime script if required.
+# TanStack Start / Nitro outputs to the .output directory
 RUN npm run build
 
-# Stage 2: Serve the application using Nginx
-FROM nginx:alpine
+# Stage 2: Serve the application using Node.js
+FROM node:20-alpine
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Remove default nginx static assets
-RUN rm -rf /usr/share/nginx/html/*
+WORKDIR /app
 
 # Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/.output ./.output
 
-# Create non-root user execution environment for Nginx (best practice for security)
-RUN chown -R nginx:nginx /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html
+# Create non-root user execution environment for Node (best practice for security)
+RUN addgroup -S nodegroup && adduser -S nodeuser -G nodegroup
+RUN chown -R nodeuser:nodegroup /app
 
 # Switch to non-root user
-USER nginx
+USER nodeuser
+
+# Set runtime environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the Nitro SSR Node server
+CMD ["node", ".output/server/index.mjs"]

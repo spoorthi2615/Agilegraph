@@ -12,20 +12,25 @@ def get_query_service():
         yield None
         return
 
+    service = None
     try:
         service = GraphQueryService(
             uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
         )
-        yield service
     except Exception:
-        yield None
-    finally:
-        try:
-            if "service" in locals() and service is not None:
-                service.close()
-        except Exception:
-            pass
+        service = None
 
+    try:
+        yield service
+    finally:
+        if service is not None:
+            try:
+                service.close()
+            except Exception:
+                pass
+
+
+from app.core.security import User, get_current_user_strict
 
 router = APIRouter()
 
@@ -33,6 +38,7 @@ router = APIRouter()
 @router.get("/all", response_model=List[Notification])
 def get_notifications(
     query_service: Optional[GraphQueryService] = Depends(get_query_service),
+    user: User = Depends(get_current_user_strict),
 ) -> List[Notification]:
 
     aggs = {}

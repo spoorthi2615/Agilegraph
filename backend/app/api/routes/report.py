@@ -19,6 +19,7 @@ from app.models.report import (
     ReportPreview,
     ReportStatistics,
 )
+from app.core.security import User, get_current_user_strict
 from app.models.security_report import SecurityReport
 
 router = APIRouter()
@@ -29,6 +30,7 @@ def get_reports(
     category: Optional[ReportCategory] = Query(None),
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
+    user: User = Depends(get_current_user_strict),
 ) -> PaginatedReportResponse:
     """
     Retrieves a paginated list of all generated AgileGraph reports.
@@ -41,7 +43,10 @@ def get_reports(
 
 
 @router.get("/{report_id}", response_model=ReportDetail)
-def get_report_detail(report_id: str = PathParam(...)) -> ReportDetail:
+def get_report_detail(
+    report_id: str = PathParam(...),
+    user: User = Depends(get_current_user_strict),
+) -> ReportDetail:
     """
     Retrieves the metadata, statistics, and lightweight preview of a specific report.
     """
@@ -97,6 +102,7 @@ def download_report(
     type: str = Query("Executive Report"),
     format: ExportFormat = Query(ExportFormat.MARKDOWN),
     report: SecurityReport = Depends(provide_security_report),
+    user: User = Depends(get_current_user_strict),
 ):
     """
     Streams the requested report directly to the client dynamically generated

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi import Path as PathParam
 
 from app.config.settings import settings
+from app.core.security import User, get_current_user_strict
 from app.models.graph import (
     GraphEdge,
     GraphFilter,
@@ -25,19 +26,22 @@ def get_graph_query_service() -> Optional[GraphQueryService]:
         yield None
         return
 
+    service = None
     try:
         service = GraphQueryService(
             uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
         )
-        yield service
     except Exception:
-        yield None
+        service = None
+
+    try:
+        yield service
     finally:
-        try:
-            if "service" in locals() and service is not None:
+        if service is not None:
+            try:
                 service.close()
-        except Exception:
-            pass
+            except Exception:
+                pass
 
 
 def get_recommendation_workflow_service(
@@ -55,6 +59,7 @@ def get_graph(
     algorithm: Optional[str] = Query(None),
     pqc_status: Optional[str] = Query(None),
     query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
+    user: User = Depends(get_current_user_strict),
 ) -> GraphResponse:
     """
     Retrieves the visual graph data structure including nodes, edges, statistics, and metadata.
@@ -144,6 +149,7 @@ def get_node_detail(
     node_id: str = PathParam(...),
     query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
     rec_workflow: RecommendationWorkflowService = Depends(get_recommendation_workflow_service),
+    user: User = Depends(get_current_user_strict),
 ) -> NodeDetails:
     """
     Retrieves complete details for a single graph node required for the side panel.

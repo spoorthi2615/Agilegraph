@@ -1,9 +1,11 @@
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends
 from fastapi import Path as PathParam
 
 from app.config.settings import settings
+from app.core.security import User, get_current_user_strict
 from app.models.explainability import (
     AssetInformation,
     ConfidenceMetrics,
@@ -28,19 +30,22 @@ def get_graph_query_service() -> Optional[GraphQueryService]:
         yield None
         return
 
+    service = None
     try:
         service = GraphQueryService(
             uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
         )
-        yield service
     except Exception:
-        yield None
+        service = None
+
+    try:
+        yield service
     finally:
-        try:
-            if "service" in locals() and service is not None:
+        if service is not None:
+            try:
                 service.close()
-        except Exception:
-            pass
+            except Exception:
+                pass
 
 
 def get_recommendation_workflow_service(
@@ -54,6 +59,7 @@ def get_explainability(
     asset_id: str = PathParam(...),
     query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
     rec_workflow: RecommendationWorkflowService = Depends(get_recommendation_workflow_service),
+    user: User = Depends(get_current_user_strict),
 ) -> ExplainabilityResponse:
     """
     Retrieves complete explainability details for a single cryptographic asset.

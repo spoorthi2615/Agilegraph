@@ -24,7 +24,10 @@ async def upload_project(
 
 
 @router.get("/scan/status/{project_id}")
-async def get_scan_status(project_id: str):
+async def get_scan_status(
+    project_id: str,
+    user: User = Depends(get_current_user_strict),
+):
     """
     Returns the current status of a background scan.
     """

@@ -14,6 +14,14 @@ pinned: false
 
 This project provides end-to-end organizational visibility into cryptographic assets and their readiness for the upcoming Post-Quantum Cryptography (PQC) transition.
 
+## 🌐 Live Production Deployment
+
+- **Frontend Application**: [https://agilegraph.vercel.app/](https://agilegraph.vercel.app/) *(Hosted on Vercel Edge Network)*
+- **Backend API Service**: `https://agilegraph.onrender.com/api/v1` *(Hosted on Render Web Services)*
+- **Graph Database**: Remote **Neo4j AuraDB** Cloud Cluster
+
+---
+
 ## 🚀 Key Features
 
 ### 🔍 Multi-Vector Cryptographic Discovery
@@ -79,20 +87,26 @@ A modern, component-driven React application designed for high-density data visu
 
 ## 🧪 Testing & Validation
 
-The platform includes a genuine integration testing framework:
-- **End-to-End Integration**: Executes the full `ProjectAnalysisService` against real repositories (like WebGoat) to validate that structural static analysis, Semgrep scanning, and OSV.dev dependency checking correctly generate actionable findings and graph nodes.
+The platform includes a comprehensive Pytest test suite (22 unit, integration, and ML service tests):
+- **End-to-End Integration**: Executes the full `ProjectAnalysisService` against real repositories (WebGoat) to validate structural static analysis, Semgrep scanning, and OSV.dev dependency checking.
+- **GATv2 ML Pipeline Integration**: Verifies PyTorch Geometric model initialization, GATv2Conv layer forward passes, and evaluation metric scoring.
+- **REST API Route Protection**: Verifies strict authentication (HTTP 401 response checks for unauthenticated access) across workspace, report, search, notification, and graph endpoints.
 
-Run the Backend End-to-End validation suite:
+Run the Backend test suite:
 ```bash
-python backend/tests/e2e_integration_test.py
+cd backend
+pytest tests/
 ```
+
 ---
 
 ## 🛡️ Security & Performance
 
+- **Strict Supabase Authentication**: Enforces `get_current_user_strict` Bearer JWT verification across all sensitive API routes.
+- **Security Headers & CORS**: Strict environment-scoped CORS configuration paired with `HSTS`, `CSP`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `X-XSS-Protection`.
 - **SSRF Hardened**: All external network calls (Live TLS, CT Logs) are strictly validated against authorized domains. Subprocesses (Semgrep) are executed in secure, immutable isolation.
 - **Fault Tolerant**: Uses abstract Provider Interfaces and `try/except` fallbacks so the Frontend will *never* crash if an underlying database or ML model goes offline.
-- **Optimized UI**: The React frontend leverages optimized graph rendering techniques to handle complex cryptographic topologies efficiently.
+- **Optimized CPU-Only Production Inference**: Production deployment utilizes `backend/requirements-prod.txt` for CPU-optimized PyTorch / Transformers execution on Render cloud resources.
 
 ---
 

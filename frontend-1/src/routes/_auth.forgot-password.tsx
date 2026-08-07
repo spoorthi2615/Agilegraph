@@ -1,28 +1,28 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
-export const Route = createFileRoute('/_auth/forgot-password')({
+export const Route = createFileRoute("/_auth/forgot-password")({
   component: ForgotPassword,
 });
 
 function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      toast.error('Please enter your email address');
+      toast.error("Please enter your email address");
       return;
     }
-    
+
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -31,9 +31,9 @@ function ForgotPassword() {
 
       if (error) throw error;
       setSubmitted(true);
-      toast.success('Password reset email sent');
-    } catch (error: any) {
-      toast.error('Failed to send reset email', { description: error.message });
+      toast.success("Password reset email sent");
+    } catch (error: unknown) {
+      toast.error("Failed to send reset email", { description: (error as Error).message });
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,8 @@ function ForgotPassword() {
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
           <p className="text-sm text-muted-foreground">
-            We have sent a password reset link to <span className="font-medium text-foreground">{email}</span>.
+            We have sent a password reset link to{" "}
+            <span className="font-medium text-foreground">{email}</span>.
           </p>
         </div>
         <Button asChild variant="outline" className="mt-4">
@@ -72,14 +73,14 @@ function ForgotPassword() {
       <form onSubmit={handleReset} className="grid gap-4 mt-2">
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="m@example.com" 
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            required 
+            required
           />
         </div>
         <Button type="submit" className="w-full shadow-[var(--shadow-glow)]" disabled={loading}>
@@ -89,7 +90,10 @@ function ForgotPassword() {
       </form>
 
       <div className="text-center text-sm">
-        <Link to="/login" className="inline-flex items-center font-medium text-muted-foreground hover:text-foreground">
+        <Link
+          to="/login"
+          className="inline-flex items-center font-medium text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to log in
         </Link>

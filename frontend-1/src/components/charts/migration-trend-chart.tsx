@@ -1,7 +1,19 @@
 import React from "react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
-export const MigrationTrendChart = React.memo(function MigrationTrendChart({ data }: { data: { month: string; migrated: number; planned: number }[] }) {
+export const MigrationTrendChart = React.memo(function MigrationTrendChart({
+  data,
+}: {
+  data: { month: string; migrated: number; planned: number }[];
+}) {
   return (
     <div className="mt-4 h-64">
       <ResponsiveContainer>
@@ -19,9 +31,28 @@ export const MigrationTrendChart = React.memo(function MigrationTrendChart({ dat
           <CartesianGrid vertical={false} stroke="var(--color-border)" />
           <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} />
           <YAxis fontSize={11} tickLine={false} axisLine={false} />
-          <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
-          <Area type="monotone" dataKey="planned" stroke="var(--color-chart-5)" fill="url(#pl)" strokeWidth={2} />
-          <Area type="monotone" dataKey="migrated" stroke="var(--color-primary)" fill="url(#mig)" strokeWidth={2} />
+          <Tooltip
+            contentStyle={{
+              borderRadius: 10,
+              border: "1px solid var(--color-border)",
+              background: "white",
+              fontSize: 12,
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="planned"
+            stroke="var(--color-chart-5)"
+            fill="url(#pl)"
+            strokeWidth={2}
+          />
+          <Area
+            type="monotone"
+            dataKey="migrated"
+            stroke="var(--color-primary)"
+            fill="url(#mig)"
+            strokeWidth={2}
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>

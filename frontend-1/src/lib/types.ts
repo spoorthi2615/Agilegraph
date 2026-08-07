@@ -1,5 +1,14 @@
 export type RiskLevel = "critical" | "high" | "medium" | "low";
-export type AssetType = "service" | "certificate" | "crypto_asset" | "library" | "code" | "data" | "application" | "server" | string;
+export type AssetType =
+  | "service"
+  | "certificate"
+  | "crypto_asset"
+  | "library"
+  | "code"
+  | "data"
+  | "application"
+  | "server"
+  | string;
 export type MigrationStatus = "not-started" | "planned" | "in-progress" | "completed";
 
 export interface CryptoAsset {
@@ -30,7 +39,10 @@ export interface GraphNode {
   x: number;
   y: number;
 }
-export interface GraphEdge { source: string; target: string; }
+export interface GraphEdge {
+  source: string;
+  target: string;
+}
 
 export interface ScanRecord {
   id: string;
@@ -78,7 +90,13 @@ export interface DashboardSummary {
   migrationTrend: Array<{ month: string; migrated: number; planned: number }>;
   recentScans: ScanRecord[];
   activity: ActivityItem[];
-  criticalAlerts: Array<{ id: string; title: string; reason: string; score: number; ownerEmail?: string }>;
+  criticalAlerts: Array<{
+    id: string;
+    title: string;
+    reason: string;
+    score: number;
+    ownerEmail?: string;
+  }>;
 }
 
 export const riskColor: Record<RiskLevel, string> = {
@@ -94,3 +112,23 @@ export const riskLabel: Record<RiskLevel, string> = {
   medium: "Medium",
   low: "Low",
 };
+export interface Workspace {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  read: boolean;
+  type: string;
+}
+
+export interface SearchResult {
+  id: string;
+  title: string;
+  type: string;
+  url: string;
+}

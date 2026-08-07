@@ -55,7 +55,7 @@ def create_app() -> FastAPI:
     )
 
     # Configure CORS strictly based on Environment
-    origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+    origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
 
     app.add_middleware(
         CORSMiddleware,

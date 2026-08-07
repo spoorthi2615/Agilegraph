@@ -7,13 +7,16 @@ import { demoStore } from "../lib/demo-store";
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Race an async fn against a timeout; on error/timeout return fallback */
-async function withFallback<T>(id: string, fn: () => Promise<T>, fallback: T, ms = 5000): Promise<T> {
+async function withFallback<T>(
+  id: string,
+  fn: () => Promise<T>,
+  fallback: T,
+  ms = 5000,
+): Promise<T> {
   try {
     const result = await Promise.race([
       fn(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("API timeout")), ms)
-      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("API timeout")), ms)),
     ]);
     demoStore.setFallback(id, false);
     return result;
@@ -163,7 +166,7 @@ const MOCK_EXPLAIN = (assetId: string) => {
       featureImportance: [
         { featureName: "Algorithm strength", contribution: 0.38, positiveInfluence: true },
         { featureName: "Graph centrality", contribution: 0.27, positiveInfluence: true },
-        { featureName: "Key size adequacy", contribution: 0.20, positiveInfluence: true },
+        { featureName: "Key size adequacy", contribution: 0.2, positiveInfluence: true },
         { featureName: "Quantum vulnerability", contribution: 0.15, positiveInfluence: true },
       ],
     },
@@ -185,7 +188,8 @@ const MOCK_EXPLAIN = (assetId: string) => {
 export function useExplainability(id: string) {
   return useQuery({
     queryKey: ["explainability", id],
-    queryFn: () => withFallback(`explainability-${id}`, () => api.getExplainability(id), MOCK_EXPLAIN(id)),
+    queryFn: () =>
+      withFallback(`explainability-${id}`, () => api.getExplainability(id), MOCK_EXPLAIN(id)),
     enabled: !!id,
     retry: false,
     staleTime: 1000 * 60 * 5,
@@ -202,9 +206,16 @@ export function useMoscaReadiness(z: number) {
         `mosca-${z}`,
         async () => {
           const { apiClient } = await import("../services/api-client");
-          return apiClient.get<any>(`/dashboard/mosca?z=${z}`);
+          return apiClient.get<unknown>(`/dashboard/mosca?z=${z}`);
         },
-        { x: 10.0, y: 1.2, z, surplus: +(z - 11.2).toFixed(1), readiness_score: 74, has_data: true }
+        {
+          x: 10.0,
+          y: 1.2,
+          z,
+          surplus: +(z - 11.2).toFixed(1),
+          readiness_score: 74,
+          has_data: true,
+        },
       ),
     retry: false,
     staleTime: 1000 * 30,

@@ -8,8 +8,24 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { UploadCloud, Github, Globe, FileKey2, Play, X, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
-import { useDashboardSummary, useUploadProject, useGitHubImport, useDomainScan, useCertificateScan } from "@/hooks/use-agilegraph";
+import {
+  UploadCloud,
+  Github,
+  Globe,
+  FileKey2,
+  Play,
+  X,
+  CheckCircle2,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
+import {
+  useDashboardSummary,
+  useUploadProject,
+  useGitHubImport,
+  useDomainScan,
+  useCertificateScan,
+} from "@/hooks/use-agilegraph";
 import { api } from "@/services/api";
 import { Dropzone } from "@/components/ui/dropzone";
 import { toast } from "sonner";
@@ -20,7 +36,10 @@ export const Route = createFileRoute("/_app/scan")({
   head: () => ({
     meta: [
       { title: "Scan Project — AgileGraph" },
-      { name: "description", content: "Discover cryptographic assets across repos, uploads, domains, and certificates." },
+      {
+        name: "description",
+        content: "Discover cryptographic assets across repos, uploads, domains, and certificates.",
+      },
     ],
   }),
 });
@@ -38,7 +57,7 @@ function ScanPage() {
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [historyFilter, setHistoryFilter] = useState("all");
-  
+
   const [activeTab, setActiveTab] = useState("zip");
   const [githubUrl, setGithubUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
@@ -46,17 +65,20 @@ function ScanPage() {
   const [domainHost, setDomainHost] = useState("");
   const [domainPorts, setDomainPorts] = useState("443");
 
-  const filteredScans = recentScans.filter((s: any) => historyFilter === "all" || s.source.toLowerCase().includes(historyFilter));
+  const filteredScans = recentScans.filter(
+    (s: import("../lib/types").ScanRecord) =>
+      historyFilter === "all" || s.source.toLowerCase().includes(historyFilter),
+  );
 
   // Poll the backend for real status
   useQuery({
-    queryKey: ['scanStatus', currentProjectId],
+    queryKey: ["scanStatus", currentProjectId],
     queryFn: async () => {
       if (!currentProjectId) return null;
       const data = await api.getScanStatus(currentProjectId);
       const s = data.status;
-      
-      const phaseMap: Record<string, {name: string, p: number}> = {
+
+      const phaseMap: Record<string, { name: string; p: number }> = {
         queued: { name: "Queued", p: 5 },
         extracting: { name: "Parsing source files", p: 15 },
         cloning: { name: "Cloning repository", p: 15 },
@@ -65,7 +87,7 @@ function ScanPage() {
         scoring: { name: "Scoring risk", p: 75 },
         exporting: { name: "Generating recommendations", p: 90 },
         completed: { name: "Completed", p: 100 },
-        failed: { name: "Failed", p: 100 }
+        failed: { name: "Failed", p: 100 },
       };
 
       if (phaseMap[s]) {
@@ -107,204 +129,396 @@ function ScanPage() {
 
           <TabsContent value="new" className="space-y-6 mt-0">
             <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 rounded-xl border bg-card p-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="zip"><UploadCloud className="mr-2 h-4 w-4" />Upload</TabsTrigger>
-                <TabsTrigger value="github"><Github className="mr-2 h-4 w-4" />GitHub</TabsTrigger>
-                <TabsTrigger value="domain"><Globe className="mr-2 h-4 w-4" />Domain</TabsTrigger>
-                <TabsTrigger value="cert"><FileKey2 className="mr-2 h-4 w-4" />Certificate</TabsTrigger>
-              </TabsList>
+              <div className="lg:col-span-2 rounded-xl border bg-card p-6">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="zip">
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                      Upload
+                    </TabsTrigger>
+                    <TabsTrigger value="github">
+                      <Github className="mr-2 h-4 w-4" />
+                      GitHub
+                    </TabsTrigger>
+                    <TabsTrigger value="domain">
+                      <Globe className="mr-2 h-4 w-4" />
+                      Domain
+                    </TabsTrigger>
+                    <TabsTrigger value="cert">
+                      <FileKey2 className="mr-2 h-4 w-4" />
+                      Certificate
+                    </TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="zip" className="mt-6">
-                <Dropzone onFileDrop={(file) => {
-                  uploadProject.mutate(file, {
-                    onSuccess: (data) => {
-                      if (data && data.project_id) {
-                        start(data.project_id);
-                      } else {
-                        toast.error("Upload failed", { description: "No project ID returned" });
-                      }
-                    },
-                    onError: (err: any) => {
-                      toast.error("Upload failed", { description: err?.message || String(err) });
-                    }
-                  });
-                }} />
-              </TabsContent>
-              <TabsContent value="github" className="mt-6 space-y-4">
-                <div className="space-y-2"><Label>Repository URL</Label><Input placeholder="https://github.com/org/repo" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} /></div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2"><Label>Branch</Label><Input placeholder="main" value={githubBranch} onChange={(e) => setGithubBranch(e.target.value)} /></div>
-                  <div className="space-y-2"><Label>Access Token (optional)</Label><Input placeholder="ghp_…" type="password" value={githubToken} onChange={(e) => setGithubToken(e.target.value)} /></div>
-                </div>
-              </TabsContent>
-              <TabsContent value="domain" className="mt-6 space-y-4">
-                <div className="space-y-2"><Label>Domain or Host</Label><Input placeholder="api.example.com" value={domainHost} onChange={(e) => setDomainHost(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Ports (comma separated)</Label><Input placeholder="443, 8443" value={domainPorts} onChange={(e) => setDomainPorts(e.target.value)} /></div>
-              </TabsContent>
-              <TabsContent value="cert" className="mt-6"><Dropzone hint="Drop .pem, .crt, .p12, or .jks files" onFileDrop={(file) => {
-                  uploadCertificate.mutate(file, {
-                    onSuccess: (data) => {
-                      if (data && data.project_id) {
-                        start(data.project_id);
-                      } else {
-                        toast.error("Certificate upload failed", { description: "No project ID returned" });
-                      }
-                    },
-                    onError: (err: any) => {
-                      toast.error("Certificate upload failed", { description: err?.message || String(err) });
-                    }
-                  });
-              }} /></TabsContent>
-            </Tabs>
+                  <TabsContent value="zip" className="mt-6">
+                    <Dropzone
+                      onFileDrop={(file) => {
+                        uploadProject.mutate(file, {
+                          onSuccess: (data) => {
+                            if (data && (data as Record<string, string>).project_id) {
+                              start((data as Record<string, string>).project_id);
+                            } else {
+                              toast.error("Upload failed", {
+                                description: "No project ID returned",
+                              });
+                            }
+                          },
+                          onError: (err: unknown) => {
+                            toast.error("Upload failed", {
+                              description: err?.message || String(err),
+                            });
+                          },
+                        });
+                      }}
+                    />
+                  </TabsContent>
+                  <TabsContent value="github" className="mt-6 space-y-4">
+                    <div className="space-y-2">
+                      <Label>Repository URL</Label>
+                      <Input
+                        placeholder="https://github.com/org/repo"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Branch</Label>
+                        <Input
+                          placeholder="main"
+                          value={githubBranch}
+                          onChange={(e) => setGithubBranch(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Access Token (optional)</Label>
+                        <Input
+                          placeholder="ghp_…"
+                          type="password"
+                          value={githubToken}
+                          onChange={(e) => setGithubToken(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="domain" className="mt-6 space-y-4">
+                    <div className="space-y-2">
+                      <Label>Domain or Host</Label>
+                      <Input
+                        placeholder="api.example.com"
+                        value={domainHost}
+                        onChange={(e) => setDomainHost(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ports (comma separated)</Label>
+                      <Input
+                        placeholder="443, 8443"
+                        value={domainPorts}
+                        onChange={(e) => setDomainPorts(e.target.value)}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="cert" className="mt-6">
+                    <Dropzone
+                      hint="Drop .pem, .crt, .p12, or .jks files"
+                      onFileDrop={(file) => {
+                        uploadCertificate.mutate(file, {
+                          onSuccess: (data) => {
+                            if (data && (data as Record<string, string>).project_id) {
+                              start((data as Record<string, string>).project_id);
+                            } else {
+                              toast.error("Certificate upload failed", {
+                                description: "No project ID returned",
+                              });
+                            }
+                          },
+                          onError: (err: unknown) => {
+                            toast.error("Certificate upload failed", {
+                              description: err?.message || String(err),
+                            });
+                          },
+                        });
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
 
-            <div className="mt-6 rounded-lg border bg-muted/30 p-4">
-              <div className="text-sm font-semibold">Scan Options</div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                {[
-                  ["Deep dependency graph", true],
-                  ["Include transitive libraries", true],
-                  ["Detect harvest-now-decrypt-later risk", true],
-                  ["Suggest PQC alternatives", true],
-                  ["Include TLS handshake fingerprinting", false],
-                  ["Auto-generate migration plan", true],
-                ].map(([k, v]) => (
-                  <div key={k as string} className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
-                    <Label className="text-sm">{k}</Label>
-                    <Switch defaultChecked={v as boolean} />
+                <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+                  <div className="text-sm font-semibold">Scan Options</div>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    {[
+                      ["Deep dependency graph", true],
+                      ["Include transitive libraries", true],
+                      ["Detect harvest-now-decrypt-later risk", true],
+                      ["Suggest PQC alternatives", true],
+                      ["Include TLS handshake fingerprinting", false],
+                      ["Auto-generate migration plan", true],
+                    ].map(([k, v]) => (
+                      <div
+                        key={k as string}
+                        className="flex items-center justify-between rounded-md border bg-background px-3 py-2"
+                      >
+                        <Label className="text-sm">{k}</Label>
+                        <Switch defaultChecked={v as boolean} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className="mt-6 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => { setRunning(false); setProgress(0); setPhase("Idle"); }}><X className="h-4 w-4" />Cancel</Button>
-              <Button onClick={() => {
-                if (activeTab === "github") {
-                  if (!githubUrl) {
-                    toast.error("Please enter a GitHub URL");
-                    return;
-                  }
-                  importGitHub.mutate({ url: githubUrl, branch: githubBranch, token: githubToken }, {
-                    onSuccess: (data: any) => {
-                      if (data && data.project_id) {
-                        start(data.project_id);
-                      } else {
-                        toast.error("GitHub import failed", { description: "No project ID returned" });
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRunning(false);
+                      setProgress(0);
+                      setPhase("Idle");
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (activeTab === "github") {
+                        if (!githubUrl) {
+                          toast.error("Please enter a GitHub URL");
+                          return;
+                        }
+                        importGitHub.mutate(
+                          { url: githubUrl, branch: githubBranch, token: githubToken },
+                          {
+                            onSuccess: (data: unknown) => {
+                              if (data && (data as Record<string, string>).project_id) {
+                                start((data as Record<string, string>).project_id);
+                              } else {
+                                toast.error("GitHub import failed", {
+                                  description: "No project ID returned",
+                                });
+                              }
+                            },
+                            onError: (err: unknown) => {
+                              toast.error("GitHub import failed", {
+                                description: err?.message || String(err),
+                              });
+                            },
+                          },
+                        );
+                      } else if (activeTab === "domain") {
+                        if (!domainHost) {
+                          toast.error("Please enter a domain");
+                          return;
+                        }
+                        const ports = domainPorts
+                          .split(",")
+                          .map((p) => parseInt(p.trim()))
+                          .filter((p) => !isNaN(p));
+                        scanDomain.mutate(
+                          { domain: domainHost, ports },
+                          {
+                            onSuccess: (data: unknown) => {
+                              if (data && (data as Record<string, string>).project_id) {
+                                start((data as Record<string, string>).project_id);
+                              } else {
+                                toast.error("Domain scan failed", {
+                                  description: "No project ID returned",
+                                });
+                              }
+                            },
+                            onError: (err: unknown) => {
+                              toast.error("Domain scan failed", {
+                                description: err?.message || String(err),
+                              });
+                            },
+                          },
+                        );
                       }
-                    },
-                    onError: (err: any) => {
-                      toast.error("GitHub import failed", { description: err?.message || String(err) });
+                    }}
+                    disabled={
+                      running ||
+                      uploadProject.isPending ||
+                      importGitHub.isPending ||
+                      scanDomain.isPending ||
+                      uploadCertificate.isPending
                     }
-                  });
-                } else if (activeTab === "domain") {
-                  if (!domainHost) {
-                    toast.error("Please enter a domain");
-                    return;
-                  }
-                  const ports = domainPorts.split(",").map(p => parseInt(p.trim())).filter(p => !isNaN(p));
-                  scanDomain.mutate({ domain: domainHost, ports }, {
-                    onSuccess: (data: any) => {
-                      if (data && data.project_id) {
-                        start(data.project_id);
-                      } else {
-                        toast.error("Domain scan failed", { description: "No project ID returned" });
-                      }
-                    },
-                    onError: (err: any) => {
-                      toast.error("Domain scan failed", { description: err?.message || String(err) });
-                    }
-                  });
-                }
-              }} disabled={running || uploadProject.isPending || importGitHub.isPending || scanDomain.isPending || uploadCertificate.isPending} className="shadow-[var(--shadow-glow)]">
-                {uploadProject.isPending || importGitHub.isPending || scanDomain.isPending || uploadCertificate.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />Processing…</> : running ? <><Loader2 className="h-4 w-4 animate-spin" />Scanning…</> : <><Play className="h-4 w-4" />{activeTab === "github" ? "Start GitHub Scan" : activeTab === "domain" ? "Start Domain Scan" : "Waiting for Upload"}</>}
-              </Button>
-            </div>
-          </div>
-
-          <div className="rounded-xl border bg-card p-6">
-            <div className="text-sm font-semibold">Scan Progress</div>
-            <div className="mt-4 rounded-lg border bg-muted/30 p-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium">{phase}</span>
-                <span className="text-muted-foreground">{Math.floor(progress)}%</span>
+                    className="shadow-[var(--shadow-glow)]"
+                  >
+                    {uploadProject.isPending ||
+                    importGitHub.isPending ||
+                    scanDomain.isPending ||
+                    uploadCertificate.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing…
+                      </>
+                    ) : running ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Scanning…
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4" />
+                        {activeTab === "github"
+                          ? "Start GitHub Scan"
+                          : activeTab === "domain"
+                            ? "Start Domain Scan"
+                            : "Waiting for Upload"}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-              <Progress value={progress} className="mt-3" />
-              <ul className="mt-4 space-y-2 text-xs">
-                {["Cloning repository", "Parsing source files", "Detecting algorithms", "Building crypto graph", "Scoring risk", "Generating recommendations"].map((p, i) => {
-                  const done = progress > ((i + 1) * (100 / 6)) - 1;
-                  const active = phase === p;
-                  return (
-                    <li key={p} className="flex items-center gap-2">
-                      {done ? <CheckCircle2 className="h-3.5 w-3.5 text-success" /> : active ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <span className="h-3.5 w-3.5 rounded-full border" />}
-                      <span className={done ? "text-foreground" : active ? "text-foreground font-medium" : "text-muted-foreground"}>{p}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3 text-center">
-              <div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Assets found</div><div className="text-lg font-semibold">{Math.floor(progress * 1.28)}</div></div>
-              <div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Critical</div><div className="text-lg font-semibold text-critical">{Math.floor(progress / 15)}</div></div>
-            </div>
-          </div>
+
+              <div className="rounded-xl border bg-card p-6">
+                <div className="text-sm font-semibold">Scan Progress</div>
+                <div className="mt-4 rounded-lg border bg-muted/30 p-4">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium">{phase}</span>
+                    <span className="text-muted-foreground">{Math.floor(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="mt-3" />
+                  <ul className="mt-4 space-y-2 text-xs">
+                    {[
+                      "Cloning repository",
+                      "Parsing source files",
+                      "Detecting algorithms",
+                      "Building crypto graph",
+                      "Scoring risk",
+                      "Generating recommendations",
+                    ].map((p, i) => {
+                      const done = progress > (i + 1) * (100 / 6) - 1;
+                      const active = phase === p;
+                      return (
+                        <li key={p} className="flex items-center gap-2">
+                          {done ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                          ) : active ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                          ) : (
+                            <span className="h-3.5 w-3.5 rounded-full border" />
+                          )}
+                          <span
+                            className={
+                              done
+                                ? "text-foreground"
+                                : active
+                                  ? "text-foreground font-medium"
+                                  : "text-muted-foreground"
+                            }
+                          >
+                            {p}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-center">
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Assets found</div>
+                    <div className="text-lg font-semibold">{Math.floor(progress * 1.28)}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Critical</div>
+                    <div className="text-lg font-semibold text-critical">
+                      {Math.floor(progress / 15)}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="history" className="mt-0">
             <div className="rounded-xl border bg-card">
-            <div className="flex items-center justify-between border-b p-5">
-              <div>
-                <h3 className="text-sm font-semibold">Recent Scan History</h3>
-                <p className="text-xs text-muted-foreground">Recent scans across your workspace</p>
+              <div className="flex items-center justify-between border-b p-5">
+                <div>
+                  <h3 className="text-sm font-semibold">Recent Scan History</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Recent scans across your workspace
+                  </p>
+                </div>
+                <Tabs value={historyFilter} onValueChange={setHistoryFilter}>
+                  <TabsList>
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="upload">Upload</TabsTrigger>
+                    <TabsTrigger value="github">GitHub</TabsTrigger>
+                    <TabsTrigger value="domain">Domain</TabsTrigger>
+                    <TabsTrigger value="certificate">Cert</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
-              <Tabs value={historyFilter} onValueChange={setHistoryFilter}>
-                <TabsList>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="upload">Upload</TabsTrigger>
-                  <TabsTrigger value="github">GitHub</TabsTrigger>
-                  <TabsTrigger value="domain">Domain</TabsTrigger>
-                  <TabsTrigger value="certificate">Cert</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/30 text-xs text-muted-foreground">
-                <tr>
-                  {["Scan", "Source", "Started", "Duration", "Assets", "Critical", "Status", "Owner"].map((h) => {
-                    if (h === "Owner" && !filteredScans.some((s: any) => s.ownerEmail)) return null;
-                    return <th key={h} className="px-5 py-3 text-left font-medium">{h}</th>;
-                  })}
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredScans.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
-                      No recent scans found for this filter.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredScans.map((s: any) => (
-                    <tr key={s.id} className="hover:bg-muted/20">
-                      <td className="px-5 py-3"><div className="font-medium">{s.name}</div><div className="text-xs text-muted-foreground">{s.id}</div></td>
-                      <td className="px-5 py-3"><Badge variant="secondary">{s.source}</Badge></td>
-                      <td className="px-5 py-3 text-muted-foreground">{s.startedAt}</td>
-                      <td className="px-5 py-3 text-muted-foreground">{s.duration}</td>
-                      <td className="px-5 py-3 font-medium">{s.assets}</td>
-                      <td className="px-5 py-3"><span className="text-critical font-medium">{s.criticalFindings}</span></td>
-                      <td className="px-5 py-3"><Badge className="bg-success/15 text-success hover:bg-success/15">Completed</Badge></td>
-                      {filteredScans.some((scan: any) => scan.ownerEmail) && (
-                        <td className="px-5 py-3 text-xs text-muted-foreground">{s.ownerEmail || "-"}</td>
-                      )}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/30 text-xs text-muted-foreground">
+                    <tr>
+                      {[
+                        "Scan",
+                        "Source",
+                        "Started",
+                        "Duration",
+                        "Assets",
+                        "Critical",
+                        "Status",
+                        "Owner",
+                      ].map((h) => {
+                        if (
+                          h === "Owner" &&
+                          !filteredScans.some(
+                            (s: import("../lib/types").ScanRecord) => s.ownerEmail,
+                          )
+                        )
+                          return null;
+                        return (
+                          <th key={h} className="px-5 py-3 text-left font-medium">
+                            {h}
+                          </th>
+                        );
+                      })}
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y">
+                    {filteredScans.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
+                          No recent scans found for this filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredScans.map((s: import("../lib/types").ScanRecord) => (
+                        <tr key={s.id} className="hover:bg-muted/20">
+                          <td className="px-5 py-3">
+                            <div className="font-medium">{s.name}</div>
+                            <div className="text-xs text-muted-foreground">{s.id}</div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <Badge variant="secondary">{s.source}</Badge>
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground">{s.startedAt}</td>
+                          <td className="px-5 py-3 text-muted-foreground">{s.duration}</td>
+                          <td className="px-5 py-3 font-medium">{s.assets}</td>
+                          <td className="px-5 py-3">
+                            <span className="text-critical font-medium">{s.criticalFindings}</span>
+                          </td>
+                          <td className="px-5 py-3">
+                            <Badge className="bg-success/15 text-success hover:bg-success/15">
+                              Completed
+                            </Badge>
+                          </td>
+                          {filteredScans.some(
+                            (scan: import("../lib/types").ScanRecord) => scan.ownerEmail,
+                          ) && (
+                            <td className="px-5 py-3 text-xs text-muted-foreground">
+                              {s.ownerEmail || "-"}
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
@@ -312,5 +526,3 @@ function ScanPage() {
     </>
   );
 }
-
-

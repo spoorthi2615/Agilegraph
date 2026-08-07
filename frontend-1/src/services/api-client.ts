@@ -1,21 +1,21 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from "../lib/supabase";
 
 export class ApiError extends Error {
   status: number;
   code: string;
-  details?: any;
+  details?: unknown;
 
-  constructor(status: number, message: string, code: string = 'UNKNOWN_ERROR', details?: any) {
+  constructor(status: number, message: string, code: string = "UNKNOWN_ERROR", details?: unknown) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.details = details;
   }
 }
 
-export interface RequestOptions extends Omit<RequestInit, 'body'> {
-  body?: any;
+export interface RequestOptions extends Omit<RequestInit, "body"> {
+  body?: unknown;
   queryParams?: Record<string, string | number | boolean | undefined>;
   timeout?: number;
 }
@@ -26,7 +26,7 @@ const DEFAULT_TIMEOUT = 30000; // 30 seconds
 
 async function handleResponse<T>(response: Response): Promise<T> {
   const isJson = response.headers.get("content-type")?.includes("application/json");
-  let data: any = null;
+  let data: unknown = null;
 
   if (response.status !== 204 && isJson) {
     try {
@@ -41,9 +41,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
 
   // Parse error
-  const message = data?.message || data?.detail || response.statusText || `HTTP Error ${response.status}`;
-  const code = data?.code || `HTTP_${response.status}`;
-  const details = data?.details || data;
+  const errData = data as Record<string, unknown> | null;
+  const message =
+    (errData?.message as string) ||
+    (errData?.detail as string) ||
+    response.statusText ||
+    `HTTP Error ${response.status}`;
+  const code = (errData?.code as string) || `HTTP_${response.status}`;
+  const details = errData?.details || errData;
 
   throw new ApiError(response.status, message, code, details);
 }
@@ -59,9 +64,11 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
 
   // Build URL with query params
   // If endpoint is a full URL, use it directly, else prepend API_BASE_URL
-  const baseUrl = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const baseUrl = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
   const url = new URL(baseUrl);
-  
+
   if (queryParams) {
     Object.entries(queryParams).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -75,29 +82,31 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
 
   // Link user-provided signal if present
   if (customConfig.signal) {
-    customConfig.signal.addEventListener('abort', () => {
+    customConfig.signal.addEventListener("abort", () => {
       controller.abort();
     });
   }
 
   const headers = new Headers(customHeaders as HeadersInit);
-  
+
   // Attach Supabase Auth Token
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (session?.access_token) {
-    headers.set('Authorization', `Bearer ${session.access_token}`);
+    headers.set("Authorization", `Bearer ${session.access_token}`);
   }
-  
+
   let fetchBody: BodyInit | null = null;
-  
+
   if (body) {
     if (body instanceof FormData) {
       fetchBody = body;
       // Do not set Content-Type for FormData, browser sets it automatically with the correct boundary
     } else {
       fetchBody = JSON.stringify(body);
-      if (!headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
+      if (!headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
       }
     }
   }
@@ -111,27 +120,31 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     });
     clearTimeout(id);
     return await handleResponse<T>(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(id);
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === "AbortError") {
       throw new ApiError(408, "Request Timeout", "TIMEOUT_ERROR");
     }
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(500, error.message || "Network Error", "NETWORK_ERROR");
+    throw new ApiError(
+      500,
+      error instanceof Error ? (error as Error).message : "Network Error",
+      "NETWORK_ERROR",
+    );
   }
 }
 
 export const apiClient = {
-  get: <T>(endpoint: string, options?: Omit<RequestOptions, 'body'>) => 
-    request<T>(endpoint, { ...options, method: 'GET' }),
-  post: <T>(endpoint: string, options?: RequestOptions) => 
-    request<T>(endpoint, { ...options, method: 'POST' }),
-  put: <T>(endpoint: string, options?: RequestOptions) => 
-    request<T>(endpoint, { ...options, method: 'PUT' }),
-  patch: <T>(endpoint: string, options?: RequestOptions) => 
-    request<T>(endpoint, { ...options, method: 'PATCH' }),
-  delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'body'>) => 
-    request<T>(endpoint, { ...options, method: 'DELETE' }),
+  get: <T>(endpoint: string, options?: Omit<RequestOptions, "body">) =>
+    request<T>(endpoint, { ...options, method: "GET" }),
+  post: <T>(endpoint: string, options?: RequestOptions) =>
+    request<T>(endpoint, { ...options, method: "POST" }),
+  put: <T>(endpoint: string, options?: RequestOptions) =>
+    request<T>(endpoint, { ...options, method: "PUT" }),
+  patch: <T>(endpoint: string, options?: RequestOptions) =>
+    request<T>(endpoint, { ...options, method: "PATCH" }),
+  delete: <T>(endpoint: string, options?: Omit<RequestOptions, "body">) =>
+    request<T>(endpoint, { ...options, method: "DELETE" }),
 };

@@ -1,7 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ShieldCheck, ScanLine, Network, ShieldAlert, Sparkles, Route as RouteIcon,
-  ArrowRight, Zap, Building2, Eye, GaugeCircle, Github, CheckCircle2, ChevronRight,
+  ShieldCheck,
+  ScanLine,
+  Network,
+  ShieldAlert,
+  Sparkles,
+  Route as RouteIcon,
+  ArrowRight,
+  Zap,
+  Building2,
+  Eye,
+  GaugeCircle,
+  Github,
+  CheckCircle2,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +23,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "AgileGraph — Accelerate Your Post-Quantum Migration" },
-      { name: "description", content: "AI-powered platform to discover vulnerable cryptographic assets and prioritize migration to Post-Quantum Cryptography." },
+      {
+        name: "description",
+        content:
+          "AI-powered platform to discover vulnerable cryptographic assets and prioritize migration to Post-Quantum Cryptography.",
+      },
       { property: "og:title", content: "AgileGraph — Post-Quantum Migration Platform" },
-      { property: "og:description", content: "Discover, rank, and migrate vulnerable cryptographic assets to PQC with explainable AI." },
+      {
+        property: "og:description",
+        content:
+          "Discover, rank, and migrate vulnerable cryptographic assets to PQC with explainable AI.",
+      },
     ],
   }),
 });
@@ -44,17 +64,30 @@ function MarketingNav() {
           <span className="text-base font-semibold tracking-tight">AgileGraph</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</a>
-          <a href="#how" className="text-sm text-muted-foreground hover:text-foreground">How it works</a>
-          <a href="#benefits" className="text-sm text-muted-foreground hover:text-foreground">Benefits</a>
-          <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">Product</Link>
+          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground">
+            Features
+          </a>
+          <a href="#how" className="text-sm text-muted-foreground hover:text-foreground">
+            How it works
+          </a>
+          <a href="#benefits" className="text-sm text-muted-foreground hover:text-foreground">
+            Benefits
+          </a>
+          <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">
+            Product
+          </Link>
         </nav>
         <div className="flex items-center gap-4">
-          <Link to="/admin-login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link
+            to="/admin-login"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
             Admin Login
           </Link>
           <Button asChild size="sm" className="shadow-[var(--shadow-glow)]">
-            <Link to="/login">Sign In <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link to="/login">
+              Sign In <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </Button>
         </div>
       </div>
@@ -69,7 +102,10 @@ function Hero() {
       <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
         <div className="grid items-center gap-14 lg:grid-cols-2">
           <div className="animate-fade-up">
-            <Badge variant="secondary" className="mb-5 gap-2 rounded-full border bg-background/50 px-3 py-1 shadow-[var(--shadow-soft)]">
+            <Badge
+              variant="secondary"
+              className="mb-5 gap-2 rounded-full border bg-background/50 px-3 py-1 shadow-[var(--shadow-soft)]"
+            >
               <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
               NIST PQC ready · CNSA 2.0 aligned
             </Badge>
@@ -87,7 +123,9 @@ function Hero() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="h-11 shadow-[var(--shadow-glow)]">
-                <Link to="/login">Get Started <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/login">
+                  Get Started <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-11">
                 <a href="#how">Learn More</a>
@@ -95,7 +133,10 @@ function Hero() {
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-xs text-muted-foreground">
               {["SOC 2 Type II", "ISO 27001", "FedRAMP In Process", "GDPR"].map((t) => (
-                <div key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-success" />{t}</div>
+                <div key={t} className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                  {t}
+                </div>
               ))}
             </div>
           </div>
@@ -139,11 +180,25 @@ function HeroIllustration() {
             const [x, y, r, c] = n as [number, number, number, string];
             return (
               <g key={i}>
-                <line x1={260} y1={170} x2={x} y2={y} stroke="oklch(0.85 0.02 260)" strokeWidth="1.2" />
+                <line
+                  x1={260}
+                  y1={170}
+                  x2={x}
+                  y2={y}
+                  stroke="oklch(0.85 0.02 260)"
+                  strokeWidth="1.2"
+                />
               </g>
             );
           })}
-          <circle cx="260" cy="170" r="34" fill="white" stroke="oklch(0.548 0.212 265)" strokeWidth="2" />
+          <circle
+            cx="260"
+            cy="170"
+            r="34"
+            fill="white"
+            stroke="oklch(0.548 0.212 265)"
+            strokeWidth="2"
+          />
           <circle cx="260" cy="170" r="10" fill="oklch(0.548 0.212 265)" />
           {[
             [140, 90, 22, "oklch(0.628 0.238 27)"],
@@ -181,8 +236,17 @@ function TrustBar() {
     <div className="border-y bg-muted/30">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-14 gap-y-4 px-6 py-8 text-sm font-medium text-muted-foreground">
         <span className="text-xs uppercase tracking-widest">Trusted by teams at</span>
-        {["Meridian Bank", "Northwind Health", "Orbit Telecom", "Ministry of Digital", "Vector Capital", "Helios Energy"].map((n) => (
-          <span key={n} className="opacity-70">{n}</span>
+        {[
+          "Meridian Bank",
+          "Northwind Health",
+          "Orbit Telecom",
+          "Ministry of Digital",
+          "Vector Capital",
+          "Helios Energy",
+        ].map((n) => (
+          <span key={n} className="opacity-70">
+            {n}
+          </span>
         ))}
       </div>
     </div>
@@ -190,11 +254,31 @@ function TrustBar() {
 }
 
 const features = [
-  { icon: ScanLine, title: "Automated Discovery", body: "Scan repos, containers, TLS endpoints, and certificates to inventory every cryptographic asset in minutes." },
-  { icon: Network, title: "Graph AI", body: "A live dependency graph exposes blast-radius, hidden trust chains, and the true impact of every algorithm." },
-  { icon: ShieldAlert, title: "Risk Prioritization", body: "Multi-factor risk scoring combines Mosca timelines, exploitability, and business criticality." },
-  { icon: Sparkles, title: "Explainable AI", body: "Every recommendation ships with a plain-language rationale, contributing factors, and confidence." },
-  { icon: RouteIcon, title: "Migration Roadmap", body: "Sequenced plan with owners, effort, and PQC algorithm suggestions aligned to NIST FIPS 203/204/205." },
+  {
+    icon: ScanLine,
+    title: "Automated Discovery",
+    body: "Scan repos, containers, TLS endpoints, and certificates to inventory every cryptographic asset in minutes.",
+  },
+  {
+    icon: Network,
+    title: "Graph AI",
+    body: "A live dependency graph exposes blast-radius, hidden trust chains, and the true impact of every algorithm.",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Risk Prioritization",
+    body: "Multi-factor risk scoring combines Mosca timelines, exploitability, and business criticality.",
+  },
+  {
+    icon: Sparkles,
+    title: "Explainable AI",
+    body: "Every recommendation ships with a plain-language rationale, contributing factors, and confidence.",
+  },
+  {
+    icon: RouteIcon,
+    title: "Migration Roadmap",
+    body: "Sequenced plan with owners, effort, and PQC algorithm suggestions aligned to NIST FIPS 203/204/205.",
+  },
 ];
 
 function Features() {
@@ -202,12 +286,21 @@ function Features() {
     <section id="features" className="mx-auto max-w-7xl px-6 py-24">
       <div className="mx-auto max-w-2xl text-center">
         <div className="text-xs font-semibold uppercase tracking-widest text-primary">Platform</div>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Everything you need for a defensible PQC program</h2>
-        <p className="mt-4 text-muted-foreground">One workspace for discovery, analysis, and orchestration — built for security, compliance, and engineering leaders.</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
+          Everything you need for a defensible PQC program
+        </h2>
+        <p className="mt-4 text-muted-foreground">
+          One workspace for discovery, analysis, and orchestration — built for security, compliance,
+          and engineering leaders.
+        </p>
       </div>
       <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {features.map((f, i) => (
-          <div key={f.title} className="card-hover animate-fade-up rounded-2xl border bg-card p-6" style={{ animationDelay: `${i * 60}ms` }}>
+          <div
+            key={f.title}
+            className="card-hover animate-fade-up rounded-2xl border bg-card p-6"
+            style={{ animationDelay: `${i * 60}ms` }}
+          >
             <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
               <f.icon className="h-5 w-5" />
             </div>
@@ -216,9 +309,16 @@ function Features() {
           </div>
         ))}
         <div className="rounded-2xl border bg-gradient-to-br from-primary/8 to-transparent p-6">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">Standards</div>
-          <h3 className="mt-3 text-lg font-semibold">Aligned with NIST FIPS 203, 204, 205 & CNSA 2.0</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Recommendations map directly to ML-KEM, ML-DSA, and SLH-DSA — with fallbacks for hybrid deployments.</p>
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+            Standards
+          </div>
+          <h3 className="mt-3 text-lg font-semibold">
+            Aligned with NIST FIPS 203, 204, 205 & CNSA 2.0
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Recommendations map directly to ML-KEM, ML-DSA, and SLH-DSA — with fallbacks for hybrid
+            deployments.
+          </p>
         </div>
       </div>
     </section>
@@ -226,10 +326,26 @@ function Features() {
 }
 
 const steps = [
-  { n: 1, title: "Scan Infrastructure", body: "Connect a repo, upload a bundle, or point AgileGraph at a domain. Discovery runs in minutes." },
-  { n: 2, title: "Build Crypto Graph", body: "We reconstruct the full dependency graph — certificates, libraries, services, and sensitive data flows." },
-  { n: 3, title: "Analyze Risk", body: "Every node is scored using Mosca's inequality, exploitability, and business criticality." },
-  { n: 4, title: "Generate Migration Plan", body: "Sequenced, explainable roadmap to PQC — with owners, effort, and rollback checkpoints." },
+  {
+    n: 1,
+    title: "Scan Infrastructure",
+    body: "Connect a repo, upload a bundle, or point AgileGraph at a domain. Discovery runs in minutes.",
+  },
+  {
+    n: 2,
+    title: "Build Crypto Graph",
+    body: "We reconstruct the full dependency graph — certificates, libraries, services, and sensitive data flows.",
+  },
+  {
+    n: 3,
+    title: "Analyze Risk",
+    body: "Every node is scored using Mosca's inequality, exploitability, and business criticality.",
+  },
+  {
+    n: 4,
+    title: "Generate Migration Plan",
+    body: "Sequenced, explainable roadmap to PQC — with owners, effort, and rollback checkpoints.",
+  },
 ];
 
 function HowItWorks() {
@@ -237,8 +353,12 @@ function HowItWorks() {
     <section id="how" className="border-y bg-muted/30 py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">How it works</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">From blind spot to migration plan in four steps</h2>
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+            How it works
+          </div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
+            From blind spot to migration plan in four steps
+          </h2>
         </div>
         <div className="mt-14 grid gap-4 md:grid-cols-4">
           {steps.map((s, i) => (
@@ -262,10 +382,26 @@ function HowItWorks() {
 }
 
 const benefits = [
-  { icon: Building2, title: "Enterprise Ready", body: "SSO, RBAC, air-gapped deployment, and audit logs on day one." },
-  { icon: Eye, title: "Explainable AI", body: "Every score comes with contributing factors and confidence intervals." },
-  { icon: Zap, title: "Fast Analysis", body: "Discovery and scoring at millions of LOC per hour, running incrementally." },
-  { icon: GaugeCircle, title: "Interactive Dashboard", body: "Executive KPIs, engineering deep-dives, and compliance exports in one place." },
+  {
+    icon: Building2,
+    title: "Enterprise Ready",
+    body: "SSO, RBAC, air-gapped deployment, and audit logs on day one.",
+  },
+  {
+    icon: Eye,
+    title: "Explainable AI",
+    body: "Every score comes with contributing factors and confidence intervals.",
+  },
+  {
+    icon: Zap,
+    title: "Fast Analysis",
+    body: "Discovery and scoring at millions of LOC per hour, running incrementally.",
+  },
+  {
+    icon: GaugeCircle,
+    title: "Interactive Dashboard",
+    body: "Executive KPIs, engineering deep-dives, and compliance exports in one place.",
+  },
 ];
 
 function Benefits() {
@@ -273,11 +409,16 @@ function Benefits() {
     <section id="benefits" className="mx-auto max-w-7xl px-6 py-24">
       <div className="grid items-center gap-14 lg:grid-cols-2">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">Why AgileGraph</div>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Built for regulated industries and long-lived data</h2>
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+            Why AgileGraph
+          </div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
+            Built for regulated industries and long-lived data
+          </h2>
           <p className="mt-4 max-w-lg text-muted-foreground">
-            Banks, healthcare, telecom, and government agencies choose AgileGraph to protect
-            data that must remain confidential for decades — before harvest-now-decrypt-later becomes reality.
+            Banks, healthcare, telecom, and government agencies choose AgileGraph to protect data
+            that must remain confidential for decades — before harvest-now-decrypt-later becomes
+            reality.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {benefits.map((b) => (
@@ -295,7 +436,9 @@ function Benefits() {
           <div className="absolute -inset-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent blur-2xl" />
           <div className="relative rounded-2xl border bg-card p-6 shadow-[var(--shadow-elevated)]">
             <div className="text-sm font-semibold">Executive Snapshot</div>
-            <div className="text-xs text-muted-foreground">Live PQC readiness across your organization</div>
+            <div className="text-xs text-muted-foreground">
+              Live PQC readiness across your organization
+            </div>
             <div className="mt-6 grid grid-cols-3 gap-4">
               {[
                 { k: "Assets", v: "1,284", c: "text-foreground" },
@@ -309,10 +452,23 @@ function Benefits() {
               ))}
             </div>
             <div className="mt-6 space-y-3">
-              {[["Payments", 72], ["Identity", 55], ["Core Banking", 41], ["Data Platform", 28]].map(([l, v]) => (
+              {[
+                ["Payments", 72],
+                ["Identity", 55],
+                ["Core Banking", 41],
+                ["Data Platform", 28],
+              ].map(([l, v]) => (
                 <div key={l as string}>
-                  <div className="mb-1 flex justify-between text-xs"><span className="text-muted-foreground">{l}</span><span className="font-medium">{v}%</span></div>
-                  <div className="h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-gradient-to-r from-primary to-[oklch(0.6_0.22_290)]" style={{ width: `${v}%` }} /></div>
+                  <div className="mb-1 flex justify-between text-xs">
+                    <span className="text-muted-foreground">{l}</span>
+                    <span className="font-medium">{v}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-primary to-[oklch(0.6_0.22_290)]"
+                      style={{ width: `${v}%` }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -330,14 +486,25 @@ function CTA() {
         <div className="absolute inset-0 grid-bg opacity-20" />
         <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <h3 className="text-2xl font-semibold tracking-tight md:text-3xl">Ready to see your crypto graph?</h3>
-            <p className="mt-2 max-w-lg text-primary-foreground/80">Run your first scan in under five minutes. No agents. No production impact.</p>
+            <h3 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              Ready to see your crypto graph?
+            </h3>
+            <p className="mt-2 max-w-lg text-primary-foreground/80">
+              Run your first scan in under five minutes. No agents. No production impact.
+            </p>
           </div>
           <div className="flex gap-3">
             <Button asChild size="lg" variant="secondary" className="h-11">
-              <Link to="/login">Get Started <ArrowRight className="h-4 w-4" /></Link>
+              <Link to="/login">
+                Get Started <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-11 border-white/30 bg-white/10 text-white hover:bg-white/20">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 border-white/30 bg-white/10 text-white hover:bg-white/20"
+            >
               <Link to="/login">View Demo</Link>
             </Button>
           </div>
@@ -363,21 +530,38 @@ function Footer() {
           </p>
         </div>
         {[
-          { h: "Product", l: [
-            { name: "Dashboard", href: "/dashboard" },
-            { name: "Scan", href: "/scan" },
-            { name: "Graph View", href: "/graph" },
-            { name: "Reports", href: "/reports" }
-          ]},
-          { h: "Resources", l: [
-            { name: "NIST PQC Guide", href: "https://csrc.nist.gov/projects/post-quantum-cryptography", external: true },
-            { name: "Documentation", href: "https://github.com/spoorthi2615/Agilegraph", external: true }
-          ]},
-          { h: "Company", l: [
-            { name: "Terms of Service", href: "/terms" },
-            { name: "Privacy Policy", href: "/privacy" },
-            { name: "Contact", href: "mailto:support@agilegraph.io", external: true }
-          ]},
+          {
+            h: "Product",
+            l: [
+              { name: "Dashboard", href: "/dashboard" },
+              { name: "Scan", href: "/scan" },
+              { name: "Graph View", href: "/graph" },
+              { name: "Reports", href: "/reports" },
+            ],
+          },
+          {
+            h: "Resources",
+            l: [
+              {
+                name: "NIST PQC Guide",
+                href: "https://csrc.nist.gov/projects/post-quantum-cryptography",
+                external: true,
+              },
+              {
+                name: "Documentation",
+                href: "https://github.com/spoorthi2615/Agilegraph",
+                external: true,
+              },
+            ],
+          },
+          {
+            h: "Company",
+            l: [
+              { name: "Terms of Service", href: "/terms" },
+              { name: "Privacy Policy", href: "/privacy" },
+              { name: "Contact", href: "mailto:support@agilegraph.io", external: true },
+            ],
+          },
         ].map((c) => (
           <div key={c.h}>
             <div className="text-sm font-semibold">{c.h}</div>
@@ -385,9 +569,18 @@ function Footer() {
               {c.l.map((i) => (
                 <li key={i.name}>
                   {i.external ? (
-                    <a href={i.href} target={i.href.startsWith('http') ? "_blank" : undefined} rel="noreferrer" className="hover:text-foreground">{i.name}</a>
+                    <a
+                      href={i.href}
+                      target={i.href.startsWith("http") ? "_blank" : undefined}
+                      rel="noreferrer"
+                      className="hover:text-foreground"
+                    >
+                      {i.name}
+                    </a>
                   ) : (
-                    <Link to={i.href} className="hover:text-foreground">{i.name}</Link>
+                    <Link to={i.href} className="hover:text-foreground">
+                      {i.name}
+                    </Link>
                   )}
                 </li>
               ))}
@@ -399,7 +592,14 @@ function Footer() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-muted-foreground md:flex-row">
           <span>© {new Date().getFullYear()} AgileGraph. All rights reserved.</span>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/spoorthi2615/Agilegraph" target="_blank" rel="noreferrer" className="hover:text-foreground inline-flex items-center gap-1"><Github className="h-3.5 w-3.5" /> GitHub</a>
+            <a
+              href="https://github.com/spoorthi2615/Agilegraph"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-foreground inline-flex items-center gap-1"
+            >
+              <Github className="h-3.5 w-3.5" /> GitHub
+            </a>
             <span>SOC 2 · ISO 27001</span>
           </div>
         </div>

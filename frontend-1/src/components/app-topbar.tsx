@@ -5,19 +5,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { useSearch, useNotifications, useWorkspaces } from "@/hooks/use-agilegraph";
 import { Link } from "@tanstack/react-router";
 
-export function AppTopbar({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: React.ReactNode }) {
+export function AppTopbar({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: searchResults = [], isFetching: isSearching } = useSearch(searchQuery);
   const { data: notifications = [] } = useNotifications();
   const { data: workspaces = [] } = useWorkspaces();
 
-  const unreadCount = notifications.filter((n: any) => !n.read).length;
-  const activeWorkspace = workspaces.find((w: any) => w.isActive) || workspaces[0];
+  const unreadCount = notifications.filter(
+    (n: import("../lib/types").Notification) => !n.read,
+  ).length;
+  const activeWorkspace =
+    workspaces.find((w: import("../lib/types").Workspace) => w.isActive) || workspaces[0];
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md md:px-6">
@@ -28,16 +46,16 @@ export function AppTopbar({ title, subtitle, actions }: { title: string; subtitl
           <h1 className="truncate text-base font-semibold tracking-tight">{title}</h1>
           {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
         </div>
-        
+
         {/* Search */}
         <div className="ml-auto hidden max-w-xs flex-1 lg:block">
           <Popover open={searchQuery.length > 0}>
             <PopoverTrigger asChild>
               <div className="relative">
                 <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input 
-                  placeholder="Search assets, scans, reports…" 
-                  className="h-9 pl-9" 
+                <Input
+                  placeholder="Search assets, scans, reports…"
+                  className="h-9 pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -50,13 +68,15 @@ export function AppTopbar({ title, subtitle, actions }: { title: string; subtitl
               {searchQuery.length >= 2 && (
                 <div className="max-h-[300px] overflow-y-auto p-2">
                   {searchResults.length === 0 && !isSearching ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">No results found for "{searchQuery}"</div>
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No results found for "{searchQuery}"
+                    </div>
                   ) : (
                     <div className="flex flex-col gap-1">
-                      {searchResults.map((result: any) => (
-                        <Link 
-                          key={result.id} 
-                          to={result.url} 
+                      {searchResults.map((result: import("../lib/types").SearchResult) => (
+                        <Link
+                          key={result.id}
+                          to={result.url}
                           onClick={() => setSearchQuery("")}
                           className="flex flex-col rounded-md px-3 py-2 text-sm hover:bg-muted/50"
                         >
@@ -74,7 +94,7 @@ export function AppTopbar({ title, subtitle, actions }: { title: string; subtitl
 
         <div className="flex items-center gap-2">
           {actions}
-          
+
           {/* Notifications */}
           <Popover>
             <PopoverTrigger asChild>
@@ -92,10 +112,15 @@ export function AppTopbar({ title, subtitle, actions }: { title: string; subtitl
               </div>
               <div className="max-h-[300px] overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">You're all caught up!</div>
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    You're all caught up!
+                  </div>
                 ) : (
-                  notifications.map((n: any) => (
-                    <div key={n.id} className={`flex flex-col gap-1 border-b p-4 last:border-0 ${!n.read ? "bg-muted/20" : ""}`}>
+                  notifications.map((n: import("../lib/types").Notification) => (
+                    <div
+                      key={n.id}
+                      className={`flex flex-col gap-1 border-b p-4 last:border-0 ${!n.read ? "bg-muted/20" : ""}`}
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{n.title}</span>
                         <span className="text-xs text-muted-foreground">{n.time}</span>
@@ -125,18 +150,19 @@ export function AppTopbar({ title, subtitle, actions }: { title: string; subtitl
             <DropdownMenuContent align="end" className="w-[200px]">
               <DropdownMenuLabel>Switch Workspace</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {workspaces.map((ws: any) => (
+              {workspaces.map((ws: import("../lib/types").Workspace) => (
                 <DropdownMenuItem key={ws.id} className="flex items-center justify-between">
                   <span>{ws.name}</span>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px]">{ws.environment}</Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      {ws.environment}
+                    </Badge>
                     {ws.isActive && <Check className="h-4 w-4" />}
                   </div>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-
         </div>
       </div>
     </header>

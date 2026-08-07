@@ -36,7 +36,12 @@ function AppLayout() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div></div>;
+  if (loading)
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+      </div>
+    );
 
   return (
     <SidebarProvider>

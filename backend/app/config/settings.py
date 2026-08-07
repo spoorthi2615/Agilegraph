@@ -34,12 +34,12 @@ class Settings(BaseSettings):
     NEO4J_PASSWORD: str = Field(..., description="Neo4j authentication password")
 
     # Security / CORS
-    CORS_ORIGINS: str = Field(default="*")
+    CORS_ORIGINS: str = Field(default="")
     SUPABASE_JWT_SECRET: str = Field(
         default="", description="JWT secret from Supabase to verify tokens"
     )
     ADMIN_EMAILS: str = Field(
-        default="spoorthipyadav@gmail.com,spoorthi2615@gmail.com",
+        default="",
         description="Comma separated list of admin emails",
     )
 

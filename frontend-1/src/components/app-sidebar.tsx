@@ -1,11 +1,27 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, ScanLine, Network, ShieldAlert, Sparkles,
-  Gauge, FileText, Settings, ShieldCheck, LogOut
+  LayoutDashboard,
+  ScanLine,
+  Network,
+  ShieldAlert,
+  Sparkles,
+  Gauge,
+  FileText,
+  Settings,
+  ShieldCheck,
+  LogOut,
 } from "lucide-react";
 import {
-  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
-  SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
@@ -24,19 +40,29 @@ const bottom = [{ title: "Settings", url: "/settings", icon: Settings }];
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (u: string) => pathname === u || pathname.startsWith(u + "/");
-  const [user, setUser] = useState<{ name: string; email: string; initials: string; id: string } | null>(null);
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+    initials: string;
+    id: string;
+  } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        const name = user.user_metadata?.full_name || user.email?.split('@')[0] || "User";
+        const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
         const email = user.email || "";
-        const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+        const initials = name
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase();
         setUser({ name, email, initials, id: user.id });
 
         // Hardcode admin email to bypass database permission issues
-        if (email === 'spoorthipyadav@gmail.com' || email === 'spoorthi2615@gmail.com') {
+        if (email === "spoorthipyadav@gmail.com" || email === "spoorthi2615@gmail.com") {
           setIsAdmin(true);
         }
       }
@@ -85,7 +111,12 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/admin")} tooltip="Admin Console" className="text-primary hover:text-primary/80">
+              <SidebarMenuButton
+                asChild
+                isActive={isActive("/admin")}
+                tooltip="Admin Console"
+                className="text-primary hover:text-primary/80"
+              >
                 <Link to="/admin">
                   <ShieldCheck />
                   <span>Admin Console</span>
@@ -104,11 +135,11 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          
+
           <SidebarMenuItem>
-            <SidebarMenuButton 
-              onClick={handleLogout} 
-              tooltip="Log out" 
+            <SidebarMenuButton
+              onClick={handleLogout}
+              tooltip="Log out"
               className="text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
             >
               <LogOut />
@@ -116,7 +147,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        
+
         {user && (
           <div className="mt-2 flex w-full items-center gap-2 rounded-lg border bg-muted/40 p-2 text-left group-data-[collapsible=icon]:hidden">
             <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[oklch(0.7_0.15_20)] to-[oklch(0.65_0.15_320)] text-xs font-semibold text-white">

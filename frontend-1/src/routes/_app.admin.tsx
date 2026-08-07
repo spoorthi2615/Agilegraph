@@ -1,13 +1,20 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { ShieldCheck, Activity, Users, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { ShieldCheck, Activity, Users, Loader2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
-export const Route = createFileRoute('/_app/admin')({
+export const Route = createFileRoute("/_app/admin")({
   component: AdminDashboard,
 });
 
@@ -15,8 +22,8 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, unknown>[]>([]);
+  const [logs, setLogs] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     checkAdminAndFetchData();
@@ -24,23 +31,26 @@ function AdminDashboard() {
 
   const checkAdminAndFetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        navigate({ to: '/login' });
+        navigate({ to: "/login" });
         return;
       }
 
       // Check if user is admin based on profile role
       const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
         .single();
 
-      if (profileError || !profile || profile.role !== 'admin') {
+      if (profileError || !profile || profile.role !== "admin") {
         await supabase.auth.signOut();
-        toast.info('Oops! Admin access only.', { 
-          description: 'It looks like you are not an administrator. Please use the standard User Login to access your workspace! 😊',
+        toast.info("Oops! Admin access only.", {
+          description:
+            "It looks like you are not an administrator. Please use the standard User Login to access your workspace! 😊",
           duration: 6000,
         });
         return;
@@ -50,16 +60,19 @@ function AdminDashboard() {
 
       // Fetch users and logs
       const [profilesResponse, logsResponse] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('activity_logs').select('*, profiles(email)').order('created_at', { ascending: false }).limit(50)
+        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("activity_logs")
+          .select("*, profiles(email)")
+          .order("created_at", { ascending: false })
+          .limit(50),
       ]);
 
       if (profilesResponse.data) setProfiles(profilesResponse.data);
       if (logsResponse.data) setLogs(logsResponse.data);
-      
     } catch (error) {
-      console.error('Error fetching admin data:', error);
-      toast.error('Failed to load admin data');
+      console.error("Error fetching admin data:", error);
+      toast.error("Failed to load admin data");
     } finally {
       setLoading(false);
     }
@@ -127,7 +140,7 @@ function AdminDashboard() {
                   <TableRow key={profile.id}>
                     <TableCell className="font-medium">{profile.email}</TableCell>
                     <TableCell>
-                      <Badge variant={profile.role === 'admin' ? 'default' : 'secondary'}>
+                      <Badge variant={profile.role === "admin" ? "default" : "secondary"}>
                         {profile.role}
                       </Badge>
                     </TableCell>
@@ -149,24 +162,28 @@ function AdminDashboard() {
           <CardContent className="flex-1 overflow-auto max-h-[500px]">
             <div className="space-y-4">
               {logs.map((log) => (
-                <div key={log.id} className="flex items-start gap-4 rounded-lg border border-border/50 p-3 bg-muted/20">
+                <div
+                  key={log.id}
+                  className="flex items-start gap-4 rounded-lg border border-border/50 p-3 bg-muted/20"
+                >
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
                     <Activity className="h-4 w-4" />
                   </div>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {log.profiles?.email || 'Unknown User'}
+                      {log.profiles?.email || "Unknown User"}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {log.action}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{log.action}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(log.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </div>
                 </div>
               ))}
-              
+
               {logs.length === 0 && (
                 <div className="text-center p-8 text-muted-foreground text-sm">
                   No activity logs recorded yet.

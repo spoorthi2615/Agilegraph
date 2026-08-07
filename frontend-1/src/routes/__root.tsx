@@ -48,7 +48,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Try again
@@ -71,10 +74,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "AgileGraph — Accelerate Your Post-Quantum Migration" },
-      { name: "description", content: "AI-powered cybersecurity decision-support platform. Discover vulnerable cryptographic assets and prioritize migration to Post-Quantum Cryptography." },
+      {
+        name: "description",
+        content:
+          "AI-powered cybersecurity decision-support platform. Discover vulnerable cryptographic assets and prioritize migration to Post-Quantum Cryptography.",
+      },
       { name: "author", content: "AgileGraph" },
       { property: "og:title", content: "AgileGraph — Post-Quantum Migration Platform" },
-      { property: "og:description", content: "Discover, rank, and migrate vulnerable cryptographic assets to PQC with explainable AI." },
+      {
+        property: "og:description",
+        content:
+          "Discover, rank, and migrate vulnerable cryptographic assets to PQC with explainable AI.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -82,7 +93,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,

@@ -4,8 +4,15 @@ import { AppTopbar } from "@/components/app-topbar";
 import { KpiCard } from "@/components/kpi-card";
 import { RiskBadge } from "@/components/risk-badge";
 import {
-  Boxes, ShieldAlert, ShieldCheck, Activity, TrendingUp, GaugeCircle, Clock,
-  AlertTriangle, ArrowUpRight,
+  Boxes,
+  ShieldAlert,
+  ShieldCheck,
+  Activity,
+  TrendingUp,
+  GaugeCircle,
+  Clock,
+  AlertTriangle,
+  ArrowUpRight,
 } from "lucide-react";
 import { RiskDistributionChart } from "@/components/charts/risk-distribution-chart";
 import { AlgorithmUsageChart } from "@/components/charts/algorithm-usage-chart";
@@ -22,12 +29,22 @@ export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — AgileGraph" },
-      { name: "description", content: "Executive dashboard of cryptographic posture, risk distribution, and PQC migration progress." },
+      {
+        name: "description",
+        content:
+          "Executive dashboard of cryptographic posture, risk distribution, and PQC migration progress.",
+      },
     ],
   }),
 });
 
-const chartColors = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
+const chartColors = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+];
 
 function DashboardWithBoundary() {
   return (
@@ -43,62 +60,128 @@ function Dashboard() {
   const [defaultView, setDefaultView] = useState("exec");
 
   useEffect(() => {
-    setShowProgress(localStorage.getItem('showProgress') !== 'false');
-    setDefaultView(localStorage.getItem('defaultView') || 'exec');
+    setShowProgress(localStorage.getItem("showProgress") !== "false");
+    setDefaultView(localStorage.getItem("defaultView") || "exec");
   }, []);
 
-  if (isLoading) return (
-    <div className="p-4 md:p-6 space-y-6">
-      <Skeleton className="h-10 w-64 mb-6" />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
+  if (isLoading)
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        <Skeleton className="h-10 w-64 mb-6" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Skeleton className="h-80 w-full rounded-xl" />
+          <Skeleton className="h-80 w-full rounded-xl lg:col-span-2" />
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
+    );
+  if (error || !data)
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
+        <div className="text-critical mb-4">Failed to load dashboard data.</div>
+        <Button onClick={() => refetch()} variant="outline">
+          Retry
+        </Button>
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Skeleton className="h-80 w-full rounded-xl" />
-        <Skeleton className="h-80 w-full rounded-xl lg:col-span-2" />
-      </div>
-    </div>
-  );
-  if (error || !data) return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
-      <div className="text-critical mb-4">Failed to load dashboard data.</div>
-      <Button onClick={() => refetch()} variant="outline">Retry</Button>
-    </div>
-  );
+    );
 
-  const { kpis, riskDistribution, algorithmUsage, departmentUsage, migrationTrend, activity, criticalAlerts } = data;
+  const {
+    kpis,
+    riskDistribution,
+    algorithmUsage,
+    departmentUsage,
+    migrationTrend,
+    activity,
+    criticalAlerts,
+  } = data;
 
-  const viewTitle = defaultView === 'eng' ? 'Engineering View' : defaultView === 'compliance' ? 'Compliance View' : 'Executive View';
+  const viewTitle =
+    defaultView === "eng"
+      ? "Engineering View"
+      : defaultView === "compliance"
+        ? "Compliance View"
+        : "Executive View";
 
   return (
     <>
       <AppTopbar
         title="Dashboard"
         subtitle={`${viewTitle} — Acme Bank, Production`}
-        actions={<Button asChild size="sm"><Link to="/scan">New Scan</Link></Button>}
+        actions={
+          <Button asChild size="sm">
+            <Link to="/scan">New Scan</Link>
+          </Button>
+        }
       />
       <main className="p-4 md:p-6 space-y-6">
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-          <KpiCard label="Total Cryptographic Assets" value={kpis.totalAssets} icon={Boxes} tint="primary" delta={8} hint="+8% vs last scan" />
-          <KpiCard label="High Risk Assets" value={kpis.critical + kpis.high} icon={ShieldAlert} tint="critical" delta={-4} hint={`${kpis.critical} critical · ${kpis.high} high`} />
-          {showProgress && <KpiCard label="Migration Progress" value={kpis.migrationProgress} suffix="%" icon={TrendingUp} tint="success" delta={12} hint="On track for Q2 target" />}
-          <KpiCard label="PQC Readiness Score" value={kpis.pqcReadiness} suffix="/100" icon={GaugeCircle} tint="primary" delta={5} hint="NIST FIPS 203/204/205" />
+          <KpiCard
+            label="Total Cryptographic Assets"
+            value={kpis.totalAssets}
+            icon={Boxes}
+            tint="primary"
+            delta={8}
+            hint="+8% vs last scan"
+          />
+          <KpiCard
+            label="High Risk Assets"
+            value={kpis.critical + kpis.high}
+            icon={ShieldAlert}
+            tint="critical"
+            delta={-4}
+            hint={`${kpis.critical} critical · ${kpis.high} high`}
+          />
+          {showProgress && (
+            <KpiCard
+              label="Migration Progress"
+              value={kpis.migrationProgress}
+              suffix="%"
+              icon={TrendingUp}
+              tint="success"
+              delta={12}
+              hint="On track for Q2 target"
+            />
+          )}
+          <KpiCard
+            label="PQC Readiness Score"
+            value={kpis.pqcReadiness}
+            suffix="/100"
+            icon={GaugeCircle}
+            tint="primary"
+            delta={5}
+            hint="NIST FIPS 203/204/205"
+          />
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Medium Risk" value={kpis.medium} icon={ShieldCheck} tint="warning" />
           <KpiCard label="Low Risk" value={kpis.low} icon={ShieldCheck} tint="success" />
-          <KpiCard label="Last Scan" value={2} suffix="h" icon={Clock} tint="muted" hint="core-banking-monorepo" />
-          <KpiCard label="Active Migrations" value={9} icon={Activity} tint="primary" hint="3 completing this week" />
+          <KpiCard
+            label="Last Scan"
+            value={2}
+            suffix="h"
+            icon={Clock}
+            tint="muted"
+            hint="core-banking-monorepo"
+          />
+          <KpiCard
+            label="Active Migrations"
+            value={9}
+            icon={Activity}
+            tint="primary"
+            hint="3 completing this week"
+          />
         </section>
 
         <section className="grid gap-4 lg:grid-cols-3">
@@ -121,7 +204,10 @@ function Dashboard() {
 
           {showProgress && (
             <div className="rounded-xl border bg-card p-5">
-              <SectionHead title="Migration Progress" hint="Migrated vs. planned assets per month" />
+              <SectionHead
+                title="Migration Progress"
+                hint="Migrated vs. planned assets per month"
+              />
               <MigrationTrendChart data={migrationTrend} />
             </div>
           )}
@@ -134,7 +220,11 @@ function Dashboard() {
               {activity.map((a) => (
                 <li key={a.id} className="flex items-center gap-4 py-3">
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    {a.actor.split(" ").map((s) => s[0]).slice(0, 2).join("")}
+                    {a.actor
+                      .split(" ")
+                      .map((s) => s[0])
+                      .slice(0, 2)
+                      .join("")}
                   </div>
                   <div className="min-w-0 flex-1 text-sm">
                     <span className="font-medium">{a.actor}</span>{" "}
@@ -163,7 +253,11 @@ function Dashboard() {
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground">{a.reason}</div>
                       <div className="flex items-center justify-between gap-2 mt-2">
-                        <Link to="/assets/$id" params={{ id: a.id }} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                        <Link
+                          to="/assets/$id"
+                          params={{ id: a.id }}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
                           View asset <ArrowUpRight className="h-3 w-3" />
                         </Link>
                         {a.ownerEmail && (
@@ -183,5 +277,3 @@ function Dashboard() {
     </>
   );
 }
-
-

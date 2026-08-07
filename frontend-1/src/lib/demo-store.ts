@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 const activeFallbacks = new Set<string>();
 const listeners = new Set<() => void>();
@@ -13,18 +13,18 @@ export const demoStore = {
   },
   setFallback: (id: string, isFallback: boolean) => {
     const wasDemo = activeFallbacks.size > 0;
-    
+
     if (isFallback) {
       activeFallbacks.add(id);
     } else {
       activeFallbacks.delete(id);
     }
-    
+
     // Only notify listeners if the overall demo state changed
-    if (wasDemo !== (activeFallbacks.size > 0)) {
+    if (wasDemo !== activeFallbacks.size > 0) {
       listeners.forEach((l) => l());
     }
-  }
+  },
 };
 
 export function useDemoMode() {

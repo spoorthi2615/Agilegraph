@@ -5,13 +5,18 @@ export function AnimatedNumber({
   duration = 900,
   suffix = "",
   decimals = 0,
-}: { value: number; duration?: number; suffix?: string; decimals?: number }) {
+}: {
+  value: number;
+  duration?: number;
+  suffix?: string;
+  decimals?: number;
+}) {
   const [display, setDisplay] = useState(0);
   const startRef = useRef<number | null>(null);
   const fromRef = useRef(0);
 
   useEffect(() => {
-    const shouldAnimate = localStorage.getItem('animatedCounters') !== 'false';
+    const shouldAnimate = localStorage.getItem("animatedCounters") !== "false";
     if (!shouldAnimate) {
       setDisplay(value);
       return;
@@ -32,5 +37,10 @@ export function AnimatedNumber({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration]);
 
-  return <span>{display.toFixed(decimals)}{suffix}</span>;
+  return (
+    <span>
+      {display.toFixed(decimals)}
+      {suffix}
+    </span>
+  );
 }

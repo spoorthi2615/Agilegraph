@@ -5,19 +5,19 @@ export const api = {
   uploadProject: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient.post<any>("/upload", {
+    return apiClient.post<unknown>("/upload", {
       body: formData,
     });
   },
 
   importGitHubRepository: async (url: string, branch?: string, token?: string) => {
-    return apiClient.post<any>("/github", {
+    return apiClient.post<unknown>("/github", {
       body: { repository_url: url, branch, access_token: token },
     });
   },
 
   scanDomain: async (domain: string, ports: number[]) => {
-    return apiClient.post<any>("/domain", {
+    return apiClient.post<unknown>("/domain", {
       body: { domain, ports },
     });
   },
@@ -25,7 +25,7 @@ export const api = {
   uploadCertificate: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient.post<any>("/certificate", {
+    return apiClient.post<unknown>("/certificate", {
       body: formData,
     });
   },
@@ -34,18 +34,20 @@ export const api = {
     return apiClient.get<DashboardSummary>("/dashboard/summary");
   },
 
-  getScanStatus: async (projectId: string): Promise<any> => {
-    return apiClient.get<any>(`/scan/status/${projectId}`);
+  getScanStatus: async (projectId: string): Promise<unknown> => {
+    return apiClient.get<unknown>(`/scan/status/${projectId}`);
   },
 
-  getGraph: async (): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }> => {
-    return apiClient.get<{ nodes: GraphNode[], edges: GraphEdge[] }>("/graph");
+  getGraph: async (): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> => {
+    return apiClient.get<{ nodes: GraphNode[]; edges: GraphEdge[] }>("/graph");
   },
 
   getAssets: async (): Promise<CryptoAsset[]> => {
-    return apiClient.get<any>("/analysis/assets").then(res => res.items || []);
+    return apiClient
+      .get<{ items: CryptoAsset[] }>("/analysis/assets")
+      .then((res) => res.items || []);
   },
-  
+
   getAssetById: async (id: string): Promise<CryptoAsset> => {
     return apiClient.get<CryptoAsset>(`/analysis/assets/${id}`);
   },
@@ -54,20 +56,20 @@ export const api = {
     return apiClient.get<ReportRecord[]>("/dashboard/reports");
   },
 
-  getExplainability: async (id: string): Promise<any> => {
-    return apiClient.get<any>(`/explainability/${id}`);
+  getExplainability: async (id: string): Promise<unknown> => {
+    return apiClient.get<unknown>(`/explainability/${id}`);
   },
 
-  search: async (query: string): Promise<any[]> => {
+  search: async (query: string): Promise<unknown[]> => {
     if (!query || query.length < 2) return [];
-    return apiClient.get<any[]>(`/search/all?q=${encodeURIComponent(query)}`);
+    return apiClient.get<unknown[]>(`/search/all?q=${encodeURIComponent(query)}`);
   },
 
-  getNotifications: async (): Promise<any[]> => {
-    return apiClient.get<any[]>("/notifications/all");
+  getNotifications: async (): Promise<unknown[]> => {
+    return apiClient.get<unknown[]>("/notifications/all");
   },
 
-  getWorkspaces: async (): Promise<any[]> => {
-    return apiClient.get<any[]>("/workspaces/all");
-  }
+  getWorkspaces: async (): Promise<unknown[]> => {
+    return apiClient.get<unknown[]>("/workspaces/all");
+  },
 };

@@ -1,5 +1,6 @@
 export type RiskLevel = "critical" | "high" | "medium" | "low";
-export type AssetType = "service" | "certificate" | "library" | "code" | "data" | "application" | "server";
+export type AssetType =
+  "service" | "certificate" | "library" | "code" | "data" | "application" | "server";
 export type MigrationStatus = "not-started" | "planned" | "in-progress" | "completed";
 
 export interface CryptoAsset {
@@ -30,7 +31,10 @@ export interface GraphNode {
   x: number;
   y: number;
 }
-export interface GraphEdge { source: string; target: string; }
+export interface GraphEdge {
+  source: string;
+  target: string;
+}
 
 export interface ScanRecord {
   id: string;
@@ -64,10 +68,45 @@ export interface ReportRecord {
 const riskFromScore = (s: number): RiskLevel =>
   s >= 80 ? "critical" : s >= 60 ? "high" : s >= 35 ? "medium" : "low";
 
-const DEPTS = ["Payments", "Identity", "Core Banking", "Infrastructure", "Data Platform", "Customer Portal", "Mobile", "APIs"];
-const ALGOS = ["RSA-2048", "RSA-4096", "ECC-P256", "ECC-P384", "ECDSA-P256", "DH-2048", "SHA-1", "3DES", "AES-128-CBC", "Ed25519"];
-const PQC = ["ML-KEM-768", "ML-KEM-1024", "ML-DSA-65", "ML-DSA-87", "SLH-DSA-SHA2-128s", "Falcon-512"];
-const TYPES: AssetType[] = ["service", "certificate", "library", "code", "data", "application", "server"];
+const DEPTS = [
+  "Payments",
+  "Identity",
+  "Core Banking",
+  "Infrastructure",
+  "Data Platform",
+  "Customer Portal",
+  "Mobile",
+  "APIs",
+];
+const ALGOS = [
+  "RSA-2048",
+  "RSA-4096",
+  "ECC-P256",
+  "ECC-P384",
+  "ECDSA-P256",
+  "DH-2048",
+  "SHA-1",
+  "3DES",
+  "AES-128-CBC",
+  "Ed25519",
+];
+const PQC = [
+  "ML-KEM-768",
+  "ML-KEM-1024",
+  "ML-DSA-65",
+  "ML-DSA-87",
+  "SLH-DSA-SHA2-128s",
+  "Falcon-512",
+];
+const TYPES: AssetType[] = [
+  "service",
+  "certificate",
+  "library",
+  "code",
+  "data",
+  "application",
+  "server",
+];
 
 const NAMES: Array<{ name: string; type: AssetType; loc: string }> = [
   { name: "auth-service.java", type: "code", loc: "/services/auth/src/main/java" },
@@ -126,14 +165,24 @@ export const assets: CryptoAsset[] = NAMES.map((n, i) => {
   const dept = DEPTS[Math.floor(seed(i + 300) * DEPTS.length)];
   const statusRoll = seed(i + 400);
   const status: MigrationStatus =
-    statusRoll < 0.55 ? "not-started" : statusRoll < 0.8 ? "planned" : statusRoll < 0.95 ? "in-progress" : "completed";
+    statusRoll < 0.55
+      ? "not-started"
+      : statusRoll < 0.8
+        ? "planned"
+        : statusRoll < 0.95
+          ? "in-progress"
+          : "completed";
   return {
     id: `AST-${String(i + 1).padStart(4, "0")}`,
     name: n.name,
     type: n.type,
     department: dept,
     algorithm: algo,
-    keySize: algo.includes("RSA") ? algo.split("-")[1] : algo.includes("ECC") || algo.includes("ECDSA") ? "256" : "—",
+    keySize: algo.includes("RSA")
+      ? algo.split("-")[1]
+      : algo.includes("ECC") || algo.includes("ECDSA")
+        ? "256"
+        : "—",
     riskScore: score,
     risk,
     recommended: rec,
@@ -189,7 +238,7 @@ export const kpis = {
   low: assets.filter((a) => a.risk === "low").length,
   migrationProgress: Math.round(
     (assets.filter((a) => a.status === "completed").length / assets.length) * 100 +
-    (assets.filter((a) => a.status === "in-progress").length / assets.length) * 40,
+      (assets.filter((a) => a.status === "in-progress").length / assets.length) * 40,
   ),
   pqcReadiness: 42,
   lastScan: "2h ago",
@@ -205,7 +254,9 @@ export const riskDistribution = [
 export const algorithmUsage = ALGOS.map((a) => ({
   algorithm: a,
   count: assets.filter((x) => x.algorithm === a).length,
-})).filter((x) => x.count > 0).sort((a, b) => b.count - a.count);
+}))
+  .filter((x) => x.count > 0)
+  .sort((a, b) => b.count - a.count);
 
 export const departmentUsage = DEPTS.map((d) => ({
   department: d,
@@ -214,26 +265,113 @@ export const departmentUsage = DEPTS.map((d) => ({
 }));
 
 export const migrationTrend = Array.from({ length: 12 }).map((_, i) => ({
-  month: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i],
+  month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][i],
   migrated: Math.round(2 + seed(i + 10) * 8 + i * 1.4),
   planned: Math.round(4 + seed(i + 20) * 6 + i * 0.8),
 }));
 
 export const recentScans: ScanRecord[] = [
-  { id: "SCN-2041", name: "core-banking-monorepo", source: "GitHub", startedAt: "2h ago", duration: "4m 12s", assets: 128, criticalFindings: 7, status: "completed" },
-  { id: "SCN-2040", name: "payment-services.zip", source: "ZIP Upload", startedAt: "Yesterday", duration: "2m 45s", assets: 64, criticalFindings: 3, status: "completed" },
-  { id: "SCN-2039", name: "api.agilegraph.io", source: "Domain", startedAt: "2 days ago", duration: "58s", assets: 22, criticalFindings: 1, status: "completed" },
-  { id: "SCN-2038", name: "internal-ca-bundle.pem", source: "Certificate", startedAt: "3 days ago", duration: "12s", assets: 8, criticalFindings: 0, status: "completed" },
-  { id: "SCN-2037", name: "mobile-banking-app", source: "GitHub", startedAt: "5 days ago", duration: "6m 08s", assets: 214, criticalFindings: 12, status: "completed" },
+  {
+    id: "SCN-2041",
+    name: "core-banking-monorepo",
+    source: "GitHub",
+    startedAt: "2h ago",
+    duration: "4m 12s",
+    assets: 128,
+    criticalFindings: 7,
+    status: "completed",
+  },
+  {
+    id: "SCN-2040",
+    name: "payment-services.zip",
+    source: "ZIP Upload",
+    startedAt: "Yesterday",
+    duration: "2m 45s",
+    assets: 64,
+    criticalFindings: 3,
+    status: "completed",
+  },
+  {
+    id: "SCN-2039",
+    name: "api.agilegraph.io",
+    source: "Domain",
+    startedAt: "2 days ago",
+    duration: "58s",
+    assets: 22,
+    criticalFindings: 1,
+    status: "completed",
+  },
+  {
+    id: "SCN-2038",
+    name: "internal-ca-bundle.pem",
+    source: "Certificate",
+    startedAt: "3 days ago",
+    duration: "12s",
+    assets: 8,
+    criticalFindings: 0,
+    status: "completed",
+  },
+  {
+    id: "SCN-2037",
+    name: "mobile-banking-app",
+    source: "GitHub",
+    startedAt: "5 days ago",
+    duration: "6m 08s",
+    assets: 214,
+    criticalFindings: 12,
+    status: "completed",
+  },
 ];
 
 export const activity: ActivityItem[] = [
-  { id: "1", actor: "Sarah Chen", action: "completed scan", target: "core-banking-monorepo", time: "12 min ago", kind: "scan" },
-  { id: "2", actor: "AgileGraph AI", action: "flagged critical risk on", target: "hsm-signing-cluster", time: "1h ago", kind: "alert" },
-  { id: "3", actor: "Marcus Weber", action: "migrated", target: "session-token-service to ML-KEM-768", time: "3h ago", kind: "migration" },
-  { id: "4", actor: "Priya Raman", action: "exported", target: "Q4 Executive Report", time: "5h ago", kind: "report" },
-  { id: "5", actor: "AgileGraph AI", action: "recommended PQC upgrade for", target: "12 payment assets", time: "8h ago", kind: "alert" },
-  { id: "6", actor: "David Osei", action: "started migration for", target: "identity-gateway", time: "1 day ago", kind: "migration" },
+  {
+    id: "1",
+    actor: "Sarah Chen",
+    action: "completed scan",
+    target: "core-banking-monorepo",
+    time: "12 min ago",
+    kind: "scan",
+  },
+  {
+    id: "2",
+    actor: "AgileGraph AI",
+    action: "flagged critical risk on",
+    target: "hsm-signing-cluster",
+    time: "1h ago",
+    kind: "alert",
+  },
+  {
+    id: "3",
+    actor: "Marcus Weber",
+    action: "migrated",
+    target: "session-token-service to ML-KEM-768",
+    time: "3h ago",
+    kind: "migration",
+  },
+  {
+    id: "4",
+    actor: "Priya Raman",
+    action: "exported",
+    target: "Q4 Executive Report",
+    time: "5h ago",
+    kind: "report",
+  },
+  {
+    id: "5",
+    actor: "AgileGraph AI",
+    action: "recommended PQC upgrade for",
+    target: "12 payment assets",
+    time: "8h ago",
+    kind: "alert",
+  },
+  {
+    id: "6",
+    actor: "David Osei",
+    action: "started migration for",
+    target: "identity-gateway",
+    time: "1 day ago",
+    kind: "migration",
+  },
 ];
 
 export const criticalAlerts = assets
@@ -244,15 +382,50 @@ export const criticalAlerts = assets
     title: a.name,
     reason: `${a.algorithm} vulnerable to Shor's algorithm`,
     score: a.riskScore,
-    ownerEmail: i % 2 === 0 ? "security-ops@acmebank.com" : undefined
+    ownerEmail: i % 2 === 0 ? "security-ops@acmebank.com" : undefined,
   }));
 
 export const reports: ReportRecord[] = [
-  { id: "RPT-118", title: "Q4 2025 Executive Summary", type: "Executive", createdAt: "Nov 12, 2025", size: "1.8 MB", author: "Sarah Chen" },
-  { id: "RPT-117", title: "Payment Systems Migration Plan", type: "Migration", createdAt: "Nov 08, 2025", size: "3.4 MB", author: "Marcus Weber" },
-  { id: "RPT-116", title: "Cryptographic Risk Deep-Dive", type: "Technical", createdAt: "Nov 04, 2025", size: "5.2 MB", author: "Priya Raman" },
-  { id: "RPT-115", title: "Board Risk Briefing", type: "Risk", createdAt: "Oct 28, 2025", size: "980 KB", author: "David Osei" },
-  { id: "RPT-114", title: "Identity Platform Assessment", type: "Technical", createdAt: "Oct 21, 2025", size: "2.7 MB", author: "Sarah Chen" },
+  {
+    id: "RPT-118",
+    title: "Q4 2025 Executive Summary",
+    type: "Executive",
+    createdAt: "Nov 12, 2025",
+    size: "1.8 MB",
+    author: "Sarah Chen",
+  },
+  {
+    id: "RPT-117",
+    title: "Payment Systems Migration Plan",
+    type: "Migration",
+    createdAt: "Nov 08, 2025",
+    size: "3.4 MB",
+    author: "Marcus Weber",
+  },
+  {
+    id: "RPT-116",
+    title: "Cryptographic Risk Deep-Dive",
+    type: "Technical",
+    createdAt: "Nov 04, 2025",
+    size: "5.2 MB",
+    author: "Priya Raman",
+  },
+  {
+    id: "RPT-115",
+    title: "Board Risk Briefing",
+    type: "Risk",
+    createdAt: "Oct 28, 2025",
+    size: "980 KB",
+    author: "David Osei",
+  },
+  {
+    id: "RPT-114",
+    title: "Identity Platform Assessment",
+    type: "Technical",
+    createdAt: "Oct 21, 2025",
+    size: "2.7 MB",
+    author: "Sarah Chen",
+  },
 ];
 
 export const riskColor: Record<RiskLevel, string> = {

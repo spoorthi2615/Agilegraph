@@ -1,16 +1,36 @@
 import React from "react";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 
-export const RiskDistributionChart = React.memo(function RiskDistributionChart({ data }: { data: { name: string; value: number; color: string }[] }) {
+export const RiskDistributionChart = React.memo(function RiskDistributionChart({
+  data,
+}: {
+  data: { name: string; value: number; color: string }[];
+}) {
   return (
     <>
       <div className="mt-4 h-64">
         <ResponsiveContainer>
           <PieChart>
-            <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={3}>
-              {data.map((r, i) => <Cell key={i} fill={r.color} />)}
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={55}
+              outerRadius={90}
+              paddingAngle={3}
+            >
+              {data.map((r, i) => (
+                <Cell key={i} fill={r.color} />
+              ))}
             </Pie>
-            <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid var(--color-border)", background: "white", fontSize: 12 }} />
+            <Tooltip
+              contentStyle={{
+                borderRadius: 10,
+                border: "1px solid var(--color-border)",
+                background: "white",
+                fontSize: 12,
+              }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>

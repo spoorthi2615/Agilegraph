@@ -13,7 +13,11 @@ export const Route = createFileRoute("/_app/rankings")({
   head: () => ({
     meta: [
       { title: "Risk Rankings — AgileGraph" },
-      { name: "description", content: "Sortable rankings of cryptographic assets by risk, priority, and migration effort." },
+      {
+        name: "description",
+        content:
+          "Sortable rankings of cryptographic assets by risk, priority, and migration effort.",
+      },
     ],
   }),
 });
@@ -25,13 +29,19 @@ function Rankings() {
 
   return (
     <>
-      <AppTopbar title="Risk Rankings" subtitle={`${assets.length} assets`}
-        actions={<Button size="sm" variant="outline"><Download className="h-4 w-4" />Export</Button>} />
+      <AppTopbar
+        title="Risk Rankings"
+        subtitle={`${assets.length} assets`}
+        actions={
+          <Button size="sm" variant="outline">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        }
+      />
       <main className="p-4 md:p-6 space-y-4">
         <AssetRankingTable assets={assets} />
       </main>
     </>
   );
 }
-
-

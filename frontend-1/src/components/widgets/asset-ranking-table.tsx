@@ -18,12 +18,17 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
 
   const rows = useMemo(() => {
     let r = assets.slice();
-    if (q) r = r.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) || a.algorithm.toLowerCase().includes(q.toLowerCase()));
+    if (q)
+      r = r.filter(
+        (a) =>
+          a.name.toLowerCase().includes(q.toLowerCase()) ||
+          a.algorithm.toLowerCase().includes(q.toLowerCase()),
+      );
     if (risk !== "all") r = r.filter((a) => a.risk === risk);
     if (dept !== "all") r = r.filter((a) => a.department === dept);
     r.sort((a, b) => {
-      const va = sort === "risk" ? a.riskScore : (a as any)[sort];
-      const vb = sort === "risk" ? b.riskScore : (b as any)[sort];
+      const va = sort === "risk" ? a.riskScore : (a as Record<string, unknown>)[sort] as number;
+      const vb = sort === "risk" ? b.riskScore : (b as Record<string, unknown>)[sort] as number;
       return dir === "asc" ? va - vb : vb - va;
     });
     return r;
@@ -33,7 +38,10 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
 
   const toggle = (k: SortKey) => {
     if (sort === k) setDir(dir === "asc" ? "desc" : "asc");
-    else { setSort(k); setDir("desc"); }
+    else {
+      setSort(k);
+      setDir("desc");
+    }
   };
 
   return (
@@ -42,10 +50,17 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-[240px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search assets or algorithms…" className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Input
+              placeholder="Search assets or algorithms…"
+              className="pl-9"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
           </div>
           <Select value={risk} onValueChange={setRisk}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Risk" /></SelectTrigger>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Risk" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Risk</SelectItem>
               <SelectItem value="critical">Critical</SelectItem>
@@ -55,10 +70,16 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
             </SelectContent>
           </Select>
           <Select value={dept} onValueChange={setDept}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Department" /></SelectTrigger>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Department" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Departments</SelectItem>
-              {depts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              {depts.map((d) => (
+                <SelectItem key={d} value={d}>
+                  {d}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -85,13 +106,18 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
                   <td className="px-4 py-3">
                     <Link to="/assets/$id" params={{ id: a.id }} className="block">
                       <div className="font-medium group-hover:text-primary">{a.name}</div>
-                      <div className="text-xs text-muted-foreground">{a.id} · {a.department}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {a.id} · {a.department}
+                      </div>
                     </Link>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${a.riskScore}%`, background: riskColor[a.risk] }} />
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${a.riskScore}%`, background: riskColor[a.risk] }}
+                        />
                       </div>
                       <span className="text-xs font-semibold tabular-nums">{a.riskScore}</span>
                       <RiskBadge risk={a.risk as RiskLevel} />
@@ -100,15 +126,28 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
                   <td className="px-4 py-3">
                     <div className="flex gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={`h-3 w-1.5 rounded ${i < a.priority ? "bg-primary" : "bg-muted"}`} />
+                        <span
+                          key={i}
+                          className={`h-3 w-1.5 rounded ${i < a.priority ? "bg-primary" : "bg-muted"}`}
+                        />
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-3"><Badge variant="outline" className="font-mono text-[11px]">{a.algorithm}</Badge></td>
-                  <td className="px-4 py-3"><Badge className="font-mono text-[11px] bg-primary/10 text-primary hover:bg-primary/10">{a.recommended}</Badge></td>
+                  <td className="px-4 py-3">
+                    <Badge variant="outline" className="font-mono text-[11px]">
+                      {a.algorithm}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge className="font-mono text-[11px] bg-primary/10 text-primary hover:bg-primary/10">
+                      {a.recommended}
+                    </Badge>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{a.migrationDays}d</td>
                   <td className="px-4 py-3 text-success font-medium">−{a.riskReduction}%</td>
-                  <td className="px-4 py-3"><StatusChip status={a.status} /></td>
+                  <td className="px-4 py-3">
+                    <StatusChip status={a.status} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -116,7 +155,9 @@ export function AssetRankingTable({ assets }: { assets: CryptoAsset[] }) {
         </div>
         {rows.length === 0 && (
           <div className="p-12 text-center">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-muted"><Search className="h-5 w-5 text-muted-foreground" /></div>
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-muted">
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </div>
             <p className="mt-4 text-sm font-medium">No matching assets</p>
             <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
           </div>
@@ -130,7 +171,8 @@ function Th({ children, onClick }: { children: React.ReactNode; onClick: () => v
   return (
     <th className="px-4 py-3 text-left font-medium">
       <button className="inline-flex items-center gap-1 hover:text-foreground" onClick={onClick}>
-        {children}<ArrowUpDown className="h-3 w-3" />
+        {children}
+        <ArrowUpDown className="h-3 w-3" />
       </button>
     </th>
   );
@@ -139,12 +181,19 @@ function Th({ children, onClick }: { children: React.ReactNode; onClick: () => v
 function StatusChip({ status }: { status: string }) {
   const map: Record<string, string> = {
     "not-started": "bg-muted text-muted-foreground",
-    "planned": "bg-primary/10 text-primary",
+    planned: "bg-primary/10 text-primary",
     "in-progress": "bg-warning/10 text-warning",
-    "completed": "bg-success/10 text-success",
+    completed: "bg-success/10 text-success",
   };
   const label: Record<string, string> = {
-    "not-started": "Not started", "planned": "Planned", "in-progress": "In progress", "completed": "Completed",
+    "not-started": "Not started",
+    planned: "Planned",
+    "in-progress": "In progress",
+    completed: "Completed",
   };
-  return <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${map[status]}`}>{label[status]}</span>;
+  return (
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${map[status]}`}>
+      {label[status]}
+    </span>
+  );
 }

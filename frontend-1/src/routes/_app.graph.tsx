@@ -108,7 +108,7 @@ function GraphView() {
             <>
               <SheetHeader>
                 <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-lg" style={{ background: `color-mix(in oklab, ${riskColor[selectedAsset.risk] || riskColor.medium} 15%, transparent)`, color: riskColor[selectedAsset.risk] || riskColor.medium }}>
+                  <div className="grid h-10 w-10 place-items-center rounded-lg" style={{ background: `color-mix(in oklab, ${riskColor[selectedAsset.risk as RiskLevel] || riskColor.medium} 15%, transparent)`, color: riskColor[selectedAsset.risk as RiskLevel] || riskColor.medium }}>
                     <span className="text-sm font-bold">{selectedAsset.type?.[0]?.toUpperCase() || "?"}</span>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -122,11 +122,11 @@ function GraphView() {
                 <div className="rounded-lg border p-4">
                   <div className="text-xs text-muted-foreground">Risk Score</div>
                   <div className="mt-2 flex items-end gap-3">
-                    <div className="text-4xl font-semibold tracking-tight" style={{ color: riskColor[selectedAsset.risk] }}>{selectedAsset.riskScore}</div>
-                    <RiskBadge risk={selectedAsset.risk} className="mb-1" />
+                    <div className="text-4xl font-semibold tracking-tight" style={{ color: riskColor[selectedAsset.risk as RiskLevel] }}>{selectedAsset.riskScore}</div>
+                    <RiskBadge risk={selectedAsset.risk as RiskLevel} className="mb-1" />
                   </div>
                   <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${selectedAsset.riskScore}%`, background: riskColor[selectedAsset.risk] }} />
+                    <div className="h-full rounded-full" style={{ width: `${selectedAsset.riskScore}%`, background: riskColor[selectedAsset.risk as RiskLevel] }} />
                   </div>
                 </div>
 
@@ -152,13 +152,13 @@ function GraphView() {
                 <div>
                   <div className="mb-2 text-xs text-muted-foreground">Connected Assets ({selectedAsset.connections?.length || 0})</div>
                   <ul className="space-y-1.5">
-                    {(selectedAsset.connections || []).map((c) => {
+                    {(selectedAsset.connections || []).map((c: string) => {
                       const asset = graphNodes.find((a) => a.id === c);
                       if (!asset) return null;
                       return (
                         <li key={c}>
                           <button onClick={() => setSelected(c)} className="flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-sm hover:bg-muted/40">
-                            <span className="h-2 w-2 rounded-full" style={{ background: riskColor[asset.risk] }} />
+                            <span className="h-2 w-2 rounded-full" style={{ background: riskColor[asset.risk as RiskLevel] }} />
                             <span className="truncate">{asset.label}</span>
                             <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
                           </button>

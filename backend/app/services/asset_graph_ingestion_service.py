@@ -1,11 +1,12 @@
 import uuid
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
-from app.models.crypto_graph import CryptoGraph
-from app.models.graph_node import GraphNode
-from app.models.graph_edge import GraphEdge
-from app.services.neo4j_export_service import Neo4jExportService
 from app.config.settings import settings
+from app.models.crypto_graph import CryptoGraph
+from app.models.graph_edge import GraphEdge
+from app.models.graph_node import GraphNode
+from app.services.neo4j_export_service import Neo4jExportService
+
 
 class AssetGraphIngestionService:
     @staticmethod
@@ -19,8 +20,8 @@ class AssetGraphIngestionService:
         Converts parsed certificates directly into GraphNodes and pushes them to Neo4j.
         """
         graph = CryptoGraph()
-        
-        for idx, cert in enumerate(parsed_certs):
+
+        for _idx, cert in enumerate(parsed_certs):
             # Create a Certificate Node
             cert_node_id = uuid.uuid4()
             cert_node = GraphNode(
@@ -28,26 +29,26 @@ class AssetGraphIngestionService:
                 node_type="CERTIFICATE",
                 label=f"Certificate: {cert.get('subject', 'Unknown')}",
                 metadata={
-                    "issuer": cert.get('issuer'),
-                    "not_before": cert.get('not_before'),
-                    "not_after": cert.get('not_after'),
-                    "source": cert.get('source', 'Upload'),
-                    "project_id": project_id
-                }
+                    "issuer": cert.get("issuer"),
+                    "not_before": cert.get("not_before"),
+                    "not_after": cert.get("not_after"),
+                    "source": cert.get("source", "Upload"),
+                    "project_id": project_id,
+                },
             )
             graph.add_node(cert_node)
-            
+
             # Create an Algorithm Node
-            algo_name = cert.get('algorithm', 'Unknown')
-            key_size = cert.get('key_size', 0)
-            
+            algo_name = cert.get("algorithm", "Unknown")
+            key_size = cert.get("key_size", 0)
+
             # Basic risk scoring for certs
             risk_score = 0
             severity = "low"
             if algo_name in ["RSA", "DSA", "ECDSA"]:
                 risk_score = 85
                 severity = "high"
-                
+
             algo_node_id = uuid.uuid4()
             algo_node = GraphNode(
                 node_id=algo_node_id,
@@ -59,19 +60,17 @@ class AssetGraphIngestionService:
                     "risk_score": risk_score,
                     "severity": severity,
                     "project_id": project_id,
-                    "asset_type": "Public Key Algorithm"
-                }
+                    "asset_type": "Public Key Algorithm",
+                },
             )
             graph.add_node(algo_node)
-            
+
             # Create Edge: Certificate -> IMPLEMENTS -> Algorithm
             edge = GraphEdge(
-                source_node=cert_node_id,
-                target_node=algo_node_id,
-                edge_type="IMPLEMENTS"
+                source_node=cert_node_id, target_node=algo_node_id, edge_type="IMPLEMENTS"
             )
             graph.add_edge(edge)
-            
+
         export_service = Neo4jExportService(
             settings.NEO4J_URI, settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD
         )

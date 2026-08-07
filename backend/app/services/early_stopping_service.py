@@ -2,16 +2,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class EarlyStoppingService:
     """
-    Service responsible for convergence monitoring. 
+    Service responsible for convergence monitoring.
     Maintains a patience counter based on a target metric (e.g., validation loss).
     """
+
     def __init__(self, patience: int = 10, min_delta: float = 1e-4):
         self.patience = patience
         self.min_delta = min_delta
         self.counter = 0
-        self.best_loss = float('inf')
+        self.best_loss = float("inf")
         self.early_stop = False
 
     def step(self, val_loss: float) -> bool:
@@ -28,5 +30,7 @@ class EarlyStoppingService:
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
-                logger.info(f"Early stopping triggered after {self.patience} epochs of no improvement.")
+                logger.info(
+                    f"Early stopping triggered after {self.patience} epochs of no improvement."
+                )
             return False

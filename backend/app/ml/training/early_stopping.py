@@ -1,12 +1,15 @@
 import copy
 import logging
+
 import torch
+
 
 class EarlyStopping:
     """
     Halts training when validation loss stops improving to prevent overfitting.
     Automatically caches the best model weights observed during training.
     """
+
     def __init__(self, patience: int = 10, min_delta: float = 0.001):
         self.patience = patience
         self.min_delta = min_delta
@@ -26,7 +29,9 @@ class EarlyStopping:
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
-                logging.info(f"Early stopping triggered after {self.counter} epochs without improvement.")
+                logging.info(
+                    f"Early stopping triggered after {self.counter} epochs without improvement."
+                )
         else:
             self.best_loss = val_loss
             self.best_weights = copy.deepcopy(model.state_dict())

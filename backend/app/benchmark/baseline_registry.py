@@ -1,12 +1,15 @@
 import logging
 from typing import Dict, Type
+
 from app.benchmark.baseline import Baseline
+
 
 class BaselineRegistry:
     """
     Singleton registry managing all available baseline implementations.
     Decouples the BenchmarkRunner from direct dependencies on concrete implementations.
     """
+
     _registry: Dict[str, Type[Baseline]] = {}
 
     @classmethod

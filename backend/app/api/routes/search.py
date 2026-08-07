@@ -1,10 +1,11 @@
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, Query
-from typing import List
+
+from app.config.settings import settings
 from app.models.topbar import SearchResult
 from app.services.graph_query_service import GraphQueryService
-from app.config.settings import settings
 
-from typing import List, Optional
 
 def get_query_service():
     if not settings.NEO4J_URI:
@@ -13,26 +14,26 @@ def get_query_service():
 
     try:
         service = GraphQueryService(
-            uri=settings.NEO4J_URI,
-            user=settings.NEO4J_USERNAME,
-            password=settings.NEO4J_PASSWORD
+            uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
         )
         yield service
     except Exception:
         yield None
     finally:
         try:
-            if 'service' in locals() and service is not None:
+            if "service" in locals() and service is not None:
                 service.close()
         except Exception:
             pass
 
+
 router = APIRouter()
+
 
 @router.get("/all", response_model=List[SearchResult])
 def search_graph(
     q: str = Query("", description="Search query"),
-    query_service: Optional[GraphQueryService] = Depends(get_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_query_service),
 ) -> List[SearchResult]:
     if not q or len(q) < 2 or not query_service or not query_service.driver:
         return []
@@ -40,13 +41,13 @@ def search_graph(
     # Simple Cypher query to find nodes matching the query in name, algorithm, or type
     cypher = """
     MATCH (n)
-    WHERE toLower(n.label) CONTAINS toLower($q) 
+    WHERE toLower(n.label) CONTAINS toLower($q)
        OR toLower(n.algorithm) CONTAINS toLower($q)
        OR toLower(labels(n)[0]) CONTAINS toLower($q)
     RETURN n, labels(n)[0] AS label
     LIMIT 10
     """
-    
+
     try:
         with query_service.driver.session() as session:
             result = session.run(cypher, q=q)
@@ -54,7 +55,7 @@ def search_graph(
         for record in result:
             node = record["n"]
             label = record["label"]
-            
+
             # Map node to SearchResult based on label
             if label == "PROJECT":
                 results.append(
@@ -88,7 +89,7 @@ def search_graph(
                         url=f"/assets/{node.get('node_id', '')}",
                     )
                 )
-                
+
         return results
     except Exception:
         return []

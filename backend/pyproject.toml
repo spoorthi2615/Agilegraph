@@ -2,12 +2,16 @@
 line-length = 100
 target-version = ['py311']
 include = '\.pyi?$'
+exclude = '/(data|uploads|\.venv|venv|env)/'
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = ["data", "uploads", ".venv", "env", "venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "I"]
-ignore = ["E501"]
+ignore = ["E501", "B904", "E402", "E741", "B023", "B007"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body", "fastapi.Header", "fastapi.Cookie", "fastapi.File", "fastapi.Form", "fastapi.Security"]

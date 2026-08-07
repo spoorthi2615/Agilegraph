@@ -1,18 +1,20 @@
 from typing import List
-from app.models.training_dataset import TrainingDataset
+
 from app.models.crypto_graph import CryptoGraph
+from app.models.training_dataset import TrainingDataset
+
 
 class LabelGenerationService:
     """
-    Service strictly responsible for extracting exact ground-truth labels 
+    Service strictly responsible for extracting exact ground-truth labels
     from the CryptoGraph and injecting them into the TrainingDataset.
     Does not perform any topology mapping or feature engineering.
     """
-    
+
     @classmethod
     def generate_labels(cls, dataset: TrainingDataset, graph: CryptoGraph) -> TrainingDataset:
         sorted_nodes = sorted(graph.nodes.values(), key=lambda n: str(n.node_id))
-        
+
         node_labels: List[int] = []
         for node in sorted_nodes:
             # -1 represents an unlabeled node, to be picked up by WeakSupervisionService
@@ -21,10 +23,10 @@ class LabelGenerationService:
                 node_labels.append(int(risk_score))
             else:
                 node_labels.append(-1)
-                
+
         new_metadata = dict(dataset.metadata)
         new_metadata["label_description"] = "risk_score"
-        
+
         return TrainingDataset(
             dataset_id=dataset.dataset_id,
             project_id=dataset.project_id,
@@ -34,5 +36,5 @@ class LabelGenerationService:
             node_features=dataset.node_features,
             edge_index=dataset.edge_index,
             node_labels=node_labels,
-            metadata=new_metadata
+            metadata=new_metadata,
         )

@@ -1,6 +1,7 @@
-from enum import Enum
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from enum import Enum
+from typing import Any, Dict
+
 
 class NodeType(Enum):
     CODE_FILE = "CODE_FILE"
@@ -9,6 +10,7 @@ class NodeType(Enum):
     NETWORK_ENDPOINT = "NETWORK_ENDPOINT"
     LIBRARY = "LIBRARY"
     SENSITIVE_DATA = "SENSITIVE_DATA"
+
 
 class EdgeType(Enum):
     USES_CRYPTO = "USES_CRYPTO"
@@ -19,11 +21,13 @@ class EdgeType(Enum):
     HOSTS_CERTIFICATE = "HOSTS_CERTIFICATE"
     HAS_VULNERABILITY = "HAS_VULNERABILITY"
 
+
 @dataclass
 class Node:
     id: str
     type: NodeType
     properties: Dict[str, Any]
+
 
 @dataclass
 class Edge:

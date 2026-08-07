@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
 import { useAsset, useAssets } from "@/hooks/use-agilegraph";
-import { riskColor } from "@/lib/types";
+import { riskColor, type RiskLevel } from "@/lib/types";
 import { RiskBadge } from "@/components/risk-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -76,8 +76,8 @@ function AssetDetail() {
                 </div>
                 <div className="text-right">
                   <div className="text-xs text-muted-foreground">Risk Score</div>
-                  <div className="mt-1 text-4xl font-semibold tracking-tight" style={{ color: riskColor[asset.risk] }}>{asset.riskScore}</div>
-                  <RiskBadge risk={asset.risk} className="mt-2" />
+                  <div className="mt-1 text-4xl font-semibold tracking-tight" style={{ color: riskColor[asset.risk as RiskLevel] }}>{asset.riskScore}</div>
+                  <RiskBadge risk={asset.risk as RiskLevel} className="mt-2" />
                 </div>
               </div>
             </div>
@@ -134,12 +134,12 @@ function AssetDetail() {
                     return (
                       <li key={c}>
                         <Link to="/assets/$id" params={{ id: c }} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/30">
-                          <span className="h-2 w-2 rounded-full" style={{ background: riskColor[a.risk] }} />
+                          <span className="h-2 w-2 rounded-full" style={{ background: riskColor[a.risk as RiskLevel] }} />
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium">{a.name}</div>
                             <div className="text-xs text-muted-foreground">{a.algorithm}</div>
                           </div>
-                          <RiskBadge risk={a.risk} />
+                          <RiskBadge risk={a.risk as RiskLevel} />
                         </Link>
                       </li>
                     );

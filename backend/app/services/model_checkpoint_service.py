@@ -1,20 +1,22 @@
 import logging
-from typing import Any
 import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 try:
     import torch
+
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
+
 
 class ModelCheckpointService:
     """
     Service exclusively responsible for persisting and loading PyTorch model weights.
     """
-    
+
     @staticmethod
     def save_checkpoint(model: Any, filepath: str) -> None:
         """Saves the model state_dict to disk."""

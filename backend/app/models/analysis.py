@@ -1,9 +1,12 @@
-from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 def to_camel(string: str) -> str:
     parts = string.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
 
 class AnalysisBaseModel(BaseModel):
     model_config = ConfigDict(
@@ -11,10 +14,12 @@ class AnalysisBaseModel(BaseModel):
         populate_by_name=True,
     )
 
+
 class RiskRecommendation(AnalysisBaseModel):
     category: str
     score: int
     hint: str
+
 
 class MigrationRecommendationDTO(AnalysisBaseModel):
     target_algorithm: str
@@ -22,17 +27,21 @@ class MigrationRecommendationDTO(AnalysisBaseModel):
     risk_reduction: int
     steps: List[str]
 
+
 class CertificateSummary(AnalysisBaseModel):
     name: str
     type: str
+
 
 class DependencySummary(AnalysisBaseModel):
     name: str
     type: str
 
+
 class AlgorithmSummary(AnalysisBaseModel):
     name: str
     count: int
+
 
 class ConnectedAsset(AnalysisBaseModel):
     id: str
@@ -40,11 +49,13 @@ class ConnectedAsset(AnalysisBaseModel):
     algorithm: str
     risk: str
 
+
 class ExplainabilitySummary(AnalysisBaseModel):
     feature_importance: List[dict] = Field(default_factory=list)
     important_edges: List[dict] = Field(default_factory=list)
     confidence: float = Field(default=0.0)
     natural_language_explanation: str = Field(default="")
+
 
 class AssetSummary(AnalysisBaseModel):
     id: str
@@ -65,6 +76,7 @@ class AssetSummary(AnalysisBaseModel):
     connections: List[str] = Field(default_factory=list)
     description: str
 
+
 class AssetDetail(AssetSummary):
     heuristic_breakdown: List[RiskRecommendation] = Field(default_factory=list)
     connected_assets: List[ConnectedAsset] = Field(default_factory=list)
@@ -72,6 +84,7 @@ class AssetDetail(AssetSummary):
     certificates: List[CertificateSummary] = Field(default_factory=list)
     migration_projection: Optional[MigrationRecommendationDTO] = None
     explainability: Optional[ExplainabilitySummary] = None
+
 
 class PaginatedAssetResponse(AnalysisBaseModel):
     items: List[AssetSummary]

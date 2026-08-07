@@ -1,10 +1,11 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 class MoscaService:
     """
-    Service implementing Mosca's Theorem (x + y > z) to evaluate 
+    Service implementing Mosca's Theorem (x + y > z) to evaluate
     quantum risk urgency.
-    
+
     Variables:
     x: Security shelf-life (years data must remain secure)
     y: Migration time (years required to transition to quantum-safe crypto)
@@ -18,7 +19,7 @@ class MoscaService:
         """
         buffer = round(z - (x + y), 2)
         is_ready = buffer >= 0
-        
+
         if buffer < 0:
             status = "Critical"
             recommendation = (
@@ -27,18 +28,14 @@ class MoscaService:
             )
         elif buffer == 0:
             status = "Warning"
-            recommendation = (
-                "Migration must begin immediately to avoid data exposure."
-            )
+            recommendation = "Migration must begin immediately to avoid data exposure."
         elif buffer <= 3:
             status = "Elevated"
             recommendation = "Begin planning PQC migration. Buffer is thin."
         else:
             status = "Safe"
-            recommendation = (
-                "Current timeline is secure, but monitor quantum advancements."
-            )
-            
+            recommendation = "Current timeline is secure, but monitor quantum advancements."
+
         return {
             "mosca_ready": is_ready,
             "status": status,
@@ -46,5 +43,5 @@ class MoscaService:
             "y": y,
             "z": z,
             "buffer": buffer,
-            "recommendation": recommendation
+            "recommendation": recommendation,
         }

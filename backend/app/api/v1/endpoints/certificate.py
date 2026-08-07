@@ -1,15 +1,17 @@
-import uuid
 import logging
-from fastapi import APIRouter, status, Depends, UploadFile, File
+import uuid
 
+from fastapi import APIRouter, Depends, File, UploadFile, status
+
+from app.core.security import User, get_current_user_strict
 from app.schemas.scan_schema import ScanResponse
-from app.services.certificate_parsing_service import CertificateParsingService
 from app.services.asset_graph_ingestion_service import AssetGraphIngestionService
-from app.services.scan_status_service import ScanStatusService, ScanStage
-from app.core.security import get_current_user_strict, User
+from app.services.certificate_parsing_service import CertificateParsingService
+from app.services.scan_status_service import ScanStage, ScanStatusService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 @router.post("", response_model=ScanResponse, status_code=status.HTTP_201_CREATED)
 async def upload_certificate(
@@ -19,23 +21,23 @@ async def upload_certificate(
     Parse an uploaded certificate (.pem/.crt) and ingest the cryptographic assets into the graph.
     """
     project_id = str(uuid.uuid4())
-    
+
     try:
         ScanStatusService.set_status(project_id, ScanStage.SCANNING)
         content = await file.read()
-        
+
         parsed_cert = CertificateParsingService.parse_certificate_bytes(content)
-        parsed_cert['source'] = file.filename
-        
+        parsed_cert["source"] = file.filename
+
         ScanStatusService.set_status(project_id, ScanStage.BUILDING_GRAPH)
         AssetGraphIngestionService.ingest_certificates(
-            project_id=project_id, 
+            project_id=project_id,
             parsed_certs=[parsed_cert],
             user_id=user.id,
-            owner_email=user.email
+            owner_email=user.email,
         )
         ScanStatusService.set_status(project_id, ScanStage.COMPLETED)
-        
+
         return ScanResponse(
             project_id=project_id,
             status="completed",

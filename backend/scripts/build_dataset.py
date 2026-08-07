@@ -1,7 +1,7 @@
-import os
-import subprocess
 import json
 import logging
+import os
+import subprocess
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -74,41 +74,27 @@ REPOSITORIES = {
 }
 
 NIST_STANDARDS = {
-  "legacy_vulnerable": [
-    {
-      "algorithm": "RSA",
-      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
-      "risk_score": 1.0,
-      "minimum_key_size_for_classical": 2048
-    },
-    {
-      "algorithm": "ECC",
-      "description": "Vulnerable to Shor's algorithm on a quantum computer.",
-      "risk_score": 1.0,
-      "minimum_key_size_for_classical": 256
-    }
-  ],
-  "pqc_standards": [
-    {
-      "algorithm": "ML-KEM",
-      "fips": "FIPS 203",
-      "risk_score": 0.0,
-      "quantum_safe": True
-    },
-    {
-      "algorithm": "ML-DSA",
-      "fips": "FIPS 204",
-      "risk_score": 0.0,
-      "quantum_safe": True
-    },
-    {
-      "algorithm": "SLH-DSA",
-      "fips": "FIPS 205",
-      "risk_score": 0.0,
-      "quantum_safe": True
-    }
-  ]
+    "legacy_vulnerable": [
+        {
+            "algorithm": "RSA",
+            "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+            "risk_score": 1.0,
+            "minimum_key_size_for_classical": 2048,
+        },
+        {
+            "algorithm": "ECC",
+            "description": "Vulnerable to Shor's algorithm on a quantum computer.",
+            "risk_score": 1.0,
+            "minimum_key_size_for_classical": 256,
+        },
+    ],
+    "pqc_standards": [
+        {"algorithm": "ML-KEM", "fips": "FIPS 203", "risk_score": 0.0, "quantum_safe": True},
+        {"algorithm": "ML-DSA", "fips": "FIPS 204", "risk_score": 0.0, "quantum_safe": True},
+        {"algorithm": "SLH-DSA", "fips": "FIPS 205", "risk_score": 0.0, "quantum_safe": True},
+    ],
 }
+
 
 def create_directories():
     logging.info("Creating directory structure...")
@@ -116,11 +102,13 @@ def create_directories():
         os.makedirs(d, exist_ok=True)
     logging.info("Directories created.")
 
+
 def create_nist_standards():
     nist_path = os.path.join(DATA_DIR, "validation", "nist", "nist_standards.json")
     logging.info(f"Writing NIST standards to {nist_path}...")
     with open(nist_path, "w") as f:
         json.dump(NIST_STANDARDS, f, indent=2)
+
 
 def clone_repositories():
     logging.info("Starting repository clones (this may take a while)...")
@@ -131,12 +119,18 @@ def clone_repositories():
             if os.path.exists(dest):
                 logging.info(f"Skipping {repo_name}, already exists.")
                 continue
-            
+
             logging.info(f"Cloning {repo_name} into {dest}...")
             try:
-                subprocess.run(["git", "clone", "--depth", "1", repo_url, dest], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(
+                    ["git", "clone", "--depth", "1", repo_url, dest],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             except subprocess.CalledProcessError:
                 logging.error(f"Failed to clone {repo_name}")
+
 
 if __name__ == "__main__":
     create_directories()

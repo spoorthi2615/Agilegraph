@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Response, status
-from pydantic import BaseModel
 from typing import Optional
+
+from fastapi import APIRouter, Response, status
 from neo4j import GraphDatabase
+from pydantic import BaseModel
 
 from app.config.settings import settings
 from app.core.logging import get_logger
@@ -9,8 +10,10 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 router = APIRouter(prefix="/health")
 
+
 class LivenessResponse(BaseModel):
     status: str
+
 
 class ReadinessResponse(BaseModel):
     status: str
@@ -18,6 +21,7 @@ class ReadinessResponse(BaseModel):
     service: str
     version: str
     reason: Optional[str] = None
+
 
 @router.get("/live", response_model=LivenessResponse)
 def liveness_check() -> LivenessResponse:
@@ -37,16 +41,15 @@ def readiness_check(response: Response) -> ReadinessResponse:
     try:
         # Initialize a lightweight driver just to verify connectivity
         with GraphDatabase.driver(
-            settings.NEO4J_URI,
-            auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+            settings.NEO4J_URI, auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
         ) as driver:
             driver.verify_connectivity()
-            
+
         return ReadinessResponse(
             status="ready",
             database="connected",
             service=settings.APP_NAME,
-            version=settings.VERSION
+            version=settings.VERSION,
         )
     except Exception as e:
         logger.error(f"Readiness check failed: {str(e)}")
@@ -57,5 +60,5 @@ def readiness_check(response: Response) -> ReadinessResponse:
             database="unreachable",
             service=settings.APP_NAME,
             version=settings.VERSION,
-            reason="Unable to connect to Neo4j"
+            reason="Unable to connect to Neo4j",
         )

@@ -1,16 +1,24 @@
-from fastapi import APIRouter, Depends, Query, Path as PathParam
 from typing import Optional
+
 import networkx as nx
+from fastapi import APIRouter, Depends, Query
+from fastapi import Path as PathParam
 
 from app.config.settings import settings
+from app.models.graph import (
+    GraphEdge,
+    GraphFilter,
+    GraphMetadata,
+    GraphNode,
+    GraphResponse,
+    GraphStatistics,
+    NodeDetails,
+)
 from app.services.graph_query_service import GraphQueryService
 from app.services.recommendation_workflow_service import RecommendationWorkflowService
-from app.models.graph import (
-    GraphResponse, GraphNode, GraphEdge, GraphMetadata, GraphStatistics, GraphFilter,
-    NodeDetails
-)
 
 router = APIRouter()
+
 
 def get_graph_query_service() -> Optional[GraphQueryService]:
     if not settings.NEO4J_URI:
@@ -19,22 +27,21 @@ def get_graph_query_service() -> Optional[GraphQueryService]:
 
     try:
         service = GraphQueryService(
-            uri=settings.NEO4J_URI,
-            user=settings.NEO4J_USERNAME,
-            password=settings.NEO4J_PASSWORD
+            uri=settings.NEO4J_URI, user=settings.NEO4J_USERNAME, password=settings.NEO4J_PASSWORD
         )
         yield service
     except Exception:
         yield None
     finally:
         try:
-            if 'service' in locals() and service is not None:
+            if "service" in locals() and service is not None:
                 service.close()
         except Exception:
             pass
 
+
 def get_recommendation_workflow_service(
-    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
 ) -> RecommendationWorkflowService:
     return RecommendationWorkflowService(query_service=query_service)
 
@@ -47,7 +54,7 @@ def get_graph(
     node_type: Optional[str] = Query(None),
     algorithm: Optional[str] = Query(None),
     pqc_status: Optional[str] = Query(None),
-    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service)
+    query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
 ) -> GraphResponse:
     """
     Retrieves the visual graph data structure including nodes, edges, statistics, and metadata.
@@ -60,9 +67,9 @@ def get_graph(
         severity=severity,
         node_type=node_type,
         algorithm=algorithm,
-        pqc_status=pqc_status
+        pqc_status=pqc_status,
     )
-    
+
     raw_nodes = []
     raw_edges = []
     if query_service:
@@ -75,27 +82,26 @@ def get_graph(
             raw_edges = []
         raw_nodes = []
         raw_edges = []
-        
+
     nodes = []
     edges = []
-    
+
     for raw in raw_nodes:
         asset_id = str(raw.get("node_id", "unknown"))
-        nodes.append(GraphNode(
-            id=asset_id,
-            label=raw.get("label", "Unknown Asset"),
-            type=str(raw.get("node_type", "service")).lower(),
-            risk=str(raw.get("severity", "medium")).lower(),
-            x=0.0,
-            y=0.0
-        ))
-        
+        nodes.append(
+            GraphNode(
+                id=asset_id,
+                label=raw.get("label", "Unknown Asset"),
+                type=str(raw.get("node_type", "service")).lower(),
+                risk=str(raw.get("severity", "medium")).lower(),
+                x=0.0,
+                y=0.0,
+            )
+        )
+
     for edge in raw_edges:
-        edges.append(GraphEdge(
-            source=str(edge.get("source")),
-            target=str(edge.get("target"))
-        ))
-        
+        edges.append(GraphEdge(source=str(edge.get("source")), target=str(edge.get("target"))))
+
     # Apply layout so nodes don't stack at (0,0)
     if nodes:
         nx_graph = nx.Graph()
@@ -103,7 +109,7 @@ def get_graph(
             nx_graph.add_node(n.id)
         for e in edges:
             nx_graph.add_edge(e.source, e.target)
-            
+
         try:
             pos = nx.spring_layout(nx_graph, k=0.15, iterations=50, scale=450, center=(500, 320))
             for n in nodes:
@@ -112,7 +118,7 @@ def get_graph(
                     n.y = float(pos[n.id][1])
         except Exception:
             pass
-            
+
     stats = GraphStatistics(
         total_nodes=len(nodes),
         total_edges=len(edges),
@@ -121,27 +127,23 @@ def get_graph(
         high_risk_assets=len([n for n in nodes if n.risk == "high"]),
         pqc_ready_assets=0,
         average_degree=0.0,
-        graph_density=0.0
+        graph_density=0.0,
     )
-    
+
     metadata = GraphMetadata(
-        repository_name=repository or "AgileGraph",
-        graph_size=f"{len(nodes) * 2} KB"
+        repository_name=repository or "AgileGraph", graph_size=f"{len(nodes) * 2} KB"
     )
-    
+
     return GraphResponse(
-        nodes=nodes,
-        edges=edges,
-        statistics=stats,
-        metadata=metadata,
-        filters=filters
+        nodes=nodes, edges=edges, statistics=stats, metadata=metadata, filters=filters
     )
+
 
 @router.get("/node/{node_id}", response_model=NodeDetails)
 def get_node_detail(
     node_id: str = PathParam(...),
     query_service: Optional[GraphQueryService] = Depends(get_graph_query_service),
-    rec_workflow: RecommendationWorkflowService = Depends(get_recommendation_workflow_service)
+    rec_workflow: RecommendationWorkflowService = Depends(get_recommendation_workflow_service),
 ) -> NodeDetails:
     """
     Retrieves complete details for a single graph node required for the side panel.
@@ -175,7 +177,7 @@ def get_node_detail(
             dependencies=[],
             explainability_summary={},
             migration_recommendation={},
-            graph_metrics={}
+            graph_metrics={},
         )
 
     return NodeDetails(
@@ -198,5 +200,5 @@ def get_node_detail(
         dependencies=[],
         explainability_summary={},
         migration_recommendation={},
-        graph_metrics={}
+        graph_metrics={},
     )

@@ -1,16 +1,20 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 def to_camel(string: str) -> str:
     parts = string.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
 
 class GraphBaseModel(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
     )
+
 
 class GraphNode(GraphBaseModel):
     id: str
@@ -20,15 +24,18 @@ class GraphNode(GraphBaseModel):
     x: float = Field(default=0.0)
     y: float = Field(default=0.0)
 
+
 class GraphEdge(GraphBaseModel):
     source: str
     target: str
+
 
 class GraphMetadata(GraphBaseModel):
     generated_timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     repository_name: str = Field(default="AgileGraph")
     graph_version: str = Field(default="1.0.0")
     graph_size: str = Field(default="0 KB")
+
 
 class GraphStatistics(GraphBaseModel):
     total_nodes: int = Field(default=0)
@@ -40,6 +47,7 @@ class GraphStatistics(GraphBaseModel):
     average_degree: float = Field(default=0.0)
     graph_density: float = Field(default=0.0)
 
+
 class GraphFilter(GraphBaseModel):
     repository: Optional[str] = None
     risk_level: Optional[str] = None
@@ -48,6 +56,7 @@ class GraphFilter(GraphBaseModel):
     algorithm: Optional[str] = None
     pqc_status: Optional[str] = None
 
+
 class GraphResponse(GraphBaseModel):
     nodes: List[GraphNode] = Field(default_factory=list)
     edges: List[GraphEdge] = Field(default_factory=list)
@@ -55,12 +64,14 @@ class GraphResponse(GraphBaseModel):
     metadata: GraphMetadata = Field(default_factory=GraphMetadata)
     filters: GraphFilter = Field(default_factory=GraphFilter)
 
+
 class NodeRelationship(GraphBaseModel):
     id: str
     name: str
     type: str
     risk: str
     relationship_type: str
+
 
 class NodeDetails(GraphBaseModel):
     id: str

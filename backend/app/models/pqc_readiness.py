@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field
-from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from enum import Enum
+from uuid import UUID, uuid4
+
+from pydantic import BaseModel, Field
+
 
 class PQCReadinessLevel(str, Enum):
     READY = "READY"
@@ -9,10 +11,12 @@ class PQCReadinessLevel(str, Enum):
     PARTIALLY_READY = "PARTIALLY_READY"
     NOT_READY = "NOT_READY"
 
+
 class PQCReadinessAssessment(BaseModel):
     """
     Domain model representing the Post-Quantum Cryptography readiness state of an entire project graph.
     """
+
     assessment_id: UUID = Field(default_factory=uuid4)
     overall_score: float
     readiness_level: PQCReadinessLevel

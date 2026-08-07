@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/app-topbar";
 import { useAssets } from "@/hooks/use-agilegraph";
-import { riskColor } from "@/lib/types";
+import { riskColor, type RiskLevel } from "@/lib/types";
 import { RiskBadge } from "@/components/risk-badge";
 import { RiskGauge } from "@/components/widgets/risk-gauge";
 import { Sparkles, GitBranch, ShieldAlert, Layers, CheckCircle2, AlertCircle } from "lucide-react";
@@ -40,7 +40,7 @@ function Explainability() {
           <div className="rounded-xl border bg-card p-6">
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Overall Risk Score</div>
             <div className="mt-4 grid place-items-center">
-              <RiskGauge value={info?.overallRisk || 0} color={riskColor[(info?.overallRisk >= 80 ? "critical" : info?.overallRisk >= 60 ? "high" : "low") as any] || riskColor.low} />
+              <RiskGauge value={info?.overallRisk || 0} color={riskColor[(info?.overallRisk >= 80 ? "critical" : info?.overallRisk >= 60 ? "high" : "low") as RiskLevel] || riskColor.low} />
             </div>
             <div className="mt-4 text-center">
               <div className="text-lg font-semibold">{info?.name}</div>
@@ -54,7 +54,7 @@ function Explainability() {
               {naturalLanguageSummary || "AgileGraph's risk model combines intrinsic algorithmic weakness with graph-based exposure and business context to produce this score."}
             </p>
             <div className="mt-5 space-y-3">
-              {factors.map((f) => (
+              {factors.map((f: { label: string; weight: number; note: string }) => (
                 <div key={f.label}>
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span>{f.label}</span>

@@ -1,10 +1,12 @@
-from fastapi import APIRouter, File, UploadFile, status, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, File, UploadFile, status
+
+from app.core.security import User, get_current_user_strict
 from app.schemas.upload_schema import UploadResponse
-from app.services.upload_service import UploadService
 from app.services.scan_status_service import ScanStatusService
-from app.core.security import get_current_user_strict, User
+from app.services.upload_service import UploadService
 
 router = APIRouter()
+
 
 @router.post("/upload", response_model=UploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_project(
@@ -19,6 +21,7 @@ async def upload_project(
     return await UploadService.process_upload(
         file, background_tasks, user_id=user.id, owner_email=user.email
     )
+
 
 @router.get("/scan/status/{project_id}")
 async def get_scan_status(project_id: str):

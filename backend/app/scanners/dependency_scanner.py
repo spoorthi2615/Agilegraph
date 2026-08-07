@@ -1,31 +1,32 @@
 import time
 import tomllib
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import requests
+from typing import Any, Dict, List, Optional
 
+from app.models.crypto_asset import AssetType, CryptoAsset
 from app.scanners.base_scanner import BaseScanner
 from app.scanners.scanner_result import ScannerResult
-from app.models.crypto_asset import CryptoAsset, AssetType
 from app.services.cve_service import CVEService
+
 
 class DependencyScanner(BaseScanner):
     """
     Scans Python project manifest files to discover software dependencies.
     """
+
     @property
     def name(self) -> str:
         return "PythonDependencyScanner"
-        
+
     @property
     def supported_languages(self) -> List[str]:
         return ["Python", "Go"]
-        
+
     def scan(self, project_path: Path) -> ScannerResult:
         start_time = time.time()
         findings: List[Dict[str, Any]] = []
         errors: List[str] = []
-        
+
         if project_path.exists() and project_path.is_dir():
             processed_deps: set = set()
             # Traverse the project only once deterministically
@@ -36,29 +37,35 @@ class DependencyScanner(BaseScanner):
                     self._parse_pyproject_toml(file_path, findings, errors, processed_deps)
                 elif file_path.name in ("go.mod", "go.sum"):
                     self._parse_go_mod(file_path, findings, errors, processed_deps)
-                    
+
             if findings:
                 self._enrich_with_cve_snapshot(findings, errors)
-                
+
         execution_time_ms = (time.time() - start_time) * 1000.0
-        
+
         return ScannerResult(
             scanner_name=self.name,
             status="success" if not errors else "completed_with_errors",
             findings=findings,
             errors=errors,
             execution_time_ms=execution_time_ms,
-            metadata={"files_scanned_patterns": ["requirements.txt", "pyproject.toml", "go.mod", "go.sum"]}
+            metadata={
+                "files_scanned_patterns": ["requirements.txt", "pyproject.toml", "go.mod", "go.sum"]
+            },
         )
-        
-    def _create_dependency_asset(self, package_name: str, version: Optional[str], file_path: Path) -> Dict[str, Any]:
+
+    def _create_dependency_asset(
+        self, package_name: str, version: Optional[str], file_path: Path
+    ) -> Dict[str, Any]:
         """
         Creates a CryptoAsset from discovered dependency data.
         """
         asset = CryptoAsset(
             asset_type=AssetType.DEPENDENCY,
             algorithm=package_name,
-            language="Unknown" if file_path.suffix not in [".mod", ".sum"] else "Go", # We can refine this later
+            language=(
+                "Unknown" if file_path.suffix not in [".mod", ".sum"] else "Go"
+            ),  # We can refine this later
             file_path=file_path,
             line_number=None,
             severity=None,
@@ -66,31 +73,35 @@ class DependencyScanner(BaseScanner):
             metadata={
                 "package_name": package_name,
                 "version": version if version else "unknown",
-                "manifest_file": file_path.name
-            }
+                "manifest_file": file_path.name,
+            },
         )
         return asset.model_dump(mode="json")
-        
-    def _enrich_with_cve_snapshot(
-        self, findings: List[Dict[str, Any]], errors: List[str]
-    ) -> None:
+
+    def _enrich_with_cve_snapshot(self, findings: List[Dict[str, Any]], errors: List[str]) -> None:
         """
-        Queries the local CVEService snapshot to identify CVEs and vulnerabilities 
+        Queries the local CVEService snapshot to identify CVEs and vulnerabilities
         in the discovered dependencies. This ensures offline demonstrations.
         """
         for finding in findings:
             meta = finding.get("metadata", {})
             pkg = meta.get("package_name")
-            
+
             if not pkg:
                 continue
-                
+
             cves = CVEService.lookup_cves(pkg)
             if cves:
                 finding["metadata"]["cves"] = cves
                 finding["severity"] = "HIGH"
-            
-    def _parse_requirements_txt(self, file_path: Path, findings: List[Dict[str, Any]], errors: List[str], processed_deps: set) -> None:
+
+    def _parse_requirements_txt(
+        self,
+        file_path: Path,
+        findings: List[Dict[str, Any]],
+        errors: List[str],
+        processed_deps: set,
+    ) -> None:
         try:
             content = file_path.read_text(encoding="utf-8")
             for line in content.splitlines():
@@ -100,7 +111,7 @@ class DependencyScanner(BaseScanner):
                     continue
                 if ";" in line:
                     continue
-                
+
                 package_name, version = self._extract_package_and_version(line)
                 if package_name:
                     dep_key = (package_name.lower(), version)
@@ -108,23 +119,29 @@ class DependencyScanner(BaseScanner):
                         continue
                     processed_deps.add(dep_key)
                     findings.append(self._create_dependency_asset(package_name, version, file_path))
-                    
+
         except Exception as e:
             errors.append(f"Error parsing requirements.txt at {file_path}: {str(e)}")
 
-    def _parse_pyproject_toml(self, file_path: Path, findings: List[Dict[str, Any]], errors: List[str], processed_deps: set) -> None:
+    def _parse_pyproject_toml(
+        self,
+        file_path: Path,
+        findings: List[Dict[str, Any]],
+        errors: List[str],
+        processed_deps: set,
+    ) -> None:
         try:
             content = file_path.read_text(encoding="utf-8")
             data = tomllib.loads(content)
-            
+
             project_data = data.get("project", {})
             dependencies = project_data.get("dependencies", [])
-            
+
             for dep in dependencies:
                 line = dep.strip()
                 if ";" in line:
                     continue
-                    
+
                 package_name, version = self._extract_package_and_version(line)
                 if package_name:
                     dep_key = (package_name.lower(), version)
@@ -132,7 +149,7 @@ class DependencyScanner(BaseScanner):
                         continue
                     processed_deps.add(dep_key)
                     findings.append(self._create_dependency_asset(package_name, version, file_path))
-                    
+
         except Exception as e:
             errors.append(f"Error parsing pyproject.toml at {file_path}: {str(e)}")
 
@@ -143,35 +160,41 @@ class DependencyScanner(BaseScanner):
         delimiters = ["==", ">=", "<=", "~=", ">", "<", "!="]
         package_name = line
         version = None
-        
+
         for delim in delimiters:
             if delim in package_name:
                 parts = package_name.split(delim, 1)
                 package_name = parts[0].strip()
                 version = f"{delim}{parts[1].strip()}"
                 break
-                
+
             package_name = package_name.split("[")[0].strip()
-            
+
         return package_name, version
 
-    def _parse_go_mod(self, file_path: Path, findings: List[Dict[str, Any]], errors: List[str], processed_deps: set) -> None:
+    def _parse_go_mod(
+        self,
+        file_path: Path,
+        findings: List[Dict[str, Any]],
+        errors: List[str],
+        processed_deps: set,
+    ) -> None:
         try:
             content = file_path.read_text(encoding="utf-8")
             in_require_block = False
-            
+
             for line in content.splitlines():
                 line = line.strip()
                 if not line or line.startswith("//"):
                     continue
-                    
+
                 if line == "require (":
                     in_require_block = True
                     continue
                 elif line == ")" and in_require_block:
                     in_require_block = False
                     continue
-                    
+
                 # Direct requires in go.mod look like: "require github.com/foo/bar v1.2.3"
                 if line.startswith("require "):
                     parts = line.split()
@@ -186,16 +209,23 @@ class DependencyScanner(BaseScanner):
                         package_name = parts[0]
                         version = parts[1]
                         self._add_go_dep(package_name, version, file_path, findings, processed_deps)
-                        
+
         except Exception as e:
             errors.append(f"Error parsing {file_path.name} at {file_path}: {str(e)}")
-            
-    def _add_go_dep(self, package_name: str, version: str, file_path: Path, findings: List[Dict[str, Any]], processed_deps: set) -> None:
+
+    def _add_go_dep(
+        self,
+        package_name: str,
+        version: str,
+        file_path: Path,
+        findings: List[Dict[str, Any]],
+        processed_deps: set,
+    ) -> None:
         dep_key = (package_name.lower(), version)
         if dep_key in processed_deps:
             return
         processed_deps.add(dep_key)
-        
+
         # We temporarily override the asset creation logic for Go dependencies
         asset = CryptoAsset(
             asset_type=AssetType.DEPENDENCY,
@@ -208,7 +238,7 @@ class DependencyScanner(BaseScanner):
             metadata={
                 "package_name": package_name,
                 "version": version,
-                "manifest_file": file_path.name
-            }
+                "manifest_file": file_path.name,
+            },
         )
         findings.append(asset.model_dump(mode="json"))

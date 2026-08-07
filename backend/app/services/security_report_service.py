@@ -1,14 +1,16 @@
 from typing import List
-from app.models.security_report import SecurityReport
-from app.models.project_analysis import ProjectAnalysisResult
-from app.models.pqc_readiness import PQCReadinessAssessment
-from app.models.migration_roadmap import MigrationRoadmap
-from app.models.migration_recommendation import MigrationRecommendation
+
 from app.models.explanation import Explanation
+from app.models.migration_recommendation import MigrationRecommendation
+from app.models.migration_roadmap import MigrationRoadmap
+from app.models.pqc_readiness import PQCReadinessAssessment
+from app.models.project_analysis import ProjectAnalysisResult
+from app.models.security_report import SecurityReport
+
 
 class SecurityReportService:
     """
-    Service responsible for aggregating disparate analytical outputs, assessments, 
+    Service responsible for aggregating disparate analytical outputs, assessments,
     and explanations into a singular, comprehensive executive security report.
     """
 
@@ -21,17 +23,17 @@ class SecurityReportService:
         recommendations: List[MigrationRecommendation],
         explanations: List[Explanation],
         total_cves: int = 0,
-        mosca_status: str = "Unknown"
+        mosca_status: str = "Unknown",
     ) -> SecurityReport:
         """
-        Consolidates the entire analytical output of the AgileGraph pipeline into 
+        Consolidates the entire analytical output of the AgileGraph pipeline into
         a single, definitive SecurityReport artifact.
         """
         total_assets = readiness.total_crypto_assets
-        
+
         # High-risk assets are objectively defined as possessing a risk score of 75 or higher
         total_high_risk = sum(1 for rec in recommendations if rec.risk_score >= 75)
-        
+
         # Generate a deterministic, human-readable executive summary
         executive_summary = (
             f"AgileGraph successfully completed a cryptographic analysis sweep for project '{analysis_result.project_id}'. "
@@ -54,5 +56,5 @@ class SecurityReportService:
             recommendations=recommendations,
             explanations=explanations,
             total_cves=total_cves,
-            mosca_status=mosca_status
+            mosca_status=mosca_status,
         )

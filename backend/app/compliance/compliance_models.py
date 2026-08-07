@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from typing import List
+
+from pydantic import BaseModel
+
 
 class DatasetSummary(BaseModel):
     total_repositories: int
@@ -10,6 +12,7 @@ class DatasetSummary(BaseModel):
     total_dependencies: int
     total_nodes: int
     total_edges: int
+
 
 class ScannerCompliance(BaseModel):
     java_implemented: bool
@@ -22,12 +25,14 @@ class ScannerCompliance(BaseModel):
     semgrep_implemented: bool
     cbom_implemented: bool
 
+
 class GraphCompliance(BaseModel):
     node_types_verified: bool
     edge_types_verified: bool
     graph_builder_active: bool
     risk_propagation_active: bool
     schema_compliant: bool
+
 
 class MLCompliance(BaseModel):
     training_implemented: bool
@@ -36,6 +41,7 @@ class MLCompliance(BaseModel):
     benchmarking_implemented: bool
     ablation_implemented: bool
     explainability_implemented: bool
+
 
 class DashboardCompliance(BaseModel):
     overview_implemented: bool
@@ -48,10 +54,12 @@ class DashboardCompliance(BaseModel):
     sensitivity_implemented: bool
     reports_implemented: bool
 
+
 class ModuleStatus(BaseModel):
     name: str
-    status: str # "Implemented", "Partially Implemented", "Research-only", "Future Work"
+    status: str  # "Implemented", "Partially Implemented", "Research-only", "Future Work"
     notes: str = ""
+
 
 class ReadinessScore(BaseModel):
     architecture_readiness: float
@@ -59,6 +67,7 @@ class ReadinessScore(BaseModel):
     implementation_readiness: float
     synopsis_compliance_percentage: float
     overall_readiness_score: float
+
 
 class SynopsisComplianceReport(BaseModel):
     dataset_verification: DatasetSummary

@@ -1,13 +1,16 @@
 from enum import Enum
-from typing import Dict, Any, Optional
-from uuid import UUID, uuid4
 from pathlib import Path
+from typing import Any, Dict, Optional
+from uuid import UUID, uuid4
+
 from pydantic import BaseModel, Field
+
 
 class AssetType(str, Enum):
     """
     Enumeration of recognized cryptographic asset classifications.
     """
+
     KEY = "KEY"
     CERTIFICATE = "CERTIFICATE"
     HASH = "HASH"
@@ -17,19 +20,23 @@ class AssetType(str, Enum):
     JWT = "JWT"
     UNKNOWN = "UNKNOWN"
 
+
 class Severity(str, Enum):
     """
     Enumeration of risk severity levels associated with a cryptographic asset.
     """
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
+
 class CryptoAsset(BaseModel):
     """
     Core domain model representing a single cryptographic asset discovered during analysis.
     """
+
     asset_id: UUID = Field(default_factory=uuid4)
     asset_type: AssetType
     algorithm: Optional[str] = None

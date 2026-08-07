@@ -1,8 +1,9 @@
+import logging
 from pathlib import Path
 from typing import Dict, List, Set
-import logging
 
 logger = logging.getLogger(__name__)
+
 
 class DependencyMappingService:
     """
@@ -10,7 +11,7 @@ class DependencyMappingService:
     to extract import statements and generate normalized relationship telemetry.
     Strictly isolated from graph construction and GraphNode/GraphEdge creation.
     """
-    
+
     @staticmethod
     def map_dependencies(project_path: Path) -> Dict[str, List[str]]:
         """
@@ -18,18 +19,18 @@ class DependencyMappingService:
         Returns a mapping of normalized file paths to lists of imported package names (lowercased).
         """
         dependency_map: Dict[str, List[str]] = {}
-        
+
         if not project_path.exists() or not project_path.is_dir():
             return dependency_map
-            
+
         # Extensible point for adding Java and Go parsers in the future
         for file_path in sorted(project_path.rglob("*.py")):
             imports = DependencyMappingService._parse_python_imports(file_path)
             if imports:
                 dependency_map[file_path.as_posix()] = list(imports)
-                
+
         return dependency_map
-        
+
     @staticmethod
     def _parse_python_imports(file_path: Path) -> Set[str]:
         """
@@ -54,5 +55,5 @@ class DependencyMappingService:
                             imported_packages.add(top_level.lower())
         except Exception as e:
             logger.error(f"Error extracting imports from {file_path}: {e}")
-            
+
         return imported_packages

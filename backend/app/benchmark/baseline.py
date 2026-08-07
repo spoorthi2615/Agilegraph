@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+
+from app.benchmark.benchmark_result import BenchmarkResult
 from app.models.crypto_graph import CryptoGraph
 from app.models.training_dataset import TrainingDataset
-from app.benchmark.benchmark_result import BenchmarkResult
+
 
 class Baseline(ABC):
     """
@@ -9,6 +11,7 @@ class Baseline(ABC):
     Ensures that any statistical or heuristic engine can be swapped effortlessly
     into the BenchmarkRunner.
     """
+
     @abstractmethod
     def initialize(self) -> None:
         """
@@ -18,7 +21,7 @@ class Baseline(ABC):
     @abstractmethod
     def get_name(self) -> str:
         pass
-        
+
     @abstractmethod
     def get_version(self) -> str:
         pass

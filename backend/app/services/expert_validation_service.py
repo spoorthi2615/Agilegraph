@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
-from app.models.inference_result import InferenceResult
+
 from app.models.expert_validation import ExpertValidation
+from app.models.inference_result import InferenceResult
+
 
 class ExpertValidationService:
     """
@@ -17,7 +19,7 @@ class ExpertValidationService:
         node_id: str,
         expert_risk_score: float,
         expert_label: int,
-        comments: str = None
+        comments: str = None,
     ) -> ExpertValidation:
         """
         Locates the AI prediction for a specific node, compares it mathematically against
@@ -29,20 +31,22 @@ class ExpertValidationService:
             if prediction.node_id == node_id:
                 target_prediction = prediction
                 break
-                
+
         if target_prediction is None:
-            raise ValueError(f"Node UUID {node_id} was not found within the provided InferenceResult.")
-            
+            raise ValueError(
+                f"Node UUID {node_id} was not found within the provided InferenceResult."
+            )
+
         # 2. Extract AI predictions
         ai_risk_score = target_prediction.risk_score
         ai_label = target_prediction.label
-        
+
         # 3. Compute score difference (absolute mathematical variance)
         score_difference = abs(ai_risk_score - expert_risk_score)
-        
+
         # 4. Determine label agreement (strict categorical match)
-        agreement = (ai_label == expert_label)
-        
+        agreement = ai_label == expert_label
+
         # 5. Create immutable validation record
         return ExpertValidation(
             expert_id=expert_id,
@@ -59,6 +63,6 @@ class ExpertValidationService:
             metadata={
                 "inference_id": str(inference_result.inference_id),
                 "model_id": str(inference_result.model_id),
-                "dataset_id": str(inference_result.dataset_id)
-            }
+                "dataset_id": str(inference_result.dataset_id),
+            },
         )

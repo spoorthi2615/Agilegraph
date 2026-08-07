@@ -1,9 +1,12 @@
-from pydantic import BaseModel, Field, ConfigDict
 from typing import List
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 def to_camel(string: str) -> str:
     parts = string.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
 
 class ExplainabilityBaseModel(BaseModel):
     model_config = ConfigDict(
@@ -11,11 +14,13 @@ class ExplainabilityBaseModel(BaseModel):
         populate_by_name=True,
     )
 
+
 class FeatureImportance(ExplainabilityBaseModel):
     feature_name: str
     contribution: float = Field(default=0.0)
     normalized_weight: float = Field(default=0.0)
     positive_influence: bool = Field(default=True)
+
 
 class ImportantEdge(ExplainabilityBaseModel):
     source_node: str
@@ -24,9 +29,11 @@ class ImportantEdge(ExplainabilityBaseModel):
     importance_score: float = Field(default=0.0)
     confidence: float = Field(default=0.0)
 
+
 class GNNExplanation(ExplainabilityBaseModel):
     feature_importance: List[FeatureImportance] = Field(default_factory=list)
     important_edges: List[ImportantEdge] = Field(default_factory=list)
+
 
 class HeuristicBreakdown(ExplainabilityBaseModel):
     risk_formula_breakdown: str = Field(default="")
@@ -37,8 +44,10 @@ class HeuristicBreakdown(ExplainabilityBaseModel):
     exposure_score: int = Field(default=0)
     graph_centrality_score: int = Field(default=0)
 
+
 class HeuristicExplanation(ExplainabilityBaseModel):
     breakdown: HeuristicBreakdown = Field(default_factory=HeuristicBreakdown)
+
 
 class MigrationImpact(ExplainabilityBaseModel):
     recommended_pqc_algorithm: str = Field(default="")
@@ -47,14 +56,17 @@ class MigrationImpact(ExplainabilityBaseModel):
     migration_effort: int = Field(default=0)
     expected_readiness_improvement: int = Field(default=0)
 
+
 class ConfidenceMetrics(ExplainabilityBaseModel):
     overall_confidence: float = Field(default=0.0)
     model_certainty: float = Field(default=0.0)
     data_quality_score: float = Field(default=0.0)
 
+
 class ExplanationMetadata(ExplainabilityBaseModel):
     generated_at: str = Field(default="")
     model_version: str = Field(default="1.0")
+
 
 class AssetInformation(ExplainabilityBaseModel):
     asset_id: str
@@ -63,6 +75,7 @@ class AssetInformation(ExplainabilityBaseModel):
     algorithm: str = Field(default="Unknown")
     overall_risk: int = Field(default=0)
     overall_confidence: float = Field(default=0.0)
+
 
 class ExplainabilityResponse(ExplainabilityBaseModel):
     asset_information: AssetInformation

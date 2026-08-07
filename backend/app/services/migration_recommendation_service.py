@@ -1,6 +1,8 @@
 from typing import List
-from app.models.crypto_asset import CryptoAsset, AssetType
+
+from app.models.crypto_asset import AssetType, CryptoAsset
 from app.models.migration_recommendation import MigrationRecommendation, Priority
+
 
 class MigrationRecommendationService:
     """
@@ -15,9 +17,18 @@ class MigrationRecommendationService:
         "DES": ("AES-256", "DES uses a 56-bit key which is trivial to brute-force."),
         "3DES": ("AES-256", "3DES is slow and deprecated. AES-256 is the modern standard."),
         "DESEDE": ("AES-256", "DESede (3DES) is deprecated. AES-256 is the modern standard."),
-        "RSA": ("ML-KEM", "RSA is vulnerable to Shor's algorithm on a quantum computer. ML-KEM is the NIST standard for PQC key encapsulation."),
-        "EC": ("ML-DSA (or Hybrid)", "Elliptic Curve cryptography is vulnerable to quantum attacks. ML-DSA is the NIST PQC standard for digital signatures."),
-        "ECC": ("ML-DSA (or Hybrid)", "Elliptic Curve cryptography is vulnerable to quantum attacks. ML-DSA is the NIST PQC standard for digital signatures.")
+        "RSA": (
+            "ML-KEM",
+            "RSA is vulnerable to Shor's algorithm on a quantum computer. ML-KEM is the NIST standard for PQC key encapsulation.",
+        ),
+        "EC": (
+            "ML-DSA (or Hybrid)",
+            "Elliptic Curve cryptography is vulnerable to quantum attacks. ML-DSA is the NIST PQC standard for digital signatures.",
+        ),
+        "ECC": (
+            "ML-DSA (or Hybrid)",
+            "Elliptic Curve cryptography is vulnerable to quantum attacks. ML-DSA is the NIST PQC standard for digital signatures.",
+        ),
     }
 
     @classmethod
@@ -37,14 +48,14 @@ class MigrationRecommendationService:
                 continue
 
             algorithm = asset.algorithm.upper() if asset.algorithm else "UNKNOWN"
-            
+
             # Normalize ECC curve variations (e.g., "ECC (secp256r1)")
             lookup_algo = algorithm
             if lookup_algo.startswith("ECC") or lookup_algo.startswith("EC"):
                 lookup_algo = "EC"
-                
+
             migration_data = cls._MIGRATION_MAP.get(lookup_algo)
-            
+
             if migration_data:
                 recommended_algorithm, rationale = migration_data
             else:
@@ -60,10 +71,10 @@ class MigrationRecommendationService:
                 severity=asset.severity,
                 recommended_algorithm=recommended_algorithm,
                 priority=priority,
-                rationale=rationale
+                rationale=rationale,
             )
             recommendations.append(rec)
-            
+
         return recommendations
 
     @classmethod

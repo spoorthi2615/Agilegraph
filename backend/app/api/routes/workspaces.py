@@ -1,8 +1,11 @@
-from fastapi import APIRouter
 from typing import List
+
+from fastapi import APIRouter
+
 from app.models.topbar import Workspace
 
 router = APIRouter()
+
 
 @router.get("/all", response_model=List[Workspace])
 def get_workspaces() -> List[Workspace]:

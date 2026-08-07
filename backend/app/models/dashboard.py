@@ -1,15 +1,19 @@
-from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 def to_camel(string: str) -> str:
     parts = string.split("_")
     return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
 
 class DashboardBaseModel(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
     )
+
 
 class KPISummary(DashboardBaseModel):
     total_assets: int = Field(default=0)
@@ -21,24 +25,29 @@ class KPISummary(DashboardBaseModel):
     pqc_readiness: int = Field(default=0)
     last_scan: str = Field(default="N/A")
 
+
 class RiskDistribution(DashboardBaseModel):
     name: str
     value: int
     color: str
 
+
 class AlgorithmUsage(DashboardBaseModel):
     algorithm: str
     count: int
+
 
 class DepartmentUsage(DashboardBaseModel):
     department: str
     assets: int
     critical: int
 
+
 class MigrationTrend(DashboardBaseModel):
     month: str
     migrated: int
     planned: int
+
 
 class ScanRecord(DashboardBaseModel):
     id: str
@@ -51,6 +60,7 @@ class ScanRecord(DashboardBaseModel):
     status: str
     owner_email: Optional[str] = None
 
+
 class ActivityItem(DashboardBaseModel):
     id: str
     actor: str
@@ -59,12 +69,14 @@ class ActivityItem(DashboardBaseModel):
     time: str
     kind: str
 
+
 class CriticalAlert(DashboardBaseModel):
     id: str
     title: str
     reason: str
     score: int
     owner_email: Optional[str] = None
+
 
 class DashboardSummary(DashboardBaseModel):
     kpis: KPISummary = Field(default_factory=KPISummary)
@@ -76,6 +88,7 @@ class DashboardSummary(DashboardBaseModel):
     activity: List[ActivityItem] = Field(default_factory=list)
     critical_alerts: List[CriticalAlert] = Field(default_factory=list)
 
+
 class DashboardNode(DashboardBaseModel):
     id: str
     label: str
@@ -84,13 +97,16 @@ class DashboardNode(DashboardBaseModel):
     x: float
     y: float
 
+
 class DashboardEdge(DashboardBaseModel):
     source: str
     target: str
 
+
 class DashboardGraph(DashboardBaseModel):
     nodes: List[DashboardNode] = Field(default_factory=list)
     edges: List[DashboardEdge] = Field(default_factory=list)
+
 
 class ReportRecord(DashboardBaseModel):
     id: str

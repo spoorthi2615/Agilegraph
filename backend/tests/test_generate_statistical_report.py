@@ -20,16 +20,19 @@ def test_generate_statistical_report(tmp_path, monkeypatch):
     
     # Create fixture JSON files
     results_data = {
+        "run_id": "295ddf1e",
         "ablation_f1": {
-            "Full Model": {"f1": 0.92},
-            "No Heuristics": {"f1": 0.85}
+            "Full Model": {"mean": 0.92},
+            "No Heuristics": {"mean": 0.85}
         }
     }
     stats_data = {
-        "Full Model": {"ci_lower": 0.90, "ci_upper": 0.94},
+        "run_id": "295ddf1e",
+        "Full Model": {"mean_f1": 0.92, "ci_lower": 0.90, "ci_upper": 0.94},
         "kappa": {"Full Model": {"score": 0.88}}
     }
     preds_data = {
+        "run_id": "295ddf1e",
         "Full Model": [1, 0, 1],
         "CBOMkit Baseline": [0, 0, 1]
     }
@@ -63,9 +66,9 @@ def test_generate_statistical_report_empty_dataset(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     os.makedirs("research", exist_ok=True)
     
-    results_data = {"ablation_f1": {}}
-    stats_data = {"kappa": {}}
-    preds_data = {}
+    results_data = {"run_id": "44136fa3", "ablation_f1": {}}
+    stats_data = {"run_id": "44136fa3", "kappa": {}}
+    preds_data = {"run_id": "44136fa3"}
     
     with open("research/results.json", "w") as f:
         json.dump(results_data, f)

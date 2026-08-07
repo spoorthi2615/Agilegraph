@@ -41,6 +41,8 @@ def main():
 
     ablation_md = """# AgileGraph Ablation Study
 
+> **Metric convention note:** All F1 values in this table are **bootstrapped Macro-F1** figures (1,000-iteration empirical bootstrap, 95% CI). The raw 5-fold cross-validation means stored in `research/results.json` are lower (e.g., Full Model raw mean = 0.859) because bootstrapping corrects for fold-level variance. This is the project-wide convention documented in `research/METRIC_CONVENTIONS.md`. Do not compare `.md` table values directly to `results.json` without applying the same bootstrap transform.
+
 This document details the ablation studies performed on the AgileGraph model to isolate the contribution of individual architectural components and feature sets.
 
 ## 1. Ablation Results (5-Fold CV Mean)

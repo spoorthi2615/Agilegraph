@@ -35,8 +35,12 @@ class Settings(BaseSettings):
 
     # Security / CORS
     CORS_ORIGINS: str = Field(default="")
+    SUPABASE_URL: str = Field(
+        default="https://edwxfhoaxqhngvrcnieb.supabase.co", 
+        description="The Supabase Project URL for fetching JWKS"
+    )
     SUPABASE_JWT_SECRET: str = Field(
-        default="", description="JWT secret from Supabase to verify tokens"
+        default="", description="JWT secret from Supabase to verify tokens (Legacy HS256)"
     )
     ADMIN_EMAILS: str = Field(
         default="",

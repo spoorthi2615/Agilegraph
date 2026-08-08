@@ -34,13 +34,27 @@ def get_current_user(
         unverified_header = jwt.get_unverified_header(token)
         token_alg = unverified_header.get("alg", "HS256")
         
-        # TEMPORARY FIX FOR DEMO: Bypass signature verification because
-        # Supabase migrated the project to asymmetric keys and the backend only has the legacy secret.
-        payload = jwt.decode(
-            token,
-            options={"verify_signature": False},
-            audience="authenticated",
-        )
+        # Verify the signature properly
+        if token_alg == "HS256":
+            # Legacy symmetric signature
+            payload = jwt.decode(
+                token,
+                settings.SUPABASE_JWT_SECRET,
+                algorithms=[token_alg],
+                audience="authenticated",
+            )
+        else:
+            # Asymmetric signature (RS256, ES256, etc.) using Supabase JWKS
+            jwks_url = f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json"
+            jwks_client = jwt.PyJWKClient(jwks_url)
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            
+            payload = jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=[token_alg],
+                audience="authenticated",
+            )
 
         user_id = payload.get("sub")
         email = payload.get("email", "")

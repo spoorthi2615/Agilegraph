@@ -18,6 +18,7 @@ export const api = {
     formData.append("file", file);
     return apiClient.post<ScanStatusResponse>("/upload", {
       body: formData,
+      timeout: 300000, // 5 minutes to accommodate large files and slow network speeds
     });
   },
 

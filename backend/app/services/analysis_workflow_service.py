@@ -175,7 +175,9 @@ class AnalysisWorkflowService:
 
         except Exception as e:
             from app.services.scan_status_service import ScanStage, ScanStatusService
+            import logging
 
+            logging.error(f"[{project_id}] Pipeline execution failed: {str(e)}", exc_info=True)
             ScanStatusService.set_status(project_id, ScanStage.FAILED)
             raise e
         finally:

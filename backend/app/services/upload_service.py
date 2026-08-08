@@ -75,12 +75,23 @@ class UploadService:
                 # Sanitize extracted paths
                 for member in zip_ref.namelist():
                     member_path = os.path.normpath(member)
-                    if member_path.startswith("..") or member_path.startswith("/"):
+                    # Check for zip slip and absolute paths on both Unix and Windows
+                    if (
+                        member_path.startswith("..") 
+                        or member_path.startswith("/") 
+                        or member_path.startswith("\\")
+                        or (len(member_path) > 1 and member_path[1] == ":")
+                    ):
                         raise ValidationException(f"Zip slip detected in path: {member}")
                 zip_ref.extractall(extracted_dir)
         except zipfile.BadZipFile:
             ScanStatusService.set_status(project_id, ScanStage.FAILED)
             raise ValidationException("Uploaded file is not a valid ZIP archive.")
+        except Exception as e:
+            ScanStatusService.set_status(project_id, ScanStage.FAILED)
+            if isinstance(e, ValidationException):
+                raise e
+            raise AgileGraphException(f"Failed to extract ZIP file: {str(e)}")
 
         # Execute pipeline in background
         from pathlib import Path

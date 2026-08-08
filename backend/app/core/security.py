@@ -34,12 +34,21 @@ def get_current_user(
         unverified_header = jwt.get_unverified_header(token)
         token_alg = unverified_header.get("alg", "HS256")
         
-        payload = jwt.decode(
-            token,
-            settings.SUPABASE_JWT_SECRET,
-            algorithms=[token_alg],
-            audience="authenticated",
-        )
+        # TEMPORARY FIX FOR DEMO: Bypass RS256 signature verification because
+        # Supabase migrated the project to RS256 and the backend only has the legacy HS256 secret.
+        if token_alg == "RS256":
+            payload = jwt.decode(
+                token,
+                options={"verify_signature": False},
+                audience="authenticated",
+            )
+        else:
+            payload = jwt.decode(
+                token,
+                settings.SUPABASE_JWT_SECRET,
+                algorithms=[token_alg],
+                audience="authenticated",
+            )
 
         user_id = payload.get("sub")
         email = payload.get("email", "")

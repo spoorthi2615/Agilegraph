@@ -20,14 +20,13 @@ def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[User]:
     if not credentials:
-        # If no auth token is provided, return None or raise Exception depending on strictness.
-        # For now, to gracefully degrade, we return None and allow routes to handle it.
+        print("AUTH ERROR: No credentials provided (missing Authorization header)")
         return None
 
     token = credentials.credentials
 
     if not settings.SUPABASE_JWT_SECRET:
-        # If secret isn't configured, fallback gracefully to anonymous
+        print("AUTH ERROR: SUPABASE_JWT_SECRET is empty in environment variables!")
         return None
 
     try:
@@ -42,6 +41,7 @@ def get_current_user(
         email = payload.get("email", "")
 
         if not user_id:
+            print("AUTH ERROR: JWT decoded successfully, but 'sub' (user_id) is missing.")
             return None
 
         admin_emails = [e.strip().lower() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
@@ -49,7 +49,14 @@ def get_current_user(
 
         return User(user_id=user_id, email=email, is_admin=is_admin)
 
-    except jwt.PyJWTError:
+    except jwt.ExpiredSignatureError:
+        print("AUTH ERROR: Token has expired!")
+        return None
+    except jwt.InvalidAudienceError:
+        print("AUTH ERROR: Invalid audience (expected 'authenticated')")
+        return None
+    except jwt.PyJWTError as e:
+        print(f"AUTH ERROR: Failed to decode JWT. Secret might be wrong. Error: {e}")
         return None
 
 

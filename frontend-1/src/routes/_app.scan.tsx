@@ -29,7 +29,7 @@ import {
 import { api } from "@/services/api";
 import { Dropzone } from "@/components/ui/dropzone";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_app/scan")({
   component: ScanPage,
@@ -46,6 +46,7 @@ export const Route = createFileRoute("/_app/scan")({
 
 function ScanPage() {
   const [running, setRunning] = useState(false);
+  const queryClient = useQueryClient();
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("Idle");
   const { data: dashboardData } = useDashboardSummary();
@@ -97,6 +98,10 @@ function ScanPage() {
 
       if (s === "completed") {
         setRunning(false);
+        queryClient.invalidateQueries({ queryKey: ["dashboardSummary"] });
+        queryClient.invalidateQueries({ queryKey: ["graph"] });
+        queryClient.invalidateQueries({ queryKey: ["assets"] });
+        queryClient.invalidateQueries({ queryKey: ["mosca"] });
         toast.success("Scan complete", { description: "Graph successfully built in Neo4j." });
       } else if (s === "failed") {
         setRunning(false);

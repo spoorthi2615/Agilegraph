@@ -30,10 +30,14 @@ def get_current_user(
         return None
 
     try:
+        # Extract the algorithm dynamically from the token header
+        unverified_header = jwt.get_unverified_header(token)
+        token_alg = unverified_header.get("alg", "HS256")
+        
         payload = jwt.decode(
             token,
             settings.SUPABASE_JWT_SECRET,
-            algorithms=["HS256"],
+            algorithms=[token_alg],
             audience="authenticated",
         )
 
@@ -41,7 +45,7 @@ def get_current_user(
         email = payload.get("email", "")
 
         if not user_id:
-            print("AUTH ERROR: JWT decoded successfully, but 'sub' (user_id) is missing.")
+            print(f"AUTH ERROR: JWT decoded with {token_alg}, but 'sub' is missing.")
             return None
 
         admin_emails = [e.strip().lower() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
@@ -56,7 +60,8 @@ def get_current_user(
         print("AUTH ERROR: Invalid audience (expected 'authenticated')")
         return None
     except jwt.PyJWTError as e:
-        print(f"AUTH ERROR: Failed to decode JWT. Secret might be wrong. Error: {e}")
+        unverified_header = jwt.get_unverified_header(token) if token else {}
+        print(f"AUTH ERROR: Failed to decode JWT. Header: {unverified_header}, Error: {e}")
         return None
 
 

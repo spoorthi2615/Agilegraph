@@ -16,6 +16,12 @@ class User:
         self.is_admin = is_admin
 
 
+# Initialize PyJWKClient globally to take advantage of its internal caching
+# This prevents fetching the JWKS on every single API request, which avoids rate limiting
+jwks_url = f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json"
+jwks_client = jwt.PyJWKClient(jwks_url)
+
+
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[User]:
@@ -44,14 +50,19 @@ def get_current_user(
                 audience="authenticated",
             )
         else:
-            # Asymmetric signature (RS256, ES256, etc.) using Supabase JWKS
-            jwks_url = f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json"
-            jwks_client = jwt.PyJWKClient(jwks_url)
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            try:
+                signing_key = jwks_client.get_signing_key_from_jwt(token).key
+            except jwt.exceptions.PyJWKClientError:
+                # If 'kid' is missing from the token header, fallback to the first key in the JWKS
+                keys = jwks_client.get_signing_keys()
+                if not keys:
+                    print("AUTH ERROR: No keys found in Supabase JWKS endpoint")
+                    return None
+                signing_key = keys[0].key
             
             payload = jwt.decode(
                 token,
-                signing_key.key,
+                signing_key,
                 algorithms=[token_alg],
                 audience="authenticated",
             )

@@ -23,7 +23,8 @@ class KPISummary(DashboardBaseModel):
     low: int = Field(default=0)
     migration_progress: int = Field(default=0)
     pqc_readiness: int = Field(default=0)
-    last_scan: str = Field(default="N/A")
+    last_scan: str = Field(default="No scans yet")
+    active_migrations: int = Field(default=0)
 
 
 class RiskDistribution(DashboardBaseModel):

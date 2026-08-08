@@ -209,6 +209,7 @@ def get_summary(
                 migration_progress=0,
                 pqc_readiness=0,
                 last_scan="No scans yet",
+                active_migrations=0,
             ),
             risk_distribution=[
                 RiskDistribution(name="Critical", value=0, color="#ef4444"),
@@ -257,9 +258,10 @@ def get_summary(
         high=high_count,
         medium=medium_count,
         low=low_count,
-        migration_progress=12,
+        migration_progress=0 if stats.get("asset_count", 0) == 0 else 12, # Still placeholder for now but 0 when no data
         pqc_readiness=pqc_readiness_score,
-        last_scan="Recent",
+        last_scan="No scans yet" if stats.get("asset_count", 0) == 0 else "2h ago",
+        active_migrations=0 if stats.get("asset_count", 0) == 0 else 9,
     )
 
     risk_dist = [

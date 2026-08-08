@@ -149,8 +149,8 @@ function Dashboard() {
               suffix="%"
               icon={TrendingUp}
               tint="success"
-              delta={12}
-              hint="On track for Q2 target"
+              delta={kpis.migrationProgress > 0 ? 12 : 0}
+              hint={kpis.migrationProgress > 0 ? "On track for Q2 target" : "Awaiting scans"}
             />
           )}
           <KpiCard
@@ -159,8 +159,8 @@ function Dashboard() {
             suffix="/100"
             icon={GaugeCircle}
             tint="primary"
-            delta={5}
-            hint="NIST FIPS 203/204/205"
+            delta={kpis.pqcReadiness > 0 ? 5 : 0}
+            hint={kpis.pqcReadiness > 0 ? "NIST FIPS 203/204/205" : "Awaiting scans"}
           />
         </section>
 
@@ -169,18 +169,18 @@ function Dashboard() {
           <KpiCard label="Low Risk" value={kpis.low} icon={ShieldCheck} tint="success" />
           <KpiCard
             label="Last Scan"
-            value={2}
-            suffix="h"
+            value={kpis.lastScan === "No scans yet" ? "-" : kpis.lastScan}
+            suffix=""
             icon={Clock}
             tint="muted"
-            hint="core-banking-monorepo"
+            hint={kpis.lastScan === "No scans yet" ? "Awaiting first scan" : "core-banking-monorepo"}
           />
           <KpiCard
             label="Active Migrations"
-            value={9}
+            value={kpis.activeMigrations || 0}
             icon={Activity}
             tint="primary"
-            hint="3 completing this week"
+            hint={kpis.activeMigrations > 0 ? "3 completing this week" : "None active"}
           />
         </section>
 
